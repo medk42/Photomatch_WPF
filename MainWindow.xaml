@@ -24,7 +24,7 @@
                 <Image x:Name="MainImage"></Image>
             </Viewbox>
 
-            <Path x:Name="MainPath" Stroke="Red" StrokeThickness="2"/>
+            <Path x:Name="MainPath" Stroke="Red" Fill="Red"/>
         </Grid>
         
     </DockPanel>

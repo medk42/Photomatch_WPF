@@ -25,6 +25,12 @@ namespace Photomatch_ProofOfConcept_WPF
 	{
 		private ILogger Logger = null;
 		private List<Perspective> perspectives = new List<Perspective>();
+		private List<IMouseEvents> mouseListeners = new List<IMouseEvents>();
+		private List<IScalable> scalables = new List<IScalable>();
+
+		private static readonly double LineEndRadius = 4;
+		private static readonly double LineEndGrabRadius = 8;
+		private static readonly double LineStrokeThickness = 1;
 
 		public MainWindow()
 		{
@@ -36,6 +42,9 @@ namespace Photomatch_ProofOfConcept_WPF
 			Logger = multiLogger;
 
 			MainPath.Data = geometry;
+			geometry.FillRule = FillRule.Nonzero;
+
+			MainPath.StrokeThickness = LineStrokeThickness;
 		}
 
 		private void MenuItem_Click(object sender, RoutedEventArgs e)
@@ -79,53 +88,82 @@ namespace Photomatch_ProofOfConcept_WPF
 				var perspective = new Perspective(image);
 				perspectives.Add(perspective);
 				perspective.Apply(MainImage);
+
+				CreateDraggableLine(perspective.LineX1);
+				CreateDraggableLine(perspective.LineY1);
+				CreateDraggableLine(perspective.LineX2);
+				CreateDraggableLine(perspective.LineY2);
 			}
+		}
+
+		private void CreateDraggableLine(LineGeometry line)
+		{
+			DraggableLineGeometry draggableLine = new DraggableLineGeometry(line, LineEndRadius);
+			geometry.Children.Add(draggableLine.GetGeometry());
+			DraggableLineEvents draggableLineEvents = new DraggableLineEvents(draggableLine, LineEndGrabRadius, MainImage);
+			mouseListeners.Add(draggableLineEvents);
+			scalables.Add(draggableLine);
+			scalables.Add(draggableLineEvents);
 		}
 
 
 		// testing  stuff START
 
-		List<Line> lines = new List<Line>();
-
-		Line line = null;
 		LineGeometry lineGeometry = null;
-
 		GeometryGroup geometry = new GeometryGroup();
 
 		private void MainCanvas_MouseDown(object sender, MouseButtonEventArgs e)
 		{
-			if (e.ChangedButton == MouseButton.Left)
+			foreach (var listener in mouseListeners)
+			{
+				if (listener.MouseDown(sender, e))
+					break;
+			}
+
+			/*if (e.ChangedButton == MouseButton.Left)
 			{
 				Point eventPos = e.GetPosition(MainImage);
 
 				lineGeometry = new LineGeometry(eventPos, eventPos);
 				geometry.Children.Add(lineGeometry);
-			}
+			}*/
 
 			Logger.Log("Mouse Event", $"Mouse Down at {e.GetPosition(MainImage).X}, {e.GetPosition(MainImage).Y} by {e.ChangedButton}", LogType.Info);
 		}
 
 		private void MainCanvas_MouseUp(object sender, MouseButtonEventArgs e)
 		{
-			if (e.ChangedButton == MouseButton.Left && lineGeometry != null)
+			foreach (var listener in mouseListeners)
+			{
+				if (listener.MouseUp(sender, e))
+					break;
+			}
+
+			/*if (e.ChangedButton == MouseButton.Left && lineGeometry != null)
 			{
 				Point eventPos = e.GetPosition(MainImage);
 
 				lineGeometry.EndPoint = eventPos;
 				lineGeometry = null;
-			}
+			}*/
 
 			Logger.Log("Mouse Event", $"Mouse Up at {e.GetPosition(MainImage).X}, {e.GetPosition(MainImage).Y} by {e.ChangedButton}", LogType.Info);
 		}
 
 		private void MainCanvas_MouseMove(object sender, MouseEventArgs e)
 		{
-			if (lineGeometry != null)
+			foreach (var listener in mouseListeners)
+			{
+				if (listener.MouseMove(sender, e))
+					break;
+			}
+
+			/*if (lineGeometry != null)
 			{
 				Point eventPos = e.GetPosition(MainImage);
 
 				lineGeometry.EndPoint = eventPos;
-			}
+			}*/
 
 			Logger.Log("Mouse Event", $"Mouse Move at {e.GetPosition(MainImage).X}, {e.GetPosition(MainImage).Y} (MainCanvas) and at {e.GetPosition(MainImage).X}, {e.GetPosition(MainImage).Y} (MainImage)", LogType.Info);
 		}
@@ -136,8 +174,19 @@ namespace Photomatch_ProofOfConcept_WPF
 
 			Matrix transform = GetRectToRectTransform(new Rect(MainImage.RenderSize), new Rect(MainImage.TranslatePoint(new Point(0, 0), MainPath), MainViewbox.RenderSize));
 			geometry.Transform = new MatrixTransform(transform);
+
+			double scale = MainViewbox.ActualHeight / MainImage.ActualHeight;
+			foreach (var scalable in scalables)
+			{
+				scalable.SetNewScale(scale);
+			}
+
+			Logger.Log("Size Change Event", $"{MainImage.RenderSize} => {MainViewbox.RenderSize} with scale {scale}x", LogType.Info);
 		}
 
+		/// <summary>
+		/// Source: https://stackoverflow.com/questions/724139/invariant-stroke-thickness-of-path-regardless-of-the-scale
+		/// </summary>
 		private static Matrix GetRectToRectTransform(Rect from, Rect to)
 		{
 			Matrix transform = Matrix.Identity;
@@ -238,14 +287,190 @@ namespace Photomatch_ProofOfConcept_WPF
 	{
 		public BitmapImage Image { get; }
 
+		public LineGeometry LineX1 { get; } = new LineGeometry(new Point(0.52, 0.19), new Point(0.76, 0.28));
+		public LineGeometry LineX2 { get; } = new LineGeometry(new Point(0.35, 0.67), new Point(0.46, 0.82));
+		public LineGeometry LineY1 { get; } = new LineGeometry(new Point(0.27, 0.31), new Point(0.48, 0.21));
+		public LineGeometry LineY2 { get; } = new LineGeometry(new Point(0.55, 0.78), new Point(0.71, 0.68));
+
 		public Perspective(BitmapImage image)
 		{
 			Image = image;
+
+			ScaleLine(LineX1, image.Width, image.Height);
+			ScaleLine(LineX2, image.Width, image.Height);
+			ScaleLine(LineY1, image.Width, image.Height);
+			ScaleLine(LineY2, image.Width, image.Height);
+		}
+
+		private void ScaleLine(LineGeometry line, double xStretch, double yStretch)
+		{
+			line.StartPoint = new Point(line.StartPoint.X * xStretch, line.StartPoint.Y * yStretch);
+			line.EndPoint = new Point(line.EndPoint.X * xStretch, line.EndPoint.Y * yStretch);
 		}
 
 		public void Apply(Image imageGUI)
 		{
 			imageGUI.Source = Image;
+		}
+	}
+
+	interface IScalable
+	{
+		void SetNewScale(double scale);
+	}
+
+	class DraggableLineGeometry : IScalable
+	{
+		private GeometryGroup geometry = new GeometryGroup();
+		private LineGeometry line;
+		private EllipseGeometry startPointEllipse;
+		private EllipseGeometry endPointEllipse;
+		private double endRadius;
+
+		public Point StartPoint
+		{
+			get => line.StartPoint;
+			set
+			{
+				line.StartPoint = value;
+				startPointEllipse.Center = value;
+			}
+		}
+
+		public Point EndPoint
+		{
+			get => line.EndPoint;
+			set
+			{
+				line.EndPoint = value;
+				endPointEllipse.Center = value;
+			}
+		}
+
+		public DraggableLineGeometry(LineGeometry line, double endRadius)
+		{
+			this.line = line;
+			this.endRadius = endRadius;
+
+			startPointEllipse = new EllipseGeometry(this.line.StartPoint, endRadius, endRadius);
+			endPointEllipse = new EllipseGeometry(this.line.EndPoint, endRadius, endRadius);
+
+			geometry.Children.Add(this.line);
+			geometry.Children.Add(startPointEllipse);
+			geometry.Children.Add(endPointEllipse);
+		}
+
+		public Geometry GetGeometry()
+		{
+			return geometry;
+		}
+
+		public void SetNewScale(double scale)
+		{
+			startPointEllipse.RadiusX = endRadius / scale;
+			startPointEllipse.RadiusY = endRadius / scale;
+			endPointEllipse.RadiusX = endRadius / scale;
+			endPointEllipse.RadiusY = endRadius / scale;
+		}
+	}
+
+
+	/// <summary>
+	/// Bool return value means whether object wants to stop other object from getting the event (if there are two movable objects on top of each other, we only want to move one)
+	/// </summary>
+	interface IMouseEvents
+	{
+		bool MouseDown(object sender, MouseButtonEventArgs e);
+		bool MouseUp(object sender, MouseButtonEventArgs e);
+		bool MouseMove(object sender, MouseEventArgs e);
+	}
+
+	class DraggableLineEvents : IMouseEvents, IScalable
+	{
+		private DraggableLineGeometry line;
+		private double endMouseRadiusSquared;
+		private double currentScaleSquared = 1;
+		private IInputElement positionRelativeToElement;
+
+		private Vector? draggingStartOffset = null;
+		private Vector? draggingEndOffset = null;
+
+		public DraggableLineEvents(DraggableLineGeometry line, double endMouseRadius, IInputElement positionRelativeToElement)
+		{
+			this.line = line;
+			this.endMouseRadiusSquared = endMouseRadius * endMouseRadius;
+			this.positionRelativeToElement = positionRelativeToElement;
+		}
+
+		public bool MouseMove(object sender, MouseEventArgs e)
+		{
+			if (draggingStartOffset != null)
+			{
+				Point eventPos = e.GetPosition(positionRelativeToElement);
+				line.StartPoint = Point.Add(eventPos, draggingStartOffset.Value);
+				return true;
+			}
+
+			if (draggingEndOffset != null)
+			{
+				Point eventPos = e.GetPosition(positionRelativeToElement);
+				line.EndPoint = Point.Add(eventPos, draggingEndOffset.Value);
+				return true;
+			}
+
+			return false;
+		}
+
+		public bool MouseUp(object sender, MouseButtonEventArgs e)
+		{
+			if (e.ChangedButton != MouseButton.Left)
+				return false;
+
+			if (draggingStartOffset != null)
+			{
+				draggingStartOffset = null;
+				return true;
+			}
+
+			if (draggingEndOffset != null)
+			{
+				draggingEndOffset = null;
+				return true;
+			}
+
+			return false;
+		}
+
+		public bool MouseDown(object sender, MouseButtonEventArgs e)
+		{
+			if (e.ChangedButton != MouseButton.Left)
+				return false;
+			
+			Point eventPos = e.GetPosition(positionRelativeToElement);
+
+			// check start point
+			Vector startOffset = Point.Subtract(line.StartPoint, eventPos);
+			if (startOffset.LengthSquared < endMouseRadiusSquared / currentScaleSquared)
+			{
+				draggingStartOffset = startOffset;
+				return true;
+			}
+
+
+			// check end point
+			Vector endOffset = Point.Subtract(line.EndPoint, eventPos);
+			if (endOffset.LengthSquared < endMouseRadiusSquared / currentScaleSquared)
+			{
+				draggingEndOffset = endOffset;
+				return true;
+			}
+
+			return false;
+		}
+
+		public void SetNewScale(double scale)
+		{
+			currentScaleSquared = scale * scale;
 		}
 	}
 }
