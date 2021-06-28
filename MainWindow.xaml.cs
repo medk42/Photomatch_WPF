@@ -34,6 +34,8 @@ namespace Photomatch_ProofOfConcept_WPF
 			multiLogger.Loggers.Add(new StatusStripLogger(StatusText));
 			multiLogger.Loggers.Add(new WarningErrorGUILogger());
 			Logger = multiLogger;
+
+			MainPath.Data = geometry;
 		}
 
 		private void MenuItem_Click(object sender, RoutedEventArgs e)
@@ -86,63 +88,64 @@ namespace Photomatch_ProofOfConcept_WPF
 		List<Line> lines = new List<Line>();
 
 		Line line = null;
+		LineGeometry lineGeometry = null;
+
+		GeometryGroup geometry = new GeometryGroup();
 
 		private void MainCanvas_MouseDown(object sender, MouseButtonEventArgs e)
 		{
 			if (e.ChangedButton == MouseButton.Left)
 			{
-				Point eventPos = e.GetPosition(MainCanvas);
+				Point eventPos = e.GetPosition(MainImage);
 
-				line = new Line();
-				line.Stroke = Brushes.Red;
-				line.X1 = eventPos.X;
-				line.Y1 = eventPos.Y;
-				line.X2 = eventPos.X;
-				line.Y2 = eventPos.Y;
-				line.StrokeThickness = MainCanvas.ActualWidth / MainViewbox.ActualWidth;
-
-				MainCanvas.Children.Add(line);
-				lines.Add(line);
+				lineGeometry = new LineGeometry(eventPos, eventPos);
+				geometry.Children.Add(lineGeometry);
 			}
 
-			Logger.Log("Mouse Event", $"Mouse Down at {e.GetPosition(MainCanvas).X}, {e.GetPosition(MainCanvas).Y} by {e.ChangedButton}", LogType.Info);
+			Logger.Log("Mouse Event", $"Mouse Down at {e.GetPosition(MainImage).X}, {e.GetPosition(MainImage).Y} by {e.ChangedButton}", LogType.Info);
 		}
 
 		private void MainCanvas_MouseUp(object sender, MouseButtonEventArgs e)
 		{
-			if (e.ChangedButton == MouseButton.Left && line != null)
+			if (e.ChangedButton == MouseButton.Left && lineGeometry != null)
 			{
-				Point eventPos = e.GetPosition(MainCanvas);
+				Point eventPos = e.GetPosition(MainImage);
 
-				line.X2 = eventPos.X;
-				line.Y2 = eventPos.Y;
-
-				line = null;
+				lineGeometry.EndPoint = eventPos;
+				lineGeometry = null;
 			}
 
-			Logger.Log("Mouse Event", $"Mouse Up at {e.GetPosition(MainCanvas).X}, {e.GetPosition(MainCanvas).Y} by {e.ChangedButton}", LogType.Info);
+			Logger.Log("Mouse Event", $"Mouse Up at {e.GetPosition(MainImage).X}, {e.GetPosition(MainImage).Y} by {e.ChangedButton}", LogType.Info);
 		}
 
 		private void MainCanvas_MouseMove(object sender, MouseEventArgs e)
 		{
-			if (line != null)
+			if (lineGeometry != null)
 			{
-				Point eventPos = e.GetPosition(MainCanvas);
+				Point eventPos = e.GetPosition(MainImage);
 
-				line.X2 = eventPos.X;
-				line.Y2 = eventPos.Y;
+				lineGeometry.EndPoint = eventPos;
 			}
 
-			Logger.Log("Mouse Event", $"Mouse Move at {e.GetPosition(MainCanvas).X}, {e.GetPosition(MainCanvas).Y} (MainCanvas) and at {e.GetPosition(MainImage).X}, {e.GetPosition(MainImage).Y} (MainImage)", LogType.Info);
+			Logger.Log("Mouse Event", $"Mouse Move at {e.GetPosition(MainImage).X}, {e.GetPosition(MainImage).Y} (MainCanvas) and at {e.GetPosition(MainImage).X}, {e.GetPosition(MainImage).Y} (MainImage)", LogType.Info);
 		}
 
 		private void MainViewbox_SizeChanged(object sender, SizeChangedEventArgs e)
 		{
-			Logger.Log("Size Change Event", $"{MainCanvas.RenderSize} => {MainViewbox.RenderSize}", LogType.Info);
-			foreach (var line in lines)
-			{
-				line.StrokeThickness = MainCanvas.ActualWidth / MainViewbox.ActualWidth;
-			}
+			Logger.Log("Size Change Event", $"{MainImage.RenderSize} => {MainViewbox.RenderSize}", LogType.Info);
+
+			Matrix transform = GetRectToRectTransform(new Rect(MainImage.RenderSize), new Rect(MainImage.TranslatePoint(new Point(0, 0), MainPath), MainViewbox.RenderSize));
+			geometry.Transform = new MatrixTransform(transform);
+		}
+
+		private static Matrix GetRectToRectTransform(Rect from, Rect to)
+		{
+			Matrix transform = Matrix.Identity;
+			transform.Translate(-from.X, -from.Y);
+			transform.Scale(to.Width / from.Width, to.Height / from.Height);
+			transform.Translate(to.X, to.Y);
+
+			return transform;
 		}
 	}
 
