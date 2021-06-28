@@ -6,7 +6,19 @@
         xmlns:local="clr-namespace:Photomatch_ProofOfConcept_WPF"
         mc:Ignorable="d"
         Title="MainWindow" Height="450" Width="800">
-    <Grid>
+    <DockPanel>
+        <Menu DockPanel.Dock="Top">
+            <MenuItem Header="File">
+                <MenuItem Header="Load Image" Click="MenuItem_Click"/>
+            </MenuItem>
+        </Menu>
 
-    </Grid>
+        <StatusBar DockPanel.Dock="Bottom">
+            <StatusBarItem>
+                <TextBlock x:Name="StatusText"></TextBlock>
+            </StatusBarItem>
+        </StatusBar>
+
+        <Image x:Name="MainImage"></Image>
+    </DockPanel>
 </Window>
