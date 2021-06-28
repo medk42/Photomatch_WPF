@@ -79,6 +79,71 @@ namespace Photomatch_ProofOfConcept_WPF
 				perspective.Apply(MainImage);
 			}
 		}
+
+
+		// testing  stuff START
+
+		List<Line> lines = new List<Line>();
+
+		Line line = null;
+
+		private void MainCanvas_MouseDown(object sender, MouseButtonEventArgs e)
+		{
+			if (e.ChangedButton == MouseButton.Left)
+			{
+				Point eventPos = e.GetPosition(MainCanvas);
+
+				line = new Line();
+				line.Stroke = Brushes.Red;
+				line.X1 = eventPos.X;
+				line.Y1 = eventPos.Y;
+				line.X2 = eventPos.X;
+				line.Y2 = eventPos.Y;
+				line.StrokeThickness = MainCanvas.ActualWidth / MainViewbox.ActualWidth;
+
+				MainCanvas.Children.Add(line);
+				lines.Add(line);
+			}
+
+			Logger.Log("Mouse Event", $"Mouse Down at {e.GetPosition(MainCanvas).X}, {e.GetPosition(MainCanvas).Y} by {e.ChangedButton}", LogType.Info);
+		}
+
+		private void MainCanvas_MouseUp(object sender, MouseButtonEventArgs e)
+		{
+			if (e.ChangedButton == MouseButton.Left && line != null)
+			{
+				Point eventPos = e.GetPosition(MainCanvas);
+
+				line.X2 = eventPos.X;
+				line.Y2 = eventPos.Y;
+
+				line = null;
+			}
+
+			Logger.Log("Mouse Event", $"Mouse Up at {e.GetPosition(MainCanvas).X}, {e.GetPosition(MainCanvas).Y} by {e.ChangedButton}", LogType.Info);
+		}
+
+		private void MainCanvas_MouseMove(object sender, MouseEventArgs e)
+		{
+			if (line != null)
+			{
+				Point eventPos = e.GetPosition(MainCanvas);
+
+				line.X2 = eventPos.X;
+				line.Y2 = eventPos.Y;
+			}
+
+			Logger.Log("Mouse Event", $"Mouse Move at {e.GetPosition(MainCanvas).X}, {e.GetPosition(MainCanvas).Y} (MainCanvas) and at {e.GetPosition(MainImage).X}, {e.GetPosition(MainImage).Y} (MainImage)", LogType.Info);
+		}
+
+		private void MainViewbox_SizeChanged(object sender, SizeChangedEventArgs e)
+		{
+			Logger.Log("Size Change Event", $"{MainCanvas.RenderSize} => {MainViewbox.RenderSize}", LogType.Info);
+			foreach (var line in lines)
+			{
+				line.StrokeThickness = MainCanvas.ActualWidth / MainViewbox.ActualWidth;
+			}
+		}
 	}
 
 	enum LogType

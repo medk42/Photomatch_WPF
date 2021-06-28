@@ -19,6 +19,11 @@
             </StatusBarItem>
         </StatusBar>
 
-        <Image x:Name="MainImage"></Image>
+        <Viewbox x:Name="MainViewbox" SizeChanged="MainViewbox_SizeChanged">
+            <Grid>
+                <Image x:Name="MainImage"></Image>
+                <Canvas x:Name="MainCanvas" MouseDown="MainCanvas_MouseDown" MouseUp="MainCanvas_MouseUp" MouseMove="MainCanvas_MouseMove" Background="Transparent"></Canvas>
+            </Grid>
+        </Viewbox>
     </DockPanel>
 </Window>
