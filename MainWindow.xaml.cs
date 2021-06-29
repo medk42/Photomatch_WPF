@@ -168,12 +168,16 @@ namespace Photomatch_ProofOfConcept_WPF
 			Logger.Log("Mouse Event", $"Mouse Move at {e.GetPosition(MainImage).X}, {e.GetPosition(MainImage).Y} (MainCanvas) and at {e.GetPosition(MainImage).X}, {e.GetPosition(MainImage).Y} (MainImage)", LogType.Info);
 		}
 
+		private void MainWindow_SizeChanged(object sender, SizeChangedEventArgs e)
+		{
+			UpdateGeometryTransform();
+
+			double scale = MainViewbox.ActualHeight / MainImage.ActualHeight;
+			Logger.Log($"Size Change Event ({sender.GetType().Name})", $"{MainImage.RenderSize} => {MainViewbox.RenderSize} with scale {scale}x", LogType.Info);
+		}
 		private void MainViewbox_SizeChanged(object sender, SizeChangedEventArgs e)
 		{
-			Logger.Log("Size Change Event", $"{MainImage.RenderSize} => {MainViewbox.RenderSize}", LogType.Info);
-
-			Matrix transform = GetRectToRectTransform(new Rect(MainImage.RenderSize), new Rect(MainImage.TranslatePoint(new Point(0, 0), MainPath), MainViewbox.RenderSize));
-			geometry.Transform = new MatrixTransform(transform);
+			UpdateGeometryTransform();
 
 			double scale = MainViewbox.ActualHeight / MainImage.ActualHeight;
 			foreach (var scalable in scalables)
@@ -181,7 +185,13 @@ namespace Photomatch_ProofOfConcept_WPF
 				scalable.SetNewScale(scale);
 			}
 
-			Logger.Log("Size Change Event", $"{MainImage.RenderSize} => {MainViewbox.RenderSize} with scale {scale}x", LogType.Info);
+			Logger.Log($"Size Change Event ({sender.GetType().Name})", $"{MainImage.RenderSize} => {MainViewbox.RenderSize} with scale {scale}x", LogType.Info);
+		}
+
+		private void UpdateGeometryTransform()
+		{
+			Matrix transform = GetRectToRectTransform(new Rect(MainImage.RenderSize), new Rect(MainImage.TranslatePoint(new Point(0, 0), MainPath), MainViewbox.RenderSize));
+			geometry.Transform = new MatrixTransform(transform);
 		}
 
 		/// <summary>

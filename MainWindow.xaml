@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Photomatch_ProofOfConcept_WPF"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800">
+        Title="MainWindow" Height="450" Width="800" SizeChanged="MainWindow_SizeChanged">
     <DockPanel>
         <Menu DockPanel.Dock="Top">
             <MenuItem Header="File">
@@ -20,7 +20,7 @@
         </StatusBar>
 
         <Grid MouseDown="MainCanvas_MouseDown" MouseUp="MainCanvas_MouseUp" MouseMove="MainCanvas_MouseMove">
-            <Viewbox x:Name="MainViewbox" SizeChanged="MainViewbox_SizeChanged" >
+            <Viewbox x:Name="MainViewbox" SizeChanged="MainViewbox_SizeChanged">
                 <Image x:Name="MainImage"></Image>
             </Viewbox>
 
