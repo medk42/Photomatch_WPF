@@ -94,6 +94,7 @@ namespace Photomatch_ProofOfConcept_WPF
 
 				var listeners = new List<IChangeListener>();
 				listeners.Add(startGuide);
+				listeners.Add(new PerspectiveChangeListener(perspective));
 
 				CreateDraggableLine(perspective.LineX1, listeners);
 				CreateDraggableLine(perspective.LineY1, listeners);
@@ -244,6 +245,21 @@ namespace Photomatch_ProofOfConcept_WPF
 		}
 	}
 
+	class PerspectiveChangeListener : IChangeListener
+	{
+		private Perspective perspective;
+
+		public PerspectiveChangeListener(Perspective perspective)
+		{
+			this.perspective = perspective;
+		}
+
+		public void NotifyDataChange(object source)
+		{
+			perspective.RecalculateProjection();
+		}
+	}
+
 	enum LogType
 	{
 		Error, Warning, Info
@@ -346,12 +362,27 @@ namespace Photomatch_ProofOfConcept_WPF
 			ScaleLine(LineX2, image.Width, image.Height);
 			ScaleLine(LineY1, image.Width, image.Height);
 			ScaleLine(LineY2, image.Width, image.Height);
+
+			RecalculateProjection();
 		}
 
 		private void ScaleLine(LineGeometry line, double xStretch, double yStretch)
 		{
 			line.StartPoint = new Point(line.StartPoint.X * xStretch, line.StartPoint.Y * yStretch);
 			line.EndPoint = new Point(line.EndPoint.X * xStretch, line.EndPoint.Y * yStretch);
+		}
+
+		public void RecalculateProjection()
+		{
+			Point vanishingPointX = GetLineLineIntersection(LineX1.StartPoint, LineX1.EndPoint, LineX2.StartPoint, LineX2.EndPoint);
+			Point vanishingPointY = GetLineLineIntersection(LineY1.StartPoint, LineY1.EndPoint, LineY2.StartPoint, LineY2.EndPoint);
+			Point principalPoint = new Point(Image.Width / 2, Image.Height / 2);
+			double viewRatio = Image.Height / Image.Width;
+			double scale = Camera.GetInstrinsicParametersScale(principalPoint, viewRatio, vanishingPointX, vanishingPointY);
+			MatrixDouble intrinsicMatrix = Camera.GetIntrinsicParametersMatrix(principalPoint, scale, viewRatio);
+			MatrixDouble intrinsicMatrixInverted = Camera.GetIntrinsicParametersMatrix(principalPoint, scale, viewRatio);
+			MatrixDouble rotationMatrix = Camera.GetRotationalMatrix(intrinsicMatrixInverted, vanishingPointX, vanishingPointY);
+			MatrixDouble rotationMatrixInverted = rotationMatrix.Transposed();
 		}
 
 		public void Apply(Image imageGUI)
@@ -414,6 +445,255 @@ namespace Photomatch_ProofOfConcept_WPF
 			double u = ((y1 - y2) * (x1 - x3) - (x1 - x2) * (y1 - y3)) / denominator;
 
 			return new Point(x1 + t * (x2 - x1), y1 + t * (y2 - y1));
+		}
+	}
+
+	class Camera
+	{
+		private MatrixDouble projection = MatrixDouble.CreateUnitMatrix(3, 3);
+		private MatrixDouble intrinsicMatrix = MatrixDouble.CreateUnitMatrix(3, 3);
+		private MatrixDouble rotationMatrix = MatrixDouble.CreateUnitMatrix(3, 3);
+
+		private MatrixDouble projectionInverse = MatrixDouble.CreateUnitMatrix(3, 3);
+		private MatrixDouble intrinsicMatrixInverse = MatrixDouble.CreateUnitMatrix(3, 3);
+		private MatrixDouble rotationMatrixInverse = MatrixDouble.CreateUnitMatrix(3, 3);
+
+		private VectorDouble tempVector = new VectorDouble(3);
+
+		public Camera() { }
+
+		public void UpdateView(double viewRatio, Point principalPoint, Point vanishingPointX, Point vanishingPointY)
+		{
+			double scale = GetInstrinsicParametersScale(principalPoint, viewRatio, vanishingPointX, vanishingPointY);
+			GetIntrinsicParametersMatrix(principalPoint, scale, viewRatio, intrinsicMatrix);
+			GetIntrinsicParametersMatrix(principalPoint, scale, viewRatio, intrinsicMatrixInverse);
+			GetRotationalMatrix(intrinsicMatrixInverse, vanishingPointX, vanishingPointY, rotationMatrix);
+			rotationMatrix.Transposed(rotationMatrixInverse);
+			MatrixDouble.MultiplyWithResult(intrinsicMatrix, rotationMatrix, projection);
+			MatrixDouble.MultiplyWithResult(rotationMatrixInverse, intrinsicMatrixInverse, projectionInverse);
+		}
+
+		public VectorDouble WorldToScreen(VectorDouble point)
+		{
+
+		}
+
+		public static double GetInstrinsicParametersScale (Point principalPoint, double viewRatio, Point firstVanishingPoint, Point secondVanishingPoint)
+		{
+			return Math.Sqrt(
+				-(principalPoint.X * principalPoint.X)
+				+ firstVanishingPoint.X * principalPoint.X
+				+ secondVanishingPoint.X * principalPoint.X 
+				- firstVanishingPoint.X * secondVanishingPoint.X
+				+ (
+					-(principalPoint.Y * principalPoint.Y)
+					+ firstVanishingPoint.Y * principalPoint.Y
+					+ secondVanishingPoint.Y * principalPoint.Y
+					- firstVanishingPoint.Y * secondVanishingPoint.Y
+				) / (viewRatio * viewRatio));
+		}
+
+		public static MatrixDouble GetIntrinsicParametersMatrix (Point principalPoint, double scale, double viewRatio, MatrixDouble? intrinsicMatrixPossible = null)
+		{
+			if (!intrinsicMatrixPossible.HasValue)
+				intrinsicMatrixPossible = new MatrixDouble(3, 3);
+			MatrixDouble intrinsicMatrix = intrinsicMatrixPossible.Value;
+			intrinsicMatrix[0, 0] = scale;
+			intrinsicMatrix[1, 1] = scale * viewRatio;
+			intrinsicMatrix[2, 2] = 1;
+			intrinsicMatrix[0, 2] = principalPoint.X;
+			intrinsicMatrix[1, 2] = principalPoint.Y;
+
+			return intrinsicMatrix;
+		}
+
+		public static MatrixDouble GetInvertedIntrinsicParametersMatrix(Point principalPoint, double scale, double viewRatio, MatrixDouble? intrinsicMatrixInvPossible = null)
+		{
+			if (!intrinsicMatrixInvPossible.HasValue)
+				intrinsicMatrixInvPossible = new MatrixDouble(3, 3);
+			MatrixDouble intrinsicMatrixInv = intrinsicMatrixInvPossible.Value;
+			double scaleInv = 1 / scale;
+			double viewRationInv = 1 / viewRatio;
+			intrinsicMatrixInv[0, 0] = scaleInv;
+			intrinsicMatrixInv[1, 1] = scaleInv * viewRationInv;
+			intrinsicMatrixInv[2, 2] = 1;
+			intrinsicMatrixInv[0, 2] = -principalPoint.X * scaleInv;
+			intrinsicMatrixInv[1, 2] = -principalPoint.Y * scaleInv * viewRationInv;
+
+			return intrinsicMatrixInv;
+		}
+
+		public static MatrixDouble GetRotationalMatrix (MatrixDouble invertedIntrinsicMatrix, Point firstVanishingPoint, Point secondVanishingPoint, MatrixDouble? rotationMatrixPossible = null)
+		{
+			if (!rotationMatrixPossible.HasValue)
+				rotationMatrixPossible = new MatrixDouble(3, 3);
+
+			MatrixDouble rotationMatrix = rotationMatrixPossible.Value;
+			VectorDouble firstCol = (invertedIntrinsicMatrix * new VectorDouble(new double[] { firstVanishingPoint.X, firstVanishingPoint.Y, 1 })).Normalize();
+			VectorDouble secondCol = (invertedIntrinsicMatrix * new VectorDouble(new double[] { secondVanishingPoint.X, secondVanishingPoint.Y, 1 })).Normalize();
+
+			rotationMatrix[0, 0] = firstCol[0];
+			rotationMatrix[1, 0] = firstCol[1];
+			rotationMatrix[2, 0] = firstCol[2];
+
+			rotationMatrix[0, 1] = secondCol[0];
+			rotationMatrix[1, 1] = secondCol[1];
+			rotationMatrix[2, 1] = secondCol[2];
+
+			rotationMatrix[0, 2] = Math.Sqrt(1 - firstCol[0] * firstCol[0] - secondCol[0] * secondCol[0]);
+			rotationMatrix[1, 2] = Math.Sqrt(1 - firstCol[1] * firstCol[1] - secondCol[1] * secondCol[1]);
+			rotationMatrix[2, 2] = Math.Sqrt(1 - firstCol[2] * firstCol[2] - secondCol[2] * secondCol[2]);
+
+			return rotationMatrix;
+		}
+	}
+
+	struct MatrixDouble
+	{
+		private double[,] data;
+
+		public double this[int row, int column]
+		{
+			get => data[row, column];
+			set => data[row, column] = value;
+		}
+
+		public int Rows => data.GetLength(0);
+
+		public int Columns => data.GetLength(1);
+
+		public MatrixDouble(int rows, int columns)
+		{
+			data = new double[rows, columns];
+		}
+
+		public static MatrixDouble CreateUnitMatrix(int rows, int columns)
+		{
+			MatrixDouble unitMatrix = new MatrixDouble(rows, columns);
+			for (int row = 0; row < rows; row++)
+			{
+				for (int col = 0; col < columns; col++)
+				{
+					unitMatrix[row, col] = (row == col) ? 1 : 0;
+				}
+			}
+
+			return unitMatrix;
+		}
+
+		public VectorDouble this[int row] // TODO delete?
+		{
+			set
+			{
+				if (value.Length != Columns)
+					throw new ArgumentException("New row needs to have the same length.");
+				for (int i = 0; i < value.Length; i++)
+					this[row, i] = value[i];
+			}
+		}
+
+		public static VectorDouble operator *(MatrixDouble matrix, VectorDouble vector)
+		{
+			VectorDouble result = new VectorDouble(matrix.Rows);
+			MultiplyWithResult(matrix, vector, result);
+			return result;
+		}
+
+		public static void MultiplyWithResult(MatrixDouble matrix, VectorDouble vector, VectorDouble storeResult)
+		{
+			if (matrix.Columns != vector.Length || matrix.Rows != storeResult.Length)
+				throw new ArgumentException("matrix-vector dimension mismatch");
+
+			for (int row = 0; row < matrix.Rows; row++)
+			{
+				for (int col = 0; col < matrix.Columns; col++)
+				{
+					storeResult[row] += matrix[row, col] * vector[col];
+				}
+			}
+		}
+
+		public static void MultiplyWithResult(MatrixDouble matrixA, MatrixDouble matrixB, MatrixDouble storeResult)
+		{
+			if (matrixA.Columns != matrixB.Rows || storeResult.Rows != matrixA.Rows || matrixB.Columns != storeResult.Columns)
+				throw new ArgumentException("Incorrect dimensions of input matrices");
+
+			for (int row = 0; row < storeResult.Rows; row++)
+			{
+				for (int col = 0; col < storeResult.Columns; col++)
+				{
+					storeResult[row, col] = 0;
+					for (int i = 0; i < matrixA.Columns; i++)
+					{
+						storeResult[row, col] += matrixA[row, i] * matrixB[i, col];
+					}
+				}
+			}
+		}
+
+		public MatrixDouble Transposed(MatrixDouble? transposedMatrixPossible = null)
+		{
+			if (!transposedMatrixPossible.HasValue)
+				transposedMatrixPossible = new MatrixDouble(this.Columns, this.Rows);
+			else if (transposedMatrixPossible.Value.Rows != this.Columns || transposedMatrixPossible.Value.Columns != this.Rows)
+				throw new ArgumentException("Existing matrix has wrong dimensions!");
+
+			MatrixDouble transposedMatrix = transposedMatrixPossible.Value;
+			for (int row = 0; row < this.Rows; row++)
+			{
+				for (int col = 0; col < this.Columns; col++)
+				{
+					transposedMatrix[col, row] = data[row, col];
+				}
+			}
+
+			return transposedMatrix;
+		}
+	}
+
+	struct VectorDouble // TODO delete?
+	{
+		private double[] data;
+
+		public double this[int index]
+		{
+			get => data[index];
+			set => data[index] = value;
+		}
+
+		public int Length => data.Length;
+
+		public double MagnitudeSquared
+		{
+			get
+			{
+				double squaredSum = 0;
+				for (int i = 0; i < Length; i++)
+					squaredSum += data[i] * data[i];
+				return squaredSum;
+			}
+		}
+
+		public double Magnitude => Math.Sqrt(MagnitudeSquared);
+
+		public VectorDouble(int length)
+		{
+			data = new double[length];
+		}
+
+		public VectorDouble(double[] data)
+		{
+			this.data = data;
+		}
+
+		public VectorDouble Normalize()
+		{
+			double mag = this.Magnitude;
+
+			for (int i = 0; i < this.Length; i++)
+				data[i] /= mag;
+
+			return this;
 		}
 	}
 
