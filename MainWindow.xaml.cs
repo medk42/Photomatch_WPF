@@ -354,6 +354,8 @@ namespace Photomatch_ProofOfConcept_WPF
 		public LineGeometry LineY1 { get; } = new LineGeometry(new Point(0.27, 0.31), new Point(0.48, 0.21));
 		public LineGeometry LineY2 { get; } = new LineGeometry(new Point(0.55, 0.78), new Point(0.71, 0.68));
 
+		Camera camera = new Camera();
+
 		public Perspective(BitmapImage image)
 		{
 			Image = image;
@@ -378,11 +380,8 @@ namespace Photomatch_ProofOfConcept_WPF
 			Point vanishingPointY = GetLineLineIntersection(LineY1.StartPoint, LineY1.EndPoint, LineY2.StartPoint, LineY2.EndPoint);
 			Point principalPoint = new Point(Image.Width / 2, Image.Height / 2);
 			double viewRatio = Image.Height / Image.Width;
-			double scale = Camera.GetInstrinsicParametersScale(principalPoint, viewRatio, vanishingPointX, vanishingPointY);
-			MatrixDouble intrinsicMatrix = Camera.GetIntrinsicParametersMatrix(principalPoint, scale, viewRatio);
-			MatrixDouble intrinsicMatrixInverted = Camera.GetIntrinsicParametersMatrix(principalPoint, scale, viewRatio);
-			MatrixDouble rotationMatrix = Camera.GetRotationalMatrix(intrinsicMatrixInverted, vanishingPointX, vanishingPointY);
-			MatrixDouble rotationMatrixInverted = rotationMatrix.Transposed();
+
+			camera.UpdateView(viewRatio, principalPoint, vanishingPointX, vanishingPointY);
 		}
 
 		public void Apply(Image imageGUI)
@@ -450,32 +449,30 @@ namespace Photomatch_ProofOfConcept_WPF
 
 	class Camera
 	{
-		private MatrixDouble projection = MatrixDouble.CreateUnitMatrix(3, 3);
-		private MatrixDouble intrinsicMatrix = MatrixDouble.CreateUnitMatrix(3, 3);
-		private MatrixDouble rotationMatrix = MatrixDouble.CreateUnitMatrix(3, 3);
-
-		private MatrixDouble projectionInverse = MatrixDouble.CreateUnitMatrix(3, 3);
-		private MatrixDouble intrinsicMatrixInverse = MatrixDouble.CreateUnitMatrix(3, 3);
-		private MatrixDouble rotationMatrixInverse = MatrixDouble.CreateUnitMatrix(3, 3);
-
-		private VectorDouble tempVector = new VectorDouble(3);
+		private Matrix3x3 projection = Matrix3x3.CreateUnitMatrix();
+		private Matrix3x3 projectionInverse = Matrix3x3.CreateUnitMatrix();
 
 		public Camera() { }
 
-		public void UpdateView(double viewRatio, Point principalPoint, Point vanishingPointX, Point vanishingPointY)
+		public void UpdateView(double viewRatio, Point principalPoint, Point firstVanishingPoint, Point secondVanishingPoint)
 		{
-			double scale = GetInstrinsicParametersScale(principalPoint, viewRatio, vanishingPointX, vanishingPointY);
-			GetIntrinsicParametersMatrix(principalPoint, scale, viewRatio, intrinsicMatrix);
-			GetIntrinsicParametersMatrix(principalPoint, scale, viewRatio, intrinsicMatrixInverse);
-			GetRotationalMatrix(intrinsicMatrixInverse, vanishingPointX, vanishingPointY, rotationMatrix);
-			rotationMatrix.Transposed(rotationMatrixInverse);
-			MatrixDouble.MultiplyWithResult(intrinsicMatrix, rotationMatrix, projection);
-			MatrixDouble.MultiplyWithResult(rotationMatrixInverse, intrinsicMatrixInverse, projectionInverse);
+			double scale = GetInstrinsicParametersScale(principalPoint, viewRatio, firstVanishingPoint, secondVanishingPoint);
+			Matrix3x3 intrinsicMatrix = GetIntrinsicParametersMatrix(principalPoint, scale, viewRatio);
+			Matrix3x3 intrinsicMatrixInverse = GetInvertedIntrinsicParametersMatrix(principalPoint, scale, viewRatio);
+			Matrix3x3 rotationMatrix = GetRotationalMatrix(intrinsicMatrixInverse, firstVanishingPoint, secondVanishingPoint);
+			Matrix3x3 rotationMatrixInverse = rotationMatrix.Transposed();
+			projection = intrinsicMatrix * rotationMatrix;
+			projectionInverse = rotationMatrixInverse * intrinsicMatrixInverse;
 		}
 
-		public VectorDouble WorldToScreen(VectorDouble point)
+		public Vector3 WorldToScreen(Vector3 worldPoint)
 		{
+			return projection * worldPoint;
+		}
 
+		public Vector3 ScreenToWorld(Vector3 screenPoint)
+		{
+			return projectionInverse * screenPoint;
 		}
 
 		public static double GetInstrinsicParametersScale (Point principalPoint, double viewRatio, Point firstVanishingPoint, Point secondVanishingPoint)
@@ -493,207 +490,146 @@ namespace Photomatch_ProofOfConcept_WPF
 				) / (viewRatio * viewRatio));
 		}
 
-		public static MatrixDouble GetIntrinsicParametersMatrix (Point principalPoint, double scale, double viewRatio, MatrixDouble? intrinsicMatrixPossible = null)
+		public static Matrix3x3 GetIntrinsicParametersMatrix (Point principalPoint, double scale, double viewRatio)
 		{
-			if (!intrinsicMatrixPossible.HasValue)
-				intrinsicMatrixPossible = new MatrixDouble(3, 3);
-			MatrixDouble intrinsicMatrix = intrinsicMatrixPossible.Value;
-			intrinsicMatrix[0, 0] = scale;
-			intrinsicMatrix[1, 1] = scale * viewRatio;
-			intrinsicMatrix[2, 2] = 1;
-			intrinsicMatrix[0, 2] = principalPoint.X;
-			intrinsicMatrix[1, 2] = principalPoint.Y;
+			Matrix3x3 intrinsicMatrix = new Matrix3x3();
+
+			intrinsicMatrix.A00 = scale;
+			intrinsicMatrix.A11 = scale * viewRatio;
+			intrinsicMatrix.A22 = 1;
+			intrinsicMatrix.A02 = principalPoint.X;
+			intrinsicMatrix.A12 = principalPoint.Y;
 
 			return intrinsicMatrix;
 		}
 
-		public static MatrixDouble GetInvertedIntrinsicParametersMatrix(Point principalPoint, double scale, double viewRatio, MatrixDouble? intrinsicMatrixInvPossible = null)
+		public static Matrix3x3 GetInvertedIntrinsicParametersMatrix(Point principalPoint, double scale, double viewRatio)
 		{
-			if (!intrinsicMatrixInvPossible.HasValue)
-				intrinsicMatrixInvPossible = new MatrixDouble(3, 3);
-			MatrixDouble intrinsicMatrixInv = intrinsicMatrixInvPossible.Value;
+			Matrix3x3 intrinsicMatrixInv = new Matrix3x3();
+
 			double scaleInv = 1 / scale;
 			double viewRationInv = 1 / viewRatio;
-			intrinsicMatrixInv[0, 0] = scaleInv;
-			intrinsicMatrixInv[1, 1] = scaleInv * viewRationInv;
-			intrinsicMatrixInv[2, 2] = 1;
-			intrinsicMatrixInv[0, 2] = -principalPoint.X * scaleInv;
-			intrinsicMatrixInv[1, 2] = -principalPoint.Y * scaleInv * viewRationInv;
+
+			intrinsicMatrixInv.A00 = scaleInv;
+			intrinsicMatrixInv.A11 = scaleInv * viewRationInv;
+			intrinsicMatrixInv.A22 = 1;
+			intrinsicMatrixInv.A02 = -principalPoint.X * scaleInv;
+			intrinsicMatrixInv.A12 = -principalPoint.Y * scaleInv * viewRationInv;
 
 			return intrinsicMatrixInv;
 		}
 
-		public static MatrixDouble GetRotationalMatrix (MatrixDouble invertedIntrinsicMatrix, Point firstVanishingPoint, Point secondVanishingPoint, MatrixDouble? rotationMatrixPossible = null)
+		public static Matrix3x3 GetRotationalMatrix (Matrix3x3 invertedIntrinsicMatrix, Point firstVanishingPoint, Point secondVanishingPoint)
 		{
-			if (!rotationMatrixPossible.HasValue)
-				rotationMatrixPossible = new MatrixDouble(3, 3);
+			Matrix3x3 rotationMatrix = new Matrix3x3();
 
-			MatrixDouble rotationMatrix = rotationMatrixPossible.Value;
-			VectorDouble firstCol = (invertedIntrinsicMatrix * new VectorDouble(new double[] { firstVanishingPoint.X, firstVanishingPoint.Y, 1 })).Normalize();
-			VectorDouble secondCol = (invertedIntrinsicMatrix * new VectorDouble(new double[] { secondVanishingPoint.X, secondVanishingPoint.Y, 1 })).Normalize();
+			Vector3 firstCol = (invertedIntrinsicMatrix * new Vector3(firstVanishingPoint.X, firstVanishingPoint.Y, 1 )).Normalized();
+			Vector3 secondCol = (invertedIntrinsicMatrix * new Vector3(secondVanishingPoint.X, secondVanishingPoint.Y, 1)).Normalized();
 
-			rotationMatrix[0, 0] = firstCol[0];
-			rotationMatrix[1, 0] = firstCol[1];
-			rotationMatrix[2, 0] = firstCol[2];
+			rotationMatrix.A00 = firstCol.X;
+			rotationMatrix.A10 = firstCol.Y;
+			rotationMatrix.A20 = firstCol.Z;
 
-			rotationMatrix[0, 1] = secondCol[0];
-			rotationMatrix[1, 1] = secondCol[1];
-			rotationMatrix[2, 1] = secondCol[2];
+			rotationMatrix.A01 = secondCol.X;
+			rotationMatrix.A11 = secondCol.Y;
+			rotationMatrix.A21 = secondCol.Z;
 
-			rotationMatrix[0, 2] = Math.Sqrt(1 - firstCol[0] * firstCol[0] - secondCol[0] * secondCol[0]);
-			rotationMatrix[1, 2] = Math.Sqrt(1 - firstCol[1] * firstCol[1] - secondCol[1] * secondCol[1]);
-			rotationMatrix[2, 2] = Math.Sqrt(1 - firstCol[2] * firstCol[2] - secondCol[2] * secondCol[2]);
+			rotationMatrix.A02 = Math.Sqrt(1 - firstCol.X * firstCol.X - secondCol.X * secondCol.X);
+			rotationMatrix.A12 = Math.Sqrt(1 - firstCol.Y * firstCol.Y - secondCol.Y * secondCol.Y);
+			rotationMatrix.A22 = Math.Sqrt(1 - firstCol.Z * firstCol.Z - secondCol.Z * secondCol.Z);
 
 			return rotationMatrix;
 		}
 	}
 
-	struct MatrixDouble
+	struct Matrix3x3
 	{
-		private double[,] data;
+		public double A00 { get; set; }
+		public double A01 { get; set; }
+		public double A02 { get; set; }
+		public double A10 { get; set; }
+		public double A11 { get; set; }
+		public double A12 { get; set; }
+		public double A20 { get; set; }
+		public double A21 { get; set; }
+		public double A22 { get; set; }
 
-		public double this[int row, int column]
+		public static Matrix3x3 CreateUnitMatrix()
 		{
-			get => data[row, column];
-			set => data[row, column] = value;
+			return new Matrix3x3() { A00 = 1, A11 = 1, A22 = 1 };
 		}
 
-		public int Rows => data.GetLength(0);
-
-		public int Columns => data.GetLength(1);
-
-		public MatrixDouble(int rows, int columns)
+		public static Vector3 operator *(Matrix3x3 matrix, Vector3 vector)
 		{
-			data = new double[rows, columns];
-		}
+			Vector3 result = new Vector3();
 
-		public static MatrixDouble CreateUnitMatrix(int rows, int columns)
-		{
-			MatrixDouble unitMatrix = new MatrixDouble(rows, columns);
-			for (int row = 0; row < rows; row++)
-			{
-				for (int col = 0; col < columns; col++)
-				{
-					unitMatrix[row, col] = (row == col) ? 1 : 0;
-				}
-			}
+			result.X = matrix.A00 * vector.X + matrix.A01 * vector.Y + matrix.A02 * vector.Z;
+			result.Y = matrix.A10 * vector.X + matrix.A11 * vector.Y + matrix.A12 * vector.Z;
+			result.Z = matrix.A20 * vector.X + matrix.A21 * vector.Y + matrix.A22 * vector.Z;
 
-			return unitMatrix;
-		}
-
-		public VectorDouble this[int row] // TODO delete?
-		{
-			set
-			{
-				if (value.Length != Columns)
-					throw new ArgumentException("New row needs to have the same length.");
-				for (int i = 0; i < value.Length; i++)
-					this[row, i] = value[i];
-			}
-		}
-
-		public static VectorDouble operator *(MatrixDouble matrix, VectorDouble vector)
-		{
-			VectorDouble result = new VectorDouble(matrix.Rows);
-			MultiplyWithResult(matrix, vector, result);
 			return result;
 		}
 
-		public static void MultiplyWithResult(MatrixDouble matrix, VectorDouble vector, VectorDouble storeResult)
+		public static Matrix3x3 operator *(Matrix3x3 matrixA, Matrix3x3 matrixB)
 		{
-			if (matrix.Columns != vector.Length || matrix.Rows != storeResult.Length)
-				throw new ArgumentException("matrix-vector dimension mismatch");
+			Matrix3x3 result = new Matrix3x3();
 
-			for (int row = 0; row < matrix.Rows; row++)
-			{
-				for (int col = 0; col < matrix.Columns; col++)
-				{
-					storeResult[row] += matrix[row, col] * vector[col];
-				}
-			}
+			result.A00 = matrixA.A00 * matrixB.A00 + matrixA.A01 * matrixB.A10 + matrixA.A02 * matrixB.A20;
+			result.A10 = matrixA.A10 * matrixB.A00 + matrixA.A11 * matrixB.A10 + matrixA.A12 * matrixB.A20;
+			result.A20 = matrixA.A20 * matrixB.A00 + matrixA.A21 * matrixB.A10 + matrixA.A22 * matrixB.A20;
+
+			result.A01 = matrixA.A00 * matrixB.A01 + matrixA.A01 * matrixB.A11 + matrixA.A02 * matrixB.A21;
+			result.A11 = matrixA.A10 * matrixB.A01 + matrixA.A11 * matrixB.A11 + matrixA.A12 * matrixB.A21;
+			result.A21 = matrixA.A20 * matrixB.A01 + matrixA.A21 * matrixB.A11 + matrixA.A22 * matrixB.A21;
+
+			result.A02 = matrixA.A00 * matrixB.A02 + matrixA.A01 * matrixB.A12 + matrixA.A02 * matrixB.A22;
+			result.A12 = matrixA.A10 * matrixB.A02 + matrixA.A11 * matrixB.A12 + matrixA.A12 * matrixB.A22;
+			result.A22 = matrixA.A20 * matrixB.A02 + matrixA.A21 * matrixB.A12 + matrixA.A22 * matrixB.A22;
+
+			return result;
 		}
 
-		public static void MultiplyWithResult(MatrixDouble matrixA, MatrixDouble matrixB, MatrixDouble storeResult)
+		public Matrix3x3 Transposed()
 		{
-			if (matrixA.Columns != matrixB.Rows || storeResult.Rows != matrixA.Rows || matrixB.Columns != storeResult.Columns)
-				throw new ArgumentException("Incorrect dimensions of input matrices");
+			Matrix3x3 result = new Matrix3x3();
 
-			for (int row = 0; row < storeResult.Rows; row++)
-			{
-				for (int col = 0; col < storeResult.Columns; col++)
-				{
-					storeResult[row, col] = 0;
-					for (int i = 0; i < matrixA.Columns; i++)
-					{
-						storeResult[row, col] += matrixA[row, i] * matrixB[i, col];
-					}
-				}
-			}
-		}
+			result.A00 = A00;
+			result.A01 = A10;
+			result.A02 = A20;
 
-		public MatrixDouble Transposed(MatrixDouble? transposedMatrixPossible = null)
-		{
-			if (!transposedMatrixPossible.HasValue)
-				transposedMatrixPossible = new MatrixDouble(this.Columns, this.Rows);
-			else if (transposedMatrixPossible.Value.Rows != this.Columns || transposedMatrixPossible.Value.Columns != this.Rows)
-				throw new ArgumentException("Existing matrix has wrong dimensions!");
+			result.A10 = A01;
+			result.A11 = A11;
+			result.A12 = A21;
 
-			MatrixDouble transposedMatrix = transposedMatrixPossible.Value;
-			for (int row = 0; row < this.Rows; row++)
-			{
-				for (int col = 0; col < this.Columns; col++)
-				{
-					transposedMatrix[col, row] = data[row, col];
-				}
-			}
+			result.A20 = A02;
+			result.A21 = A12;
+			result.A22 = A22;
 
-			return transposedMatrix;
+			return result;
 		}
 	}
 
-	struct VectorDouble // TODO delete?
+	struct Vector3
 	{
-		private double[] data;
-
-		public double this[int index]
+		public Vector3(double X, double Y, double Z)
 		{
-			get => data[index];
-			set => data[index] = value;
+			this.X = X;
+			this.Y = Y;
+			this.Z = Z;
 		}
 
-		public int Length => data.Length;
+		public double X { get; set; }
+		public double Y { get; set; }
+		public double Z { get; set; }
 
-		public double MagnitudeSquared
-		{
-			get
-			{
-				double squaredSum = 0;
-				for (int i = 0; i < Length; i++)
-					squaredSum += data[i] * data[i];
-				return squaredSum;
-			}
-		}
+		public double MagnitudeSquared => X * X + Y * Y + Z * Z;
 
 		public double Magnitude => Math.Sqrt(MagnitudeSquared);
 
-		public VectorDouble(int length)
-		{
-			data = new double[length];
-		}
-
-		public VectorDouble(double[] data)
-		{
-			this.data = data;
-		}
-
-		public VectorDouble Normalize()
+		public Vector3 Normalized()
 		{
 			double mag = this.Magnitude;
-
-			for (int i = 0; i < this.Length; i++)
-				data[i] /= mag;
-
-			return this;
+			return new Vector3() { X = this.X / mag, Y = this.Y / mag, Z = this.Z / mag };
 		}
 	}
 
