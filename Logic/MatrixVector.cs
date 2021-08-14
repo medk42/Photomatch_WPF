@@ -109,4 +109,28 @@ namespace MatrixVector
 			return new Vector3() { X = vector.X / value, Y = vector.Y / value, Z = vector.Z / value };
 		}
 	}
+
+	struct Vector2
+	{
+		public Vector2(double X, double Y)
+		{
+			this.X = X;
+			this.Y = Y;
+		}
+
+		public double X { get; set; }
+		public double Y { get; set; }
+
+		public double MagnitudeSquared => X * X + Y * Y;
+
+		public double Magnitude => Math.Sqrt(MagnitudeSquared);
+
+		public bool Valid => !(double.IsNaN(X) || double.IsNaN(Y));
+
+		public Vector2 Normalized()
+		{
+			double mag = this.Magnitude;
+			return new Vector2() { X = this.X / mag, Y = this.Y / mag };
+		}
+	}
 }

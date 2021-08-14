@@ -19,6 +19,7 @@ using System.Windows.Shapes;
 using Logging;
 using GuiLogging;
 using MatrixVector;
+using Perspective;
 
 namespace Photomatch_ProofOfConcept_WPF
 {
@@ -268,6 +269,11 @@ namespace Photomatch_ProofOfConcept_WPF
 		}
 	}
 
+	static class HackPointToVector2
+	{
+		public static Vector2 AsVector2(this Point p) => new Vector2(p.X, p.Y);
+	}
+
 	class Perspective // should contain image and perspective data
 	{
 		public BitmapImage Image { get; }
@@ -337,17 +343,16 @@ namespace Photomatch_ProofOfConcept_WPF
 
 		public void RecalculateProjection()
 		{
-			Point vanishingPointX = GetLineLineIntersection(LineX1.StartPoint, LineX1.EndPoint, LineX2.StartPoint, LineX2.EndPoint);
-			Point vanishingPointY = GetLineLineIntersection(LineY1.StartPoint, LineY1.EndPoint, LineY2.StartPoint, LineY2.EndPoint);
-			Point principalPoint = new Point(Image.Width / 2, Image.Height / 2);
-			//double viewRatio = Image.Height / Image.Width;
+			Vector2 vanishingPointX = GetLineLineIntersection2D(LineX1.StartPoint.AsVector2(), LineX1.EndPoint.AsVector2(), LineX2.StartPoint.AsVector2(), LineX2.EndPoint.AsVector2());
+			Vector2 vanishingPointY = GetLineLineIntersection2D(LineY1.StartPoint.AsVector2(), LineY1.EndPoint.AsVector2(), LineY2.StartPoint.AsVector2(), LineY2.EndPoint.AsVector2());
+			Vector2 principalPoint = new Vector2(Image.Width / 2, Image.Height / 2);
 			double viewRatio = 1;
 
-			camera.UpdateView(viewRatio, principalPoint, vanishingPointX, vanishingPointY, new Point(lineX.X1, lineX.Y1	));
+			camera.UpdateView(viewRatio, principalPoint, vanishingPointX, vanishingPointY, new Vector2(lineX.X1, lineX.Y1));
 
-			Vector3 endX = camera.WorldToScreen(camera.ScreenToWorld(new Vector3(lineX.X1, lineX.Y1, 1)) + new Vector3(1000, 0, 0)); // TODO i think this is the problem, it's not moving with the dragger on the image, so the remaining axis is not precise, not sure though
-			Vector3 endY = camera.WorldToScreen(camera.ScreenToWorld(new Vector3(lineY.X1, lineY.Y1, 1)) + new Vector3(0, 1000, 0));
-			Vector3 endZ = camera.WorldToScreen(camera.ScreenToWorld(new Vector3(lineZ.X1, lineZ.Y1, 1)) + new Vector3(0, 0, 1000));
+			Vector2 endX = camera.WorldToScreen(camera.ScreenToWorld(new Vector2(lineX.X1, lineX.Y1)) + new Vector3(1000, 0, 0));
+			Vector2 endY = camera.WorldToScreen(camera.ScreenToWorld(new Vector2(lineY.X1, lineY.Y1)) + new Vector3(0, 1000, 0));
+			Vector2 endZ = camera.WorldToScreen(camera.ScreenToWorld(new Vector2(lineZ.X1, lineZ.Y1)) + new Vector3(0, 0, 1000));
 
 			if (endX.Valid && endY.Valid && endZ.Valid)
 			{
@@ -375,50 +380,15 @@ namespace Photomatch_ProofOfConcept_WPF
 			imageGUI.Source = Image;
 		}
 
-		public Vector GetXVector(Point imagePoint)
-		{
-			Vector3 worldPos = camera.ScreenToWorld(new Vector3(imagePoint.X, imagePoint.Y, 1));
-			worldPos.X += 1;
-			Vector3 newImagePoint = camera.WorldToScreen(worldPos);
-
-			Vector ret = Point.Subtract(new Point(newImagePoint.X, newImagePoint.Y), imagePoint);
-			ret.Normalize();
-			return ret;
-
-			/*Point intersection = GetLineLineIntersection(LineX1.StartPoint, LineX1.EndPoint, LineX2.StartPoint, LineX2.EndPoint);
-			Vector ret = Point.Subtract(intersection, imagePoint);
-			ret.Normalize();
-			return ret;*/
-		}
-
-		public Vector GetYVector(Point imagePoint)
-		{
-			Point intersection = GetLineLineIntersection(LineY1.StartPoint, LineY1.EndPoint, LineY2.StartPoint, LineY2.EndPoint);
-			Vector ret = Point.Subtract(intersection, imagePoint);
-			ret.Normalize();
-			return ret;
-		}
-
-		public Vector GetZVector(Point imagePoint)
-		{
-			return default;
-			/*Vector xVector = GetXVector(imagePoint);
-			Vector yVector = GetYVector(imagePoint);
-
-			Vector ret = Vector.CrossProduct(xVector, yVector);
-			ret.Normalize();
-			return ret;*/
-		}
-
 		/// <summary>
 		/// Get the point of intersection between the ray and this object using line-line intersection (https://en.wikipedia.org/wiki/Line%E2%80%93line_intersection)
 		/// </summary>
-		/// <param name="StartLineA"></param>
-		/// <param name="EndLineA"></param>
-		/// <param name="StartLineB"></param>
-		/// <param name="EndLineB"></param>
-		/// <returns></returns>
-		private Point GetLineLineIntersection(Point StartLineA, Point EndLineA, Point StartLineB, Point EndLineB)
+		/// <param name="StartLineA">Start point of the first line.</param>
+		/// <param name="EndLineA">End point of the first line.</param>
+		/// <param name="StartLineB">Start point of the second line.</param>
+		/// <param name="EndLineB">End point of the second line.</param>
+		/// <returns>The point of intersection between the two lines, may be out of bounds of either line.</returns>
+		private Vector2 GetLineLineIntersection2D(Vector2 StartLineA, Vector2 EndLineA, Vector2 StartLineB, Vector2 EndLineB)
 		{
 			double x1 = StartLineA.X;
 			double y1 = StartLineA.Y;
@@ -432,116 +402,10 @@ namespace Photomatch_ProofOfConcept_WPF
 
 			double denominator = (x1 - x2) * (y3 - y4) - (y1 - y2) * (x3 - x4);
 
-			//if (denominator == 0) return null;
-
 			double t = ((x1 - x3) * (y3 - y4) - (y1 - y3) * (x3 - x4)) / denominator;
 			double u = ((y1 - y2) * (x1 - x3) - (x1 - x2) * (y1 - y3)) / denominator;
 
-			return new Point(x1 + t * (x2 - x1), y1 + t * (y2 - y1));
-		}
-	}
-
-	class Camera
-	{
-		private Matrix3x3 projectionInverse = Matrix3x3.CreateUnitMatrix();
-
-		private Matrix3x3 intrinsicMatrix;
-		private Matrix3x3 rotationMatrix;
-
-		private Matrix3x3 intrinsicMatrixInverse;
-		private Matrix3x3 rotationMatrixInverse;
-
-		private Vector3 translate;
-
-		public Camera() { }
-
-		public void UpdateView(double viewRatio, Point principalPoint, Point firstVanishingPoint, Point secondVanishingPoint, Point origin)
-		{
-			double scale = GetInstrinsicParametersScale(principalPoint, viewRatio, firstVanishingPoint, secondVanishingPoint);
-			intrinsicMatrix = GetIntrinsicParametersMatrix(principalPoint, scale, viewRatio);
-			intrinsicMatrixInverse = GetInvertedIntrinsicParametersMatrix(principalPoint, scale, viewRatio);
-			rotationMatrix = GetRotationalMatrix(intrinsicMatrixInverse, firstVanishingPoint, secondVanishingPoint);
-			rotationMatrixInverse = rotationMatrix.Transposed();
-
-			translate = intrinsicMatrixInverse * new Vector3(origin.X, origin.Y, 1);
-		}
-
-		public Vector3 WorldToScreen(Vector3 worldPoint)
-		{
-			Vector3 point = rotationMatrix * worldPoint + translate;
-			point = point / point.Z;
-			return intrinsicMatrix * point;
-		}
-
-		public Vector3 ScreenToWorld(Vector3 screenPoint)
-		{
-			return rotationMatrixInverse * (intrinsicMatrixInverse * screenPoint - translate);
-		}
-
-		public static double GetInstrinsicParametersScale (Point principalPoint, double viewRatio, Point firstVanishingPoint, Point secondVanishingPoint)
-		{
-			return Math.Sqrt(
-				-(principalPoint.X * principalPoint.X)
-				+ firstVanishingPoint.X * principalPoint.X
-				+ secondVanishingPoint.X * principalPoint.X 
-				- firstVanishingPoint.X * secondVanishingPoint.X
-				+ (
-					-(principalPoint.Y * principalPoint.Y)
-					+ firstVanishingPoint.Y * principalPoint.Y
-					+ secondVanishingPoint.Y * principalPoint.Y
-					- firstVanishingPoint.Y * secondVanishingPoint.Y
-				) / (viewRatio * viewRatio));
-		}
-
-		public static Matrix3x3 GetIntrinsicParametersMatrix (Point principalPoint, double scale, double viewRatio)
-		{
-			Matrix3x3 intrinsicMatrix = new Matrix3x3();
-
-			intrinsicMatrix.A00 = scale;
-			intrinsicMatrix.A11 = scale * viewRatio;
-			intrinsicMatrix.A22 = 1;
-			intrinsicMatrix.A02 = principalPoint.X;
-			intrinsicMatrix.A12 = principalPoint.Y;
-
-			return intrinsicMatrix;
-		}
-
-		public static Matrix3x3 GetInvertedIntrinsicParametersMatrix(Point principalPoint, double scale, double viewRatio)
-		{
-			Matrix3x3 intrinsicMatrixInv = new Matrix3x3();
-
-			double scaleInv = 1 / scale;
-			double viewRationInv = 1 / viewRatio;
-
-			intrinsicMatrixInv.A00 = scaleInv;
-			intrinsicMatrixInv.A11 = scaleInv * viewRationInv;
-			intrinsicMatrixInv.A22 = 1;
-			intrinsicMatrixInv.A02 = -principalPoint.X * scaleInv;
-			intrinsicMatrixInv.A12 = -principalPoint.Y * scaleInv * viewRationInv;
-
-			return intrinsicMatrixInv;
-		}
-
-		public static Matrix3x3 GetRotationalMatrix (Matrix3x3 invertedIntrinsicMatrix, Point firstVanishingPoint, Point secondVanishingPoint)
-		{
-			Matrix3x3 rotationMatrix = new Matrix3x3();
-
-			Vector3 firstCol = (invertedIntrinsicMatrix * new Vector3(firstVanishingPoint.X, firstVanishingPoint.Y, 1 )).Normalized();
-			Vector3 secondCol = (invertedIntrinsicMatrix * new Vector3(secondVanishingPoint.X, secondVanishingPoint.Y, 1)).Normalized();
-
-			rotationMatrix.A00 = firstCol.X;
-			rotationMatrix.A10 = firstCol.Y;
-			rotationMatrix.A20 = firstCol.Z;
-
-			rotationMatrix.A01 = secondCol.X;
-			rotationMatrix.A11 = secondCol.Y;
-			rotationMatrix.A21 = secondCol.Z;
-
-			rotationMatrix.A02 = -Math.Sqrt(1 - firstCol.X * firstCol.X - secondCol.X * secondCol.X);
-			rotationMatrix.A12 = Math.Sqrt(1 - firstCol.Y * firstCol.Y - secondCol.Y * secondCol.Y);
-			rotationMatrix.A22 = -Math.Sqrt(1 - firstCol.Z * firstCol.Z - secondCol.Z * secondCol.Z);
-
-			return rotationMatrix;
+			return new Vector2(x1 + t * (x2 - x1), y1 + t * (y2 - y1));
 		}
 	}
 
@@ -789,8 +653,8 @@ namespace Photomatch_ProofOfConcept_WPF
 
 		private void ResetPerspective()
 		{
-			xDirection = perspective.GetXVector(lineX.StartPoint);
-			yDirection = perspective.GetYVector(lineY.StartPoint);
+			//xDirection = perspective.GetXVector(lineX.StartPoint);
+			//yDirection = perspective.GetYVector(lineY.StartPoint);
 		}
 
 		private void SetLines()
