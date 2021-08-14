@@ -21,7 +21,10 @@
 
         <Grid MouseDown="MainCanvas_MouseDown" MouseUp="MainCanvas_MouseUp" MouseMove="MainCanvas_MouseMove">
             <Viewbox x:Name="MainViewbox" SizeChanged="MainViewbox_SizeChanged">
-                <Image x:Name="MainImage"></Image>
+                <Grid>
+                    <Image x:Name="MainImage"></Image>
+                    <Canvas x:Name="MainCanvas"/>
+                </Grid>
             </Viewbox>
 
             <Path x:Name="MainPath" Stroke="Red" Fill="Red"/>

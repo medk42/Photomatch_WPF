@@ -91,6 +91,7 @@ namespace Photomatch_ProofOfConcept_WPF
 				perspective.Apply(MainImage);
 
 				var startGuide = CreateStartGuide(new Point(image.Width / 2, image.Height / 2));
+				startGuide.AddListener(new Perspective.PerspectiveXYZChangeListener(perspective, startGuide));
 
 				var listeners = new List<IChangeListener>();
 				listeners.Add(startGuide);
@@ -101,6 +102,9 @@ namespace Photomatch_ProofOfConcept_WPF
 				CreateDraggableLine(perspective.LineX2, listeners);
 				CreateDraggableLine(perspective.LineY2, listeners);
 
+				MainCanvas.Children.Add(perspective.lineX);
+				MainCanvas.Children.Add(perspective.lineY);
+				MainCanvas.Children.Add(perspective.lineZ);
 			}
 		}
 
@@ -122,7 +126,7 @@ namespace Photomatch_ProofOfConcept_WPF
 		private StartGuideGeometry CreateStartGuide(Point point)
 		{
 			StartGuideGeometry startGuide = new StartGuideGeometry(point, perspectives[0], LineEndRadius, StartGuideLineLength);
-			geometry.Children.Add(startGuide.GetGeometry());
+			//geometry.Children.Add(startGuide.GetGeometry());
 			StartGuideEvents startGuideEvents = new StartGuideEvents(startGuide, LineEndGrabRadius, MainImage);
 			mouseListeners.Add(startGuideEvents);
 			scalables.Add(startGuide);
@@ -354,7 +358,35 @@ namespace Photomatch_ProofOfConcept_WPF
 		public LineGeometry LineY1 { get; } = new LineGeometry(new Point(0.27, 0.31), new Point(0.48, 0.21));
 		public LineGeometry LineY2 { get; } = new LineGeometry(new Point(0.55, 0.78), new Point(0.71, 0.68));
 
+		public Line lineX { get; } = new Line();
+		public Line lineY { get; } = new Line();
+		public Line lineZ { get; } = new Line();
+
 		Camera camera = new Camera();
+
+		public class PerspectiveXYZChangeListener : IChangeListener
+		{
+			Perspective perspective;
+			StartGuideGeometry startGuide;
+
+			public PerspectiveXYZChangeListener(Perspective perspective, StartGuideGeometry startGuide)
+			{
+				this.perspective = perspective;
+				this.startGuide = startGuide;
+			}
+
+			public void NotifyDataChange(object source)
+			{
+				perspective.lineX.X1 = startGuide.StartPoint.X;
+				perspective.lineX.Y1 = startGuide.StartPoint.Y;
+				perspective.lineY.X1 = startGuide.StartPoint.X;
+				perspective.lineY.Y1 = startGuide.StartPoint.Y;
+				perspective.lineZ.X1 = startGuide.StartPoint.X;
+				perspective.lineZ.Y1 = startGuide.StartPoint.Y;
+
+				perspective.RecalculateProjection();
+			}
+		}
 
 		public Perspective(BitmapImage image)
 		{
@@ -364,6 +396,16 @@ namespace Photomatch_ProofOfConcept_WPF
 			ScaleLine(LineX2, image.Width, image.Height);
 			ScaleLine(LineY1, image.Width, image.Height);
 			ScaleLine(LineY2, image.Width, image.Height);
+
+			lineX.Stroke = Brushes.Red;
+			lineY.Stroke = Brushes.Green;
+			lineZ.Stroke = Brushes.Blue;
+			lineX.X1 = image.Width / 2;
+			lineX.Y1 = image.Height / 2;
+			lineY.X1 = image.Width / 2;
+			lineY.Y1 = image.Height / 2;
+			lineZ.X1 = image.Width / 2;
+			lineZ.Y1 = image.Height / 2;
 
 			RecalculateProjection();
 		}
@@ -379,9 +421,34 @@ namespace Photomatch_ProofOfConcept_WPF
 			Point vanishingPointX = GetLineLineIntersection(LineX1.StartPoint, LineX1.EndPoint, LineX2.StartPoint, LineX2.EndPoint);
 			Point vanishingPointY = GetLineLineIntersection(LineY1.StartPoint, LineY1.EndPoint, LineY2.StartPoint, LineY2.EndPoint);
 			Point principalPoint = new Point(Image.Width / 2, Image.Height / 2);
-			double viewRatio = Image.Height / Image.Width;
+			//double viewRatio = Image.Height / Image.Width;
+			double viewRatio = 1;
 
-			camera.UpdateView(viewRatio, principalPoint, vanishingPointX, vanishingPointY);
+			camera.UpdateView(viewRatio, principalPoint, vanishingPointX, vanishingPointY, new Point(lineX.X1, lineX.Y1	));
+
+			Vector3 endX = camera.WorldToScreen(camera.ScreenToWorld(new Vector3(lineX.X1, lineX.Y1, 1)) + new Vector3(1000, 0, 0)); // TODO i think this is the problem, it's not moving with the dragger on the image, so the remaining axis is not precise, not sure though
+			Vector3 endY = camera.WorldToScreen(camera.ScreenToWorld(new Vector3(lineY.X1, lineY.Y1, 1)) + new Vector3(0, 1000, 0));
+			Vector3 endZ = camera.WorldToScreen(camera.ScreenToWorld(new Vector3(lineZ.X1, lineZ.Y1, 1)) + new Vector3(0, 0, 1000));
+
+			if (endX.Valid && endY.Valid && endZ.Valid)
+			{
+
+				lineX.X2 = endX.X;
+				lineX.Y2 = endX.Y;
+				lineY.X2 = endY.X;
+				lineY.Y2 = endY.Y;
+				lineZ.X2 = endZ.X;
+				lineZ.Y2 = endZ.Y;
+			}
+			else
+			{
+				lineX.X2 = lineX.X1 + 10;
+				lineX.Y2 = lineX.Y1;
+				lineY.X2 = lineY.X1;
+				lineY.Y2 = lineY.Y1 + 10;
+				lineZ.X2 = lineZ.X1;
+				lineZ.Y2 = lineZ.Y1;
+			}
 		}
 
 		public void Apply(Image imageGUI)
@@ -391,10 +458,18 @@ namespace Photomatch_ProofOfConcept_WPF
 
 		public Vector GetXVector(Point imagePoint)
 		{
-			Point intersection = GetLineLineIntersection(LineX1.StartPoint, LineX1.EndPoint, LineX2.StartPoint, LineX2.EndPoint);
-			Vector ret = Point.Subtract(intersection, imagePoint);
+			Vector3 worldPos = camera.ScreenToWorld(new Vector3(imagePoint.X, imagePoint.Y, 1));
+			worldPos.X += 1;
+			Vector3 newImagePoint = camera.WorldToScreen(worldPos);
+
+			Vector ret = Point.Subtract(new Point(newImagePoint.X, newImagePoint.Y), imagePoint);
 			ret.Normalize();
 			return ret;
+
+			/*Point intersection = GetLineLineIntersection(LineX1.StartPoint, LineX1.EndPoint, LineX2.StartPoint, LineX2.EndPoint);
+			Vector ret = Point.Subtract(intersection, imagePoint);
+			ret.Normalize();
+			return ret;*/
 		}
 
 		public Vector GetYVector(Point imagePoint)
@@ -449,30 +524,39 @@ namespace Photomatch_ProofOfConcept_WPF
 
 	class Camera
 	{
-		private Matrix3x3 projection = Matrix3x3.CreateUnitMatrix();
 		private Matrix3x3 projectionInverse = Matrix3x3.CreateUnitMatrix();
+
+		private Matrix3x3 intrinsicMatrix;
+		private Matrix3x3 rotationMatrix;
+
+		private Matrix3x3 intrinsicMatrixInverse;
+		private Matrix3x3 rotationMatrixInverse;
+
+		private Vector3 translate;
 
 		public Camera() { }
 
-		public void UpdateView(double viewRatio, Point principalPoint, Point firstVanishingPoint, Point secondVanishingPoint)
+		public void UpdateView(double viewRatio, Point principalPoint, Point firstVanishingPoint, Point secondVanishingPoint, Point origin)
 		{
 			double scale = GetInstrinsicParametersScale(principalPoint, viewRatio, firstVanishingPoint, secondVanishingPoint);
-			Matrix3x3 intrinsicMatrix = GetIntrinsicParametersMatrix(principalPoint, scale, viewRatio);
-			Matrix3x3 intrinsicMatrixInverse = GetInvertedIntrinsicParametersMatrix(principalPoint, scale, viewRatio);
-			Matrix3x3 rotationMatrix = GetRotationalMatrix(intrinsicMatrixInverse, firstVanishingPoint, secondVanishingPoint);
-			Matrix3x3 rotationMatrixInverse = rotationMatrix.Transposed();
-			projection = intrinsicMatrix * rotationMatrix;
-			projectionInverse = rotationMatrixInverse * intrinsicMatrixInverse;
+			intrinsicMatrix = GetIntrinsicParametersMatrix(principalPoint, scale, viewRatio);
+			intrinsicMatrixInverse = GetInvertedIntrinsicParametersMatrix(principalPoint, scale, viewRatio);
+			rotationMatrix = GetRotationalMatrix(intrinsicMatrixInverse, firstVanishingPoint, secondVanishingPoint);
+			rotationMatrixInverse = rotationMatrix.Transposed();
+
+			translate = intrinsicMatrixInverse * new Vector3(origin.X, origin.Y, 1);
 		}
 
 		public Vector3 WorldToScreen(Vector3 worldPoint)
 		{
-			return projection * worldPoint;
+			Vector3 point = rotationMatrix * worldPoint + translate;
+			point = point / point.Z;
+			return intrinsicMatrix * point;
 		}
 
 		public Vector3 ScreenToWorld(Vector3 screenPoint)
 		{
-			return projectionInverse * screenPoint;
+			return rotationMatrixInverse * (intrinsicMatrixInverse * screenPoint - translate);
 		}
 
 		public static double GetInstrinsicParametersScale (Point principalPoint, double viewRatio, Point firstVanishingPoint, Point secondVanishingPoint)
@@ -534,9 +618,9 @@ namespace Photomatch_ProofOfConcept_WPF
 			rotationMatrix.A11 = secondCol.Y;
 			rotationMatrix.A21 = secondCol.Z;
 
-			rotationMatrix.A02 = Math.Sqrt(1 - firstCol.X * firstCol.X - secondCol.X * secondCol.X);
+			rotationMatrix.A02 = -Math.Sqrt(1 - firstCol.X * firstCol.X - secondCol.X * secondCol.X);
 			rotationMatrix.A12 = Math.Sqrt(1 - firstCol.Y * firstCol.Y - secondCol.Y * secondCol.Y);
-			rotationMatrix.A22 = Math.Sqrt(1 - firstCol.Z * firstCol.Z - secondCol.Z * secondCol.Z);
+			rotationMatrix.A22 = -Math.Sqrt(1 - firstCol.Z * firstCol.Z - secondCol.Z * secondCol.Z);
 
 			return rotationMatrix;
 		}
@@ -626,10 +710,27 @@ namespace Photomatch_ProofOfConcept_WPF
 
 		public double Magnitude => Math.Sqrt(MagnitudeSquared);
 
+		public bool Valid => !(double.IsNaN(X) || double.IsNaN(Y) || double.IsNaN(Z));
+
 		public Vector3 Normalized()
 		{
 			double mag = this.Magnitude;
 			return new Vector3() { X = this.X / mag, Y = this.Y / mag, Z = this.Z / mag };
+		}
+
+		public static Vector3 operator +(Vector3 first, Vector3 second)
+		{
+			return new Vector3() { X = first.X + second.X, Y = first.Y + second.Y, Z = first.Z + second.Z };
+		}
+
+		public static Vector3 operator -(Vector3 first, Vector3 second)
+		{
+			return new Vector3() { X = first.X - second.X, Y = first.Y - second.Y, Z = first.Z - second.Z };
+		}
+
+		public static Vector3 operator /(Vector3 vector, double value)
+		{
+			return new Vector3() { X = vector.X / value, Y = vector.Y / value, Z = vector.Z / value };
 		}
 	}
 
@@ -668,7 +769,7 @@ namespace Photomatch_ProofOfConcept_WPF
 				NotifyListeners();
 			}
 		}
-
+		
 		public void AddListener(IChangeListener listener)
 		{
 			changeListeners.Add(listener);
@@ -824,6 +925,7 @@ namespace Photomatch_ProofOfConcept_WPF
 		private double lineLength;
 		private double currentScale = 1;
 		private Perspective perspective;
+		private List<IChangeListener> changeListeners = new List<IChangeListener>();
 
 		private Vector xDirection;
 		private Vector yDirection;
@@ -840,6 +942,7 @@ namespace Photomatch_ProofOfConcept_WPF
 
 				ResetPerspective();
 				SetLines();
+				NotifyListeners();
 			}
 		}
 
@@ -891,6 +994,19 @@ namespace Photomatch_ProofOfConcept_WPF
 			{
 				ResetPerspective();
 				SetLines();
+			}
+		}
+
+		public void AddListener(IChangeListener listener)
+		{
+			changeListeners.Add(listener);
+		}
+
+		private void NotifyListeners()
+		{
+			foreach (var listener in changeListeners)
+			{
+				listener.NotifyDataChange(this);
 			}
 		}
 	}
