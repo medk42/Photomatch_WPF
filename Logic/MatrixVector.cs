@@ -2,7 +2,7 @@
 
 namespace MatrixVector
 {
-	struct Matrix3x3
+	public struct Matrix3x3
 	{
 		public double A00 { get; set; }
 		public double A01 { get; set; }
@@ -69,7 +69,7 @@ namespace MatrixVector
 		}
 	}
 
-	struct Vector3
+	public struct Vector3
 	{
 		public Vector3(double X, double Y, double Z)
 		{
@@ -110,7 +110,7 @@ namespace MatrixVector
 		}
 	}
 
-	struct Vector2
+	public struct Vector2
 	{
 		public Vector2(double X, double Y)
 		{

@@ -20,6 +20,7 @@ using Logging;
 using GuiLogging;
 using MatrixVector;
 using Perspective;
+using Lines;
 
 namespace Photomatch_ProofOfConcept_WPF
 {
@@ -36,7 +37,6 @@ namespace Photomatch_ProofOfConcept_WPF
 		private static readonly double LineEndRadius = 4;
 		private static readonly double LineEndGrabRadius = 8;
 		private static readonly double LineStrokeThickness = 1;
-		private static readonly double StartGuideLineLength = 0.5;
 
 		public MainWindow()
 		{
@@ -143,7 +143,7 @@ namespace Photomatch_ProofOfConcept_WPF
 
 		private StartGuideGeometry CreateStartGuide(Point point)
 		{
-			StartGuideGeometry startGuide = new StartGuideGeometry(perspectives[0], StartGuideLineLength, MainCanvas);
+			StartGuideGeometry startGuide = new StartGuideGeometry(perspectives[0], MainCanvas);
 			StartGuideEvents startGuideEvents = new StartGuideEvents(startGuide, LineEndGrabRadius, MainImage);
 			mouseListeners.Add(startGuideEvents);
 			scalables.Add(startGuideEvents);
@@ -344,8 +344,8 @@ namespace Photomatch_ProofOfConcept_WPF
 
 		public void RecalculateProjection()
 		{
-			Vector2 vanishingPointX = GetLineLineIntersection2D(LineX1.StartPoint.AsVector2(), LineX1.EndPoint.AsVector2(), LineX2.StartPoint.AsVector2(), LineX2.EndPoint.AsVector2());
-			Vector2 vanishingPointY = GetLineLineIntersection2D(LineY1.StartPoint.AsVector2(), LineY1.EndPoint.AsVector2(), LineY2.StartPoint.AsVector2(), LineY2.EndPoint.AsVector2());
+			Vector2 vanishingPointX = Intersections2D.GetLineLineIntersection(new Line2D(LineX1.StartPoint.AsVector2(), LineX1.EndPoint.AsVector2()), new Line2D(LineX2.StartPoint.AsVector2(), LineX2.EndPoint.AsVector2())).Intersection;
+			Vector2 vanishingPointY = Intersections2D.GetLineLineIntersection(new Line2D(LineY1.StartPoint.AsVector2(), LineY1.EndPoint.AsVector2()), new Line2D(LineY2.StartPoint.AsVector2(), LineY2.EndPoint.AsVector2())).Intersection;
 			Vector2 principalPoint = new Vector2(Bitmap.Width / 2, Bitmap.Height / 2);
 			double viewRatio = 1;
 
@@ -375,34 +375,6 @@ namespace Photomatch_ProofOfConcept_WPF
 			Vector2 screenPointMoved = _camera.WorldToScreen(_camera.ScreenToWorld(screenPoint) + new Vector3(0, 0, 1));
 			Vector2 direction = (screenPointMoved - screenPoint).Normalized();
 			return direction;
-		}
-
-		/// <summary>
-		/// Get the point of intersection between the ray and this object using line-line intersection (https://en.wikipedia.org/wiki/Line%E2%80%93line_intersection)
-		/// </summary>
-		/// <param name="StartLineA">Start point of the first line.</param>
-		/// <param name="EndLineA">End point of the first line.</param>
-		/// <param name="StartLineB">Start point of the second line.</param>
-		/// <param name="EndLineB">End point of the second line.</param>
-		/// <returns>The point of intersection between the two lines, may be out of bounds of either line.</returns>
-		private Vector2 GetLineLineIntersection2D(Vector2 StartLineA, Vector2 EndLineA, Vector2 StartLineB, Vector2 EndLineB)
-		{
-			double x1 = StartLineA.X;
-			double y1 = StartLineA.Y;
-			double x2 = EndLineA.X;
-			double y2 = EndLineA.Y;
-
-			double x3 = StartLineB.X;
-			double y3 = StartLineB.Y;
-			double x4 = EndLineB.X;
-			double y4 = EndLineB.Y;
-
-			double denominator = (x1 - x2) * (y3 - y4) - (y1 - y2) * (x3 - x4);
-
-			double t = ((x1 - x3) * (y3 - y4) - (y1 - y3) * (x3 - x4)) / denominator;
-			double u = ((y1 - y2) * (x1 - x3) - (x1 - x2) * (y1 - y3)) / denominator;
-
-			return new Vector2(x1 + t * (x2 - x1), y1 + t * (y2 - y1));
 		}
 	}
 
@@ -593,7 +565,7 @@ namespace Photomatch_ProofOfConcept_WPF
 		private Line lineY = new Line();
 		private Line lineZ = new Line();
 
-		private double lineLengthRelative;
+		private Canvas canvas;
 		private Perspective perspective;
 
 		public Vector2 StartPoint
@@ -614,10 +586,10 @@ namespace Photomatch_ProofOfConcept_WPF
 			}
 		}
 
-		public StartGuideGeometry(Perspective perspective, double lineLengthRelative, Canvas canvas)
+		public StartGuideGeometry(Perspective perspective, Canvas canvas)
 		{
 			this.perspective = perspective;
-			this.lineLengthRelative = lineLengthRelative;
+			this.canvas = canvas;
 
 			StartPoint = perspective.Origin;
 
@@ -638,22 +610,78 @@ namespace Photomatch_ProofOfConcept_WPF
 
 			if (dirX.Valid && dirY.Valid && dirZ.Valid)
 			{
-				lineX.X2 = StartPoint.X + dirX.X * lineLengthRelative * perspective.Bitmap.Height;
-				lineX.Y2 = StartPoint.Y + dirX.Y * lineLengthRelative * perspective.Bitmap.Height;
-				lineY.X2 = StartPoint.X + dirY.X * lineLengthRelative * perspective.Bitmap.Height;
-				lineY.Y2 = StartPoint.Y + dirY.Y * lineLengthRelative * perspective.Bitmap.Height;
-				lineZ.X2 = StartPoint.X + dirZ.X * lineLengthRelative * perspective.Bitmap.Height;
-				lineZ.Y2 = StartPoint.Y + dirZ.Y * lineLengthRelative * perspective.Bitmap.Height;
+				Vector2 endX = GetRayCanvasBorderIntersection(new Ray2D(StartPoint, dirX));
+				Vector2 endY = GetRayCanvasBorderIntersection(new Ray2D(StartPoint, dirY));
+				Vector2 endZ = GetRayCanvasBorderIntersection(new Ray2D(StartPoint, dirZ));
+
+				lineX.X2 = endX.X;
+				lineX.Y2 = endX.Y;
+				lineY.X2 = endY.X;
+				lineY.Y2 = endY.Y;
+				lineZ.X2 = endZ.X;
+				lineZ.Y2 = endZ.Y;
 			}
 			else
 			{
-				lineX.X2 = lineX.X1 + 10;
+				lineX.X2 = lineX.X1 + perspective.Bitmap.Height * 0.1;
 				lineX.Y2 = lineX.Y1;
 				lineY.X2 = lineY.X1;
-				lineY.Y2 = lineY.Y1 + 10;
+				lineY.Y2 = lineY.Y1 + perspective.Bitmap.Height * 0.1;
 				lineZ.X2 = lineZ.X1;
 				lineZ.Y2 = lineZ.Y1;
 			}
+		}
+
+		private Vector2 GetRayCanvasBorderIntersection(Ray2D ray)
+		{
+			Vector2 topLeft = new Vector2(0, 0);
+			Vector2 topRight= new Vector2(perspective.Bitmap.Width, 0);
+			Vector2 bottomLeft = new Vector2(0, perspective.Bitmap.Height);
+			Vector2 bottomRight = new Vector2(perspective.Bitmap.Width, perspective.Bitmap.Height);
+
+			Line2D top = new Line2D(topLeft, topRight);
+			Line2D bottom = new Line2D(bottomLeft, bottomRight);
+			Line2D left = new Line2D(topLeft, bottomLeft);
+			Line2D right = new Line2D(topRight, bottomRight);
+
+			Line2D rayLine = ray.AsLine();
+
+			IntersectionPoint2D bestIntersection = new IntersectionPoint2D(ray.Start, -1, 0); // set "invalid" intercept
+			IntersectionPoint2D intersection;
+			
+			if (ray.Start.Y >= 0)
+			{
+				intersection = Intersections2D.GetLineLineIntersection(rayLine, top);
+				if (intersection.LineARelative >= 0 && (bestIntersection.LineARelative < 0 || intersection.LineARelative < bestIntersection.LineARelative))
+					if (intersection.LineBRelative >= 0 && intersection.LineBRelative <= 1)
+						bestIntersection = intersection;
+			}
+
+			if (ray.Start.Y < perspective.Bitmap.Height)
+			{
+				intersection = Intersections2D.GetLineLineIntersection(rayLine, bottom);
+				if (intersection.LineARelative >= 0 && (bestIntersection.LineARelative < 0 || intersection.LineARelative < bestIntersection.LineARelative))
+					if (intersection.LineBRelative >= 0 && intersection.LineBRelative <= 1)
+						bestIntersection = intersection;
+			}
+			
+			if (ray.Start.X >= 0)
+			{
+				intersection = Intersections2D.GetLineLineIntersection(rayLine, left);
+				if (intersection.LineARelative >= 0 && (bestIntersection.LineARelative < 0 || intersection.LineARelative < bestIntersection.LineARelative))
+					if (intersection.LineBRelative >= 0 && intersection.LineBRelative <= 1)
+						bestIntersection = intersection;
+			}
+			
+			if (ray.Start.X < perspective.Bitmap.Width)
+			{
+				intersection = Intersections2D.GetLineLineIntersection(rayLine, right);
+				if (intersection.LineARelative >= 0 && (bestIntersection.LineARelative < 0 || intersection.LineARelative < bestIntersection.LineARelative))
+					if (intersection.LineBRelative >= 0 && intersection.LineBRelative <= 1)
+						bestIntersection = intersection;
+			}
+			
+			return bestIntersection.Intersection;
 		}
 
 		public void NotifyDataChange(object source)

@@ -3,7 +3,7 @@ using System;
 
 namespace Perspective
 {
-	class Camera
+	public class Camera
 	{
 		private Matrix3x3 projectionInverse = Matrix3x3.CreateUnitMatrix();
 
