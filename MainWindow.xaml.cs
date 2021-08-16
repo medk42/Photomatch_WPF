@@ -36,7 +36,7 @@ namespace Photomatch_ProofOfConcept_WPF
 		private static readonly double LineEndRadius = 4;
 		private static readonly double LineEndGrabRadius = 8;
 		private static readonly double LineStrokeThickness = 1;
-		private static readonly double StartGuideLineLength = 50;
+		private static readonly double StartGuideLineLength = 0.5;
 
 		public MainWindow()
 		{
@@ -56,7 +56,8 @@ namespace Photomatch_ProofOfConcept_WPF
 		private void MenuItem_Click(object sender, RoutedEventArgs e)
 		{
 			string filePath = null;
-			BitmapImage image = null;
+
+			System.Drawing.Bitmap image = null;
 
 			OpenFileDialog openFileDialog = new OpenFileDialog();
 			openFileDialog.Filter = "Image Files (*.BMP;*.JPG;*.GIF;*.PNG;*.TIFF)|*.BMP;*.JPG;*.GIF;*.PNG;*.TIFF";
@@ -74,13 +75,16 @@ namespace Photomatch_ProofOfConcept_WPF
 			{
 				try
 				{
-					image = new BitmapImage(new Uri(filePath));
+					using (var bitmap = new System.Drawing.Bitmap(filePath))
+					{
+						image = new System.Drawing.Bitmap(bitmap);
+					}
 				}
 				catch (Exception ex)
 				{
 					if (ex is FileNotFoundException)
 						Logger.Log("Load Image", "File not found.", LogType.Warning);
-					else if (ex is NotSupportedException)
+					else if (ex is ArgumentException)
 						Logger.Log("Load Image", "Incorrect or unsupported image format.", LogType.Warning);
 					else
 						throw ex;
@@ -93,10 +97,9 @@ namespace Photomatch_ProofOfConcept_WPF
 
 				var perspective = new Perspective(image);
 				perspectives.Add(perspective);
-				perspective.Apply(MainImage);
+				SetBitmapAsImage(image, MainImage);
 
 				var startGuide = CreateStartGuide(new Point(image.Width / 2, image.Height / 2));
-				startGuide.AddListener(new Perspective.PerspectiveXYZChangeListener(perspective, startGuide));
 
 				var listeners = new List<IChangeListener>();
 				listeners.Add(startGuide);
@@ -106,11 +109,21 @@ namespace Photomatch_ProofOfConcept_WPF
 				CreateDraggableLine(perspective.LineY1, listeners);
 				CreateDraggableLine(perspective.LineX2, listeners);
 				CreateDraggableLine(perspective.LineY2, listeners);
-
-				MainCanvas.Children.Add(perspective.lineX);
-				MainCanvas.Children.Add(perspective.lineY);
-				MainCanvas.Children.Add(perspective.lineZ);
 			}
+		}
+
+		private void SetBitmapAsImage(System.Drawing.Bitmap bitmap, Image image)
+		{
+			var stream = new MemoryStream();
+			bitmap.Save(stream, System.Drawing.Imaging.ImageFormat.Bmp);
+			stream.Seek(0, SeekOrigin.Begin);
+
+			BitmapImage imageCopy = new BitmapImage();
+			imageCopy.BeginInit();
+			imageCopy.StreamSource = stream;
+			imageCopy.EndInit();
+
+			image.Source = imageCopy;
 		}
 
 		private void CreateDraggableLine(LineGeometry line, List<IChangeListener> changeListeners)
@@ -130,11 +143,9 @@ namespace Photomatch_ProofOfConcept_WPF
 
 		private StartGuideGeometry CreateStartGuide(Point point)
 		{
-			StartGuideGeometry startGuide = new StartGuideGeometry(point, perspectives[0], LineEndRadius, StartGuideLineLength);
-			//geometry.Children.Add(startGuide.GetGeometry());
+			StartGuideGeometry startGuide = new StartGuideGeometry(perspectives[0], StartGuideLineLength, MainCanvas);
 			StartGuideEvents startGuideEvents = new StartGuideEvents(startGuide, LineEndGrabRadius, MainImage);
 			mouseListeners.Add(startGuideEvents);
-			scalables.Add(startGuide);
 			scalables.Add(startGuideEvents);
 
 			return startGuide;
@@ -269,68 +280,58 @@ namespace Photomatch_ProofOfConcept_WPF
 		}
 	}
 
-	static class HackPointToVector2
+	static class PointExtensions
 	{
 		public static Vector2 AsVector2(this Point p) => new Vector2(p.X, p.Y);
 	}
 
+	interface ISafeSerializable<T> where T : ISafeSerializable<T>, new()
+	{
+		void Serialize(BinaryWriter writer);
+		void Deserialize(BinaryReader reader);
+
+		static T CreateDeserialize(BinaryReader reader)
+		{
+			T newT = new T();
+			newT.Deserialize(reader);
+			return newT;
+		}
+	}
+
 	class Perspective // should contain image and perspective data
 	{
-		public BitmapImage Image { get; }
+		public System.Drawing.Bitmap Bitmap { get; }
+
+		private Camera _camera = new Camera();
+		private Vector2 _origin;
+
+		public Vector2 Origin
+		{
+			get => _origin;
+			set
+			{
+				RecalculateProjection();
+				_origin = value;
+			}
+		}
 
 		public LineGeometry LineX1 { get; } = new LineGeometry(new Point(0.52, 0.19), new Point(0.76, 0.28));
 		public LineGeometry LineX2 { get; } = new LineGeometry(new Point(0.35, 0.67), new Point(0.46, 0.82));
 		public LineGeometry LineY1 { get; } = new LineGeometry(new Point(0.27, 0.31), new Point(0.48, 0.21));
 		public LineGeometry LineY2 { get; } = new LineGeometry(new Point(0.55, 0.78), new Point(0.71, 0.68));
 
-		public Line lineX { get; } = new Line();
-		public Line lineY { get; } = new Line();
-		public Line lineZ { get; } = new Line();
+		
 
-		Camera camera = new Camera();
-
-		public class PerspectiveXYZChangeListener : IChangeListener
+		public Perspective(System.Drawing.Bitmap image)
 		{
-			Perspective perspective;
-			StartGuideGeometry startGuide;
-
-			public PerspectiveXYZChangeListener(Perspective perspective, StartGuideGeometry startGuide)
-			{
-				this.perspective = perspective;
-				this.startGuide = startGuide;
-			}
-
-			public void NotifyDataChange(object source)
-			{
-				perspective.lineX.X1 = startGuide.StartPoint.X;
-				perspective.lineX.Y1 = startGuide.StartPoint.Y;
-				perspective.lineY.X1 = startGuide.StartPoint.X;
-				perspective.lineY.Y1 = startGuide.StartPoint.Y;
-				perspective.lineZ.X1 = startGuide.StartPoint.X;
-				perspective.lineZ.Y1 = startGuide.StartPoint.Y;
-
-				perspective.RecalculateProjection();
-			}
-		}
-
-		public Perspective(BitmapImage image)
-		{
-			Image = image;
+			Bitmap = (System.Drawing.Bitmap) image.Clone();
 
 			ScaleLine(LineX1, image.Width, image.Height);
 			ScaleLine(LineX2, image.Width, image.Height);
 			ScaleLine(LineY1, image.Width, image.Height);
 			ScaleLine(LineY2, image.Width, image.Height);
 
-			lineX.Stroke = Brushes.Red;
-			lineY.Stroke = Brushes.Green;
-			lineZ.Stroke = Brushes.Blue;
-			lineX.X1 = image.Width / 2;
-			lineX.Y1 = image.Height / 2;
-			lineY.X1 = image.Width / 2;
-			lineY.Y1 = image.Height / 2;
-			lineZ.X1 = image.Width / 2;
-			lineZ.Y1 = image.Height / 2;
+			Origin = new Vector2(image.Width / 2, image.Height / 2);
 
 			RecalculateProjection();
 		}
@@ -345,39 +346,35 @@ namespace Photomatch_ProofOfConcept_WPF
 		{
 			Vector2 vanishingPointX = GetLineLineIntersection2D(LineX1.StartPoint.AsVector2(), LineX1.EndPoint.AsVector2(), LineX2.StartPoint.AsVector2(), LineX2.EndPoint.AsVector2());
 			Vector2 vanishingPointY = GetLineLineIntersection2D(LineY1.StartPoint.AsVector2(), LineY1.EndPoint.AsVector2(), LineY2.StartPoint.AsVector2(), LineY2.EndPoint.AsVector2());
-			Vector2 principalPoint = new Vector2(Image.Width / 2, Image.Height / 2);
+			Vector2 principalPoint = new Vector2(Bitmap.Width / 2, Bitmap.Height / 2);
 			double viewRatio = 1;
 
-			camera.UpdateView(viewRatio, principalPoint, vanishingPointX, vanishingPointY, new Vector2(lineX.X1, lineX.Y1));
-
-			Vector2 endX = camera.WorldToScreen(camera.ScreenToWorld(new Vector2(lineX.X1, lineX.Y1)) + new Vector3(1000, 0, 0));
-			Vector2 endY = camera.WorldToScreen(camera.ScreenToWorld(new Vector2(lineY.X1, lineY.Y1)) + new Vector3(0, 1000, 0));
-			Vector2 endZ = camera.WorldToScreen(camera.ScreenToWorld(new Vector2(lineZ.X1, lineZ.Y1)) + new Vector3(0, 0, 1000));
-
-			if (endX.Valid && endY.Valid && endZ.Valid)
-			{
-
-				lineX.X2 = endX.X;
-				lineX.Y2 = endX.Y;
-				lineY.X2 = endY.X;
-				lineY.Y2 = endY.Y;
-				lineZ.X2 = endZ.X;
-				lineZ.Y2 = endZ.Y;
-			}
-			else
-			{
-				lineX.X2 = lineX.X1 + 10;
-				lineX.Y2 = lineX.Y1;
-				lineY.X2 = lineY.X1;
-				lineY.Y2 = lineY.Y1 + 10;
-				lineZ.X2 = lineZ.X1;
-				lineZ.Y2 = lineZ.Y1;
-			}
+			_camera.UpdateView(viewRatio, principalPoint, vanishingPointX, vanishingPointY, Origin);
 		}
 
-		public void Apply(Image imageGUI)
+		public Vector3 ScreenToWorld(Vector2 point) => _camera.ScreenToWorld(point);
+
+		public Vector2 WorldToScreen(Vector3 point) => _camera.WorldToScreen(point);
+
+		public Vector2 GetXDirAt(Vector2 screenPoint)
 		{
-			imageGUI.Source = Image;
+			Vector2 screenPointMoved = _camera.WorldToScreen(_camera.ScreenToWorld(screenPoint) + new Vector3(1, 0, 0));
+			Vector2 direction = (screenPointMoved - screenPoint).Normalized();
+			return direction;
+		}
+
+		public Vector2 GetYDirAt(Vector2 screenPoint)
+		{
+			Vector2 screenPointMoved = _camera.WorldToScreen(_camera.ScreenToWorld(screenPoint) + new Vector3(0, 1, 0));
+			Vector2 direction = (screenPointMoved - screenPoint).Normalized();
+			return direction;
+		}
+
+		public Vector2 GetZDirAt(Vector2 screenPoint)
+		{
+			Vector2 screenPointMoved = _camera.WorldToScreen(_camera.ScreenToWorld(screenPoint) + new Vector3(0, 0, 1));
+			Vector2 direction = (screenPointMoved - screenPoint).Normalized();
+			return direction;
 		}
 
 		/// <summary>
@@ -590,98 +587,80 @@ namespace Photomatch_ProofOfConcept_WPF
 		void NotifyDataChange(object source);
 	}
 
-	class StartGuideGeometry : IScalable, IChangeListener
+	class StartGuideGeometry : IChangeListener
 	{
-		private GeometryGroup geometry = new GeometryGroup();
-		private LineGeometry lineX = new LineGeometry();
-		private LineGeometry lineY = new LineGeometry();
-		private EllipseGeometry startPointEllipse = new EllipseGeometry();
-		private double endRadius;
-		private double lineLength;
-		private double currentScale = 1;
+		private Line lineX = new Line();
+		private Line lineY = new Line();
+		private Line lineZ = new Line();
+
+		private double lineLengthRelative;
 		private Perspective perspective;
-		private List<IChangeListener> changeListeners = new List<IChangeListener>();
 
-		private Vector xDirection;
-		private Vector yDirection;
-
-		public Point StartPoint
+		public Vector2 StartPoint
 		{
-			get => startPointEllipse.Center;
+			get => perspective.Origin;
 			set
 			{
-				startPointEllipse.Center = value;
+				perspective.Origin = value;
 
-				lineX.StartPoint = value;
-				lineY.StartPoint = value;
+				lineX.X1 = perspective.Origin.X;
+				lineX.Y1 = perspective.Origin.Y;
+				lineY.X1 = perspective.Origin.X;
+				lineY.Y1 = perspective.Origin.Y;
+				lineZ.X1 = perspective.Origin.X;
+				lineZ.Y1 = perspective.Origin.Y;
 
-				ResetPerspective();
 				SetLines();
-				NotifyListeners();
 			}
 		}
 
-		public StartGuideGeometry(Point startPoint, Perspective perspective, double endRadius, double lineLength)
+		public StartGuideGeometry(Perspective perspective, double lineLengthRelative, Canvas canvas)
 		{
 			this.perspective = perspective;
-			this.endRadius = endRadius;
-			this.lineLength = lineLength;
+			this.lineLengthRelative = lineLengthRelative;
 
-			this.startPointEllipse.RadiusX = endRadius;
-			this.startPointEllipse.RadiusY = endRadius;
+			StartPoint = perspective.Origin;
 
-			StartPoint = startPoint;
+			lineX.Stroke = Brushes.Red;
+			lineY.Stroke = Brushes.Green;
+			lineZ.Stroke = Brushes.Blue;
 
-			geometry.Children.Add(startPointEllipse);
-			geometry.Children.Add(lineX);
-			geometry.Children.Add(lineY);
-		}
-
-		public Geometry GetGeometry()
-		{
-			return geometry;
-		}
-
-		public void SetNewScale(double scale)
-		{
-			startPointEllipse.RadiusX = endRadius / scale;
-			startPointEllipse.RadiusY = endRadius / scale;
-
-			currentScale = scale;
-			SetLines();
-		}
-
-		private void ResetPerspective()
-		{
-			//xDirection = perspective.GetXVector(lineX.StartPoint);
-			//yDirection = perspective.GetYVector(lineY.StartPoint);
+			canvas.Children.Add(lineX);
+			canvas.Children.Add(lineY);
+			canvas.Children.Add(lineZ);
 		}
 
 		private void SetLines()
 		{
-			lineX.EndPoint = Point.Add(lineX.StartPoint, Vector.Multiply(lineLength / currentScale, xDirection));
-			lineY.EndPoint = Point.Add(lineY.StartPoint, Vector.Multiply(lineLength / currentScale, yDirection));
+			Vector2 dirX = perspective.GetXDirAt(StartPoint);
+			Vector2 dirY = perspective.GetYDirAt(StartPoint);
+			Vector2 dirZ = perspective.GetZDirAt(StartPoint);
+
+			if (dirX.Valid && dirY.Valid && dirZ.Valid)
+			{
+				lineX.X2 = StartPoint.X + dirX.X * lineLengthRelative * perspective.Bitmap.Height;
+				lineX.Y2 = StartPoint.Y + dirX.Y * lineLengthRelative * perspective.Bitmap.Height;
+				lineY.X2 = StartPoint.X + dirY.X * lineLengthRelative * perspective.Bitmap.Height;
+				lineY.Y2 = StartPoint.Y + dirY.Y * lineLengthRelative * perspective.Bitmap.Height;
+				lineZ.X2 = StartPoint.X + dirZ.X * lineLengthRelative * perspective.Bitmap.Height;
+				lineZ.Y2 = StartPoint.Y + dirZ.Y * lineLengthRelative * perspective.Bitmap.Height;
+			}
+			else
+			{
+				lineX.X2 = lineX.X1 + 10;
+				lineX.Y2 = lineX.Y1;
+				lineY.X2 = lineY.X1;
+				lineY.Y2 = lineY.Y1 + 10;
+				lineZ.X2 = lineZ.X1;
+				lineZ.Y2 = lineZ.Y1;
+			}
 		}
 
 		public void NotifyDataChange(object source)
 		{
 			if (source.GetType() == typeof(DraggableLineGeometry))
 			{
-				ResetPerspective();
 				SetLines();
-			}
-		}
-
-		public void AddListener(IChangeListener listener)
-		{
-			changeListeners.Add(listener);
-		}
-
-		private void NotifyListeners()
-		{
-			foreach (var listener in changeListeners)
-			{
-				listener.NotifyDataChange(this);
 			}
 		}
 	}
@@ -693,7 +672,7 @@ namespace Photomatch_ProofOfConcept_WPF
 		private double currentScaleSquared = 1;
 		private IInputElement positionRelativeToElement;
 
-		private Vector? draggingOffset = null;
+		private Vector2? draggingOffset = null;
 
 		public StartGuideEvents(StartGuideGeometry startGuide, double endMouseRadius, IInputElement positionRelativeToElement)
 		{
@@ -707,7 +686,7 @@ namespace Photomatch_ProofOfConcept_WPF
 			if (draggingOffset != null)
 			{
 				Point eventPos = e.GetPosition(positionRelativeToElement);
-				startGuide.StartPoint = Point.Add(eventPos, draggingOffset.Value);
+				startGuide.StartPoint = eventPos.AsVector2() + draggingOffset.Value;
 				return true;
 			}
 
@@ -734,8 +713,8 @@ namespace Photomatch_ProofOfConcept_WPF
 				return false;
 
 			Point eventPos = e.GetPosition(positionRelativeToElement);
-			Vector offset = Point.Subtract(startGuide.StartPoint, eventPos);
-			if (offset.LengthSquared < endMouseRadiusSquared / currentScaleSquared)
+			Vector2 offset = startGuide.StartPoint - eventPos.AsVector2();
+			if (offset.MagnitudeSquared < endMouseRadiusSquared / currentScaleSquared)
 			{
 				draggingOffset = offset;
 				return true;

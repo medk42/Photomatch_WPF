@@ -132,5 +132,20 @@ namespace MatrixVector
 			double mag = this.Magnitude;
 			return new Vector2() { X = this.X / mag, Y = this.Y / mag };
 		}
+
+		public static Vector2 operator +(Vector2 first, Vector2 second)
+		{
+			return new Vector2() { X = first.X + second.X, Y = first.Y + second.Y };
+		}
+
+		public static Vector2 operator -(Vector2 first, Vector2 second)
+		{
+			return new Vector2() { X = first.X - second.X, Y = first.Y - second.Y };
+		}
+
+		public static Vector2 operator /(Vector2 vector, double value)
+		{
+			return new Vector2() { X = vector.X / value, Y = vector.Y / value };
+		}
 	}
 }
