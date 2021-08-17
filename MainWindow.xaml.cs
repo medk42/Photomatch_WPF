@@ -645,43 +645,36 @@ namespace Photomatch_ProofOfConcept_WPF
 			Line2D right = new Line2D(topRight, bottomRight);
 
 			Line2D rayLine = ray.AsLine();
-
-			IntersectionPoint2D bestIntersection = new IntersectionPoint2D(ray.Start, -1, 0); // set "invalid" intercept
-			IntersectionPoint2D intersection;
 			
 			if (ray.Start.Y >= 0)
 			{
-				intersection = Intersections2D.GetLineLineIntersection(rayLine, top);
-				if (intersection.LineARelative >= 0 && (bestIntersection.LineARelative < 0 || intersection.LineARelative < bestIntersection.LineARelative))
-					if (intersection.LineBRelative >= 0 && intersection.LineBRelative <= 1)
-						bestIntersection = intersection;
+				var intersection = Intersections2D.GetLineLineIntersection(rayLine, top);
+				if (intersection.LineARelative >= 0 && (intersection.LineBRelative >= 0 && intersection.LineBRelative <= 1))
+					return intersection.Intersection;
 			}
 
 			if (ray.Start.Y < perspective.Bitmap.Height)
 			{
-				intersection = Intersections2D.GetLineLineIntersection(rayLine, bottom);
-				if (intersection.LineARelative >= 0 && (bestIntersection.LineARelative < 0 || intersection.LineARelative < bestIntersection.LineARelative))
-					if (intersection.LineBRelative >= 0 && intersection.LineBRelative <= 1)
-						bestIntersection = intersection;
+				var intersection = Intersections2D.GetLineLineIntersection(rayLine, bottom);
+				if (intersection.LineARelative >= 0 && (intersection.LineBRelative >= 0 && intersection.LineBRelative <= 1))
+					return intersection.Intersection;
 			}
 			
 			if (ray.Start.X >= 0)
 			{
-				intersection = Intersections2D.GetLineLineIntersection(rayLine, left);
-				if (intersection.LineARelative >= 0 && (bestIntersection.LineARelative < 0 || intersection.LineARelative < bestIntersection.LineARelative))
-					if (intersection.LineBRelative >= 0 && intersection.LineBRelative <= 1)
-						bestIntersection = intersection;
+				var intersection = Intersections2D.GetLineLineIntersection(rayLine, left);
+				if (intersection.LineARelative >= 0 && (intersection.LineBRelative >= 0 && intersection.LineBRelative <= 1))
+					return intersection.Intersection;
 			}
 			
 			if (ray.Start.X < perspective.Bitmap.Width)
 			{
-				intersection = Intersections2D.GetLineLineIntersection(rayLine, right);
-				if (intersection.LineARelative >= 0 && (bestIntersection.LineARelative < 0 || intersection.LineARelative < bestIntersection.LineARelative))
-					if (intersection.LineBRelative >= 0 && intersection.LineBRelative <= 1)
-						bestIntersection = intersection;
+				var intersection = Intersections2D.GetLineLineIntersection(rayLine, right);
+				if (intersection.LineARelative >= 0 && (intersection.LineBRelative >= 0 && intersection.LineBRelative <= 1))
+					return intersection.Intersection;
 			}
-			
-			return bestIntersection.Intersection;
+
+			return ray.Start;
 		}
 
 		public void NotifyDataChange(object source)
