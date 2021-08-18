@@ -14,6 +14,9 @@ namespace Lines
 			this.End = End;
 		}
 
+		public Line2D WithStart(Vector2 NewStart) => new Line2D(NewStart, this.End);
+		public Line2D WithEnd(Vector2 NewEnd) => new Line2D(this.Start, NewEnd);
+
 		public Ray2D AsRay() => new Ray2D(Start, End - Start);
 	}
 
@@ -33,6 +36,9 @@ namespace Lines
 			this.Start = Start;
 			this.Direction = Direction;
 		}
+
+		public Ray2D WithStart(Vector2 NewStart) => new Ray2D(NewStart, this.Direction);
+		public Ray2D WithDirection(Vector2 NewDirection) => new Ray2D(this.Start, NewDirection);
 
 		public Line2D AsLine() => new Line2D(Start, Start + Direction);
 	}

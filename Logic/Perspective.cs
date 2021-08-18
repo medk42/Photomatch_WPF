@@ -1,8 +1,129 @@
 ﻿using MatrixVector;
 using System;
+using Lines;
 
 namespace Perspective
 {
+	public class PerspectiveData // should contain image and perspective data
+	{
+		public System.Drawing.Bitmap Bitmap { get; }
+
+		private Camera _camera = new Camera();
+		private Vector2 _origin;
+		private Line2D _lineX1 = new Line2D(new Vector2(0.52, 0.19), new Vector2(0.76, 0.28));
+		private Line2D _lineX2 = new Line2D(new Vector2(0.35, 0.67), new Vector2(0.46, 0.82));
+		private Line2D _lineY1 = new Line2D(new Vector2(0.27, 0.31), new Vector2(0.48, 0.21));
+		private Line2D _lineY2 = new Line2D(new Vector2(0.55, 0.78), new Vector2(0.71, 0.68));
+
+		public Vector2 Origin
+		{
+			get => _origin;
+			set
+			{
+				_origin = value;
+				RecalculateProjection();
+			}
+		}
+
+		public Line2D LineX1
+		{
+			get => _lineX1;
+			set
+			{
+				_lineX1 = value;
+				RecalculateProjection();
+			}
+		}
+
+		public Line2D LineX2
+		{
+			get => _lineX2;
+			set
+			{
+				_lineX2 = value;
+				RecalculateProjection();
+			}
+		}
+
+		public Line2D LineY1
+		{
+			get => _lineY1;
+			set
+			{
+				_lineY1 = value;
+				RecalculateProjection();
+			}
+		}
+
+		public Line2D LineY2
+		{
+			get => _lineY2;
+			set
+			{
+				_lineY2 = value;
+				RecalculateProjection();
+			}
+		}
+
+
+
+		public PerspectiveData(System.Drawing.Bitmap image)
+		{
+			Bitmap = (System.Drawing.Bitmap)image.Clone();
+
+			LineX1 = ScaleLine(LineX1, image.Width, image.Height);
+			LineX2 = ScaleLine(LineX2, image.Width, image.Height);
+			LineY1 = ScaleLine(LineY1, image.Width, image.Height);
+			LineY2 = ScaleLine(LineY2, image.Width, image.Height);
+
+			Origin = new Vector2(image.Width / 2, image.Height / 2);
+
+			RecalculateProjection();
+		}
+
+		private Line2D ScaleLine(Line2D line, double xStretch, double yStretch)
+		{
+			var newStart = new Vector2(line.Start.X * xStretch, line.Start.Y * yStretch);
+			var newEnd = new Vector2(line.End.X * xStretch, line.End.Y * yStretch);
+			return new Line2D(newStart, newEnd);
+		}
+
+		public void RecalculateProjection()
+		{
+			Vector2 vanishingPointX = Intersections2D.GetLineLineIntersection(LineX1, LineX2).Intersection;
+			Vector2 vanishingPointY = Intersections2D.GetLineLineIntersection(LineY1, LineY2).Intersection;
+			Vector2 principalPoint = new Vector2(Bitmap.Width / 2, Bitmap.Height / 2);
+			double viewRatio = 1;
+
+			_camera.UpdateView(viewRatio, principalPoint, vanishingPointX, vanishingPointY, Origin);
+		}
+
+		public Vector3 ScreenToWorld(Vector2 point) => _camera.ScreenToWorld(point);
+
+		public Vector2 WorldToScreen(Vector3 point) => _camera.WorldToScreen(point);
+
+		public Vector2 GetXDirAt(Vector2 screenPoint)
+		{
+			Vector2 screenPointMoved = _camera.WorldToScreen(_camera.ScreenToWorld(screenPoint) + new Vector3(1, 0, 0));
+			Vector2 direction = (screenPointMoved - screenPoint).Normalized();
+			return direction;
+		}
+
+		public Vector2 GetYDirAt(Vector2 screenPoint)
+		{
+			Vector2 screenPointMoved = _camera.WorldToScreen(_camera.ScreenToWorld(screenPoint) + new Vector3(0, 1, 0));
+			Vector2 direction = (screenPointMoved - screenPoint).Normalized();
+			return direction;
+		}
+
+		public Vector2 GetZDirAt(Vector2 screenPoint)
+		{
+			Vector2 screenPointMoved = _camera.WorldToScreen(_camera.ScreenToWorld(screenPoint) + new Vector3(0, 0, 1));
+			Vector2 direction = (screenPointMoved - screenPoint).Normalized();
+			return direction;
+		}
+	}
+
 	public class Camera
 	{
 		private Matrix3x3 projectionInverse = Matrix3x3.CreateUnitMatrix();

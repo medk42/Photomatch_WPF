@@ -30,7 +30,7 @@ namespace Photomatch_ProofOfConcept_WPF
 	public partial class MainWindow : Window
 	{
 		private ILogger Logger = null;
-		private List<Perspective> perspectives = new List<Perspective>();
+		private List<PerspectiveData> perspectives = new List<PerspectiveData>();
 		private List<IMouseEvents> mouseListeners = new List<IMouseEvents>();
 		private List<IScalable> scalables = new List<IScalable>();
 
@@ -95,7 +95,7 @@ namespace Photomatch_ProofOfConcept_WPF
 			{
 				Logger.Log("Load Image", "File loaded successfully.", LogType.Info);
 
-				var perspective = new Perspective(image);
+				var perspective = new PerspectiveData(image);
 				perspectives.Add(perspective);
 				SetBitmapAsImage(image, MainImage);
 
@@ -103,13 +103,29 @@ namespace Photomatch_ProofOfConcept_WPF
 
 				var listeners = new List<IChangeListener>();
 				listeners.Add(startGuide);
-				listeners.Add(new PerspectiveChangeListener(perspective));
 
-				CreateDraggableLine(perspective.LineX1, listeners);
-				CreateDraggableLine(perspective.LineY1, listeners);
-				CreateDraggableLine(perspective.LineX2, listeners);
-				CreateDraggableLine(perspective.LineY2, listeners);
+				CreateDraggableLine(Line2dToLineGeometry(perspective.LineX1), listeners,
+									(value) => perspective.LineX1 = perspective.LineX1.WithStart(value.AsVector2()),
+									(value) => perspective.LineX1 = perspective.LineX1.WithEnd(value.AsVector2())
+				);
+				CreateDraggableLine(Line2dToLineGeometry(perspective.LineX2), listeners,
+									(value) => perspective.LineX2 = perspective.LineX2.WithStart(value.AsVector2()),
+									(value) => perspective.LineX2 = perspective.LineX2.WithEnd(value.AsVector2())
+				);
+				CreateDraggableLine(Line2dToLineGeometry(perspective.LineY1), listeners,
+									(value) => perspective.LineY1 = perspective.LineY1.WithStart(value.AsVector2()),
+									(value) => perspective.LineY1 = perspective.LineY1.WithEnd(value.AsVector2())
+				);
+				CreateDraggableLine(Line2dToLineGeometry(perspective.LineY2), listeners,
+									(value) => perspective.LineY2 = perspective.LineY2.WithStart(value.AsVector2()),
+									(value) => perspective.LineY2 = perspective.LineY2.WithEnd(value.AsVector2())
+				);
 			}
+		}
+
+		private LineGeometry Line2dToLineGeometry(Line2D line)
+		{
+			return new LineGeometry(new Point(line.Start.X, line.Start.Y), new Point(line.End.X, line.End.Y));
 		}
 
 		private void SetBitmapAsImage(System.Drawing.Bitmap bitmap, Image image)
@@ -126,9 +142,9 @@ namespace Photomatch_ProofOfConcept_WPF
 			image.Source = imageCopy;
 		}
 
-		private void CreateDraggableLine(LineGeometry line, List<IChangeListener> changeListeners)
+		private void CreateDraggableLine(LineGeometry line, List<IChangeListener> changeListeners, UpdateValue<Point> updateValueStart, UpdateValue<Point> updateValueEnd)
 		{
-			DraggableLineGeometry draggableLine = new DraggableLineGeometry(line, LineEndRadius);
+			DraggableLineGeometry draggableLine = new DraggableLineGeometry(line, LineEndRadius, updateValueStart, updateValueEnd);
 			geometry.Children.Add(draggableLine.GetGeometry());
 			DraggableLineEvents draggableLineEvents = new DraggableLineEvents(draggableLine, LineEndGrabRadius, MainImage);
 			mouseListeners.Add(draggableLineEvents);
@@ -265,21 +281,6 @@ namespace Photomatch_ProofOfConcept_WPF
 		}
 	}
 
-	class PerspectiveChangeListener : IChangeListener
-	{
-		private Perspective perspective;
-
-		public PerspectiveChangeListener(Perspective perspective)
-		{
-			this.perspective = perspective;
-		}
-
-		public void NotifyDataChange(object source)
-		{
-			perspective.RecalculateProjection();
-		}
-	}
-
 	static class PointExtensions
 	{
 		public static Vector2 AsVector2(this Point p) => new Vector2(p.X, p.Y);
@@ -298,90 +299,12 @@ namespace Photomatch_ProofOfConcept_WPF
 		}
 	}
 
-	class Perspective // should contain image and perspective data
-	{
-		public System.Drawing.Bitmap Bitmap { get; }
-
-		private Camera _camera = new Camera();
-		private Vector2 _origin;
-
-		public Vector2 Origin
-		{
-			get => _origin;
-			set
-			{
-				RecalculateProjection();
-				_origin = value;
-			}
-		}
-
-		public LineGeometry LineX1 { get; } = new LineGeometry(new Point(0.52, 0.19), new Point(0.76, 0.28));
-		public LineGeometry LineX2 { get; } = new LineGeometry(new Point(0.35, 0.67), new Point(0.46, 0.82));
-		public LineGeometry LineY1 { get; } = new LineGeometry(new Point(0.27, 0.31), new Point(0.48, 0.21));
-		public LineGeometry LineY2 { get; } = new LineGeometry(new Point(0.55, 0.78), new Point(0.71, 0.68));
-
-		
-
-		public Perspective(System.Drawing.Bitmap image)
-		{
-			Bitmap = (System.Drawing.Bitmap) image.Clone();
-
-			ScaleLine(LineX1, image.Width, image.Height);
-			ScaleLine(LineX2, image.Width, image.Height);
-			ScaleLine(LineY1, image.Width, image.Height);
-			ScaleLine(LineY2, image.Width, image.Height);
-
-			Origin = new Vector2(image.Width / 2, image.Height / 2);
-
-			RecalculateProjection();
-		}
-
-		private void ScaleLine(LineGeometry line, double xStretch, double yStretch)
-		{
-			line.StartPoint = new Point(line.StartPoint.X * xStretch, line.StartPoint.Y * yStretch);
-			line.EndPoint = new Point(line.EndPoint.X * xStretch, line.EndPoint.Y * yStretch);
-		}
-
-		public void RecalculateProjection()
-		{
-			Vector2 vanishingPointX = Intersections2D.GetLineLineIntersection(new Line2D(LineX1.StartPoint.AsVector2(), LineX1.EndPoint.AsVector2()), new Line2D(LineX2.StartPoint.AsVector2(), LineX2.EndPoint.AsVector2())).Intersection;
-			Vector2 vanishingPointY = Intersections2D.GetLineLineIntersection(new Line2D(LineY1.StartPoint.AsVector2(), LineY1.EndPoint.AsVector2()), new Line2D(LineY2.StartPoint.AsVector2(), LineY2.EndPoint.AsVector2())).Intersection;
-			Vector2 principalPoint = new Vector2(Bitmap.Width / 2, Bitmap.Height / 2);
-			double viewRatio = 1;
-
-			_camera.UpdateView(viewRatio, principalPoint, vanishingPointX, vanishingPointY, Origin);
-		}
-
-		public Vector3 ScreenToWorld(Vector2 point) => _camera.ScreenToWorld(point);
-
-		public Vector2 WorldToScreen(Vector3 point) => _camera.WorldToScreen(point);
-
-		public Vector2 GetXDirAt(Vector2 screenPoint)
-		{
-			Vector2 screenPointMoved = _camera.WorldToScreen(_camera.ScreenToWorld(screenPoint) + new Vector3(1, 0, 0));
-			Vector2 direction = (screenPointMoved - screenPoint).Normalized();
-			return direction;
-		}
-
-		public Vector2 GetYDirAt(Vector2 screenPoint)
-		{
-			Vector2 screenPointMoved = _camera.WorldToScreen(_camera.ScreenToWorld(screenPoint) + new Vector3(0, 1, 0));
-			Vector2 direction = (screenPointMoved - screenPoint).Normalized();
-			return direction;
-		}
-
-		public Vector2 GetZDirAt(Vector2 screenPoint)
-		{
-			Vector2 screenPointMoved = _camera.WorldToScreen(_camera.ScreenToWorld(screenPoint) + new Vector3(0, 0, 1));
-			Vector2 direction = (screenPointMoved - screenPoint).Normalized();
-			return direction;
-		}
-	}
-
 	interface IScalable
 	{
 		void SetNewScale(double scale);
 	}
+
+	delegate void UpdateValue<T>(T value);
 
 	class DraggableLineGeometry : IScalable
 	{
@@ -392,6 +315,9 @@ namespace Photomatch_ProofOfConcept_WPF
 		private double endRadius;
 		private List<IChangeListener> changeListeners = new List<IChangeListener>();
 
+		private UpdateValue<Point> updateValueStart;
+		private UpdateValue<Point> updateValueEnd;
+
 		public Point StartPoint
 		{
 			get => line.StartPoint;
@@ -399,6 +325,7 @@ namespace Photomatch_ProofOfConcept_WPF
 			{
 				line.StartPoint = value;
 				startPointEllipse.Center = value;
+				updateValueStart(value);
 				NotifyListeners();
 			}
 		}
@@ -410,6 +337,7 @@ namespace Photomatch_ProofOfConcept_WPF
 			{
 				line.EndPoint = value;
 				endPointEllipse.Center = value;
+				updateValueEnd(value);
 				NotifyListeners();
 			}
 		}
@@ -419,7 +347,7 @@ namespace Photomatch_ProofOfConcept_WPF
 			changeListeners.Add(listener);
 		}
 
-		public DraggableLineGeometry(LineGeometry line, double endRadius)
+		public DraggableLineGeometry(LineGeometry line, double endRadius, UpdateValue<Point> updateValueStart, UpdateValue<Point> updateValueEnd)
 		{
 			this.line = line;
 			this.endRadius = endRadius;
@@ -430,7 +358,12 @@ namespace Photomatch_ProofOfConcept_WPF
 			geometry.Children.Add(this.line);
 			geometry.Children.Add(startPointEllipse);
 			geometry.Children.Add(endPointEllipse);
+
+			this.updateValueStart = updateValueStart;
+			this.updateValueEnd = updateValueEnd;
 		}
+
+		public DraggableLineGeometry(LineGeometry line, double endRadius) : this(line, endRadius, (val) => { }, (val) => { }) { }
 
 		public Geometry GetGeometry()
 		{
@@ -566,7 +499,7 @@ namespace Photomatch_ProofOfConcept_WPF
 		private Line lineZ = new Line();
 
 		private Canvas canvas;
-		private Perspective perspective;
+		private PerspectiveData perspective;
 
 		public Vector2 StartPoint
 		{
@@ -586,7 +519,7 @@ namespace Photomatch_ProofOfConcept_WPF
 			}
 		}
 
-		public StartGuideGeometry(Perspective perspective, Canvas canvas)
+		public StartGuideGeometry(PerspectiveData perspective, Canvas canvas)
 		{
 			this.perspective = perspective;
 			this.canvas = canvas;
