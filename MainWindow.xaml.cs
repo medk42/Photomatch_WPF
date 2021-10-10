@@ -286,19 +286,6 @@ namespace Photomatch_ProofOfConcept_WPF
 		public static Vector2 AsVector2(this Point p) => new Vector2(p.X, p.Y);
 	}
 
-	interface ISafeSerializable<T> where T : ISafeSerializable<T>, new()
-	{
-		void Serialize(BinaryWriter writer);
-		void Deserialize(BinaryReader reader);
-
-		static T CreateDeserialize(BinaryReader reader)
-		{
-			T newT = new T();
-			newT.Deserialize(reader);
-			return newT;
-		}
-	}
-
 	interface IScalable
 	{
 		void SetNewScale(double scale);

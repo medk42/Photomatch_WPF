@@ -147,5 +147,17 @@ namespace MatrixVector
 		{
 			return new Vector2() { X = vector.X / value, Y = vector.Y / value };
 		}
+
+		public static Vector2 operator *(Vector2 vector, double value)
+		{
+			return new Vector2() { X = vector.X * value, Y = vector.Y * value };
+		}
+
+		public static Vector2 operator *(double value, Vector2 vector) => vector * value;
+
+		public static double Dot(Vector2 first, Vector2 second)
+		{
+			return first.X * second.X + first.Y * second.Y;
+		}
 	}
 }

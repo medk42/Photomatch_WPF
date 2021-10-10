@@ -141,7 +141,7 @@ namespace Perspective
 			double scale = GetInstrinsicParametersScale(principalPoint, viewRatio, firstVanishingPoint, secondVanishingPoint);
 			intrinsicMatrix = GetIntrinsicParametersMatrix(principalPoint, scale, viewRatio);
 			intrinsicMatrixInverse = GetInvertedIntrinsicParametersMatrix(principalPoint, scale, viewRatio);
-			rotationMatrix = GetRotationalMatrix(intrinsicMatrixInverse, firstVanishingPoint, secondVanishingPoint);
+			rotationMatrix = GetRotationalMatrix(intrinsicMatrixInverse, firstVanishingPoint, secondVanishingPoint, principalPoint);
 			rotationMatrixInverse = rotationMatrix.Transposed();
 
 			translate = intrinsicMatrixInverse * new Vector3(origin.X, origin.Y, 1);
@@ -204,12 +204,15 @@ namespace Perspective
 			return intrinsicMatrixInv;
 		}
 
-		public static Matrix3x3 GetRotationalMatrix(Matrix3x3 invertedIntrinsicMatrix, Vector2 firstVanishingPoint, Vector2 secondVanishingPoint)
+		public static Matrix3x3 GetRotationalMatrix(Matrix3x3 invertedIntrinsicMatrix, Vector2 firstVanishingPoint, Vector2 secondVanishingPoint, Vector2 principalPoint)
 		{
+			Vector2 thirdVanishingPoint = GetTriangleThirdVertexFromOrthocenter(firstVanishingPoint, secondVanishingPoint, principalPoint);
+
 			Matrix3x3 rotationMatrix = new Matrix3x3();
 
 			Vector3 firstCol = (invertedIntrinsicMatrix * new Vector3(firstVanishingPoint.X, firstVanishingPoint.Y, 1)).Normalized();
 			Vector3 secondCol = (invertedIntrinsicMatrix * new Vector3(secondVanishingPoint.X, secondVanishingPoint.Y, 1)).Normalized();
+			Vector3 thirdCol = (invertedIntrinsicMatrix * new Vector3(thirdVanishingPoint.X, thirdVanishingPoint.Y, 1)).Normalized();
 
 			rotationMatrix.A00 = firstCol.X;
 			rotationMatrix.A10 = firstCol.Y;
@@ -219,11 +222,25 @@ namespace Perspective
 			rotationMatrix.A11 = secondCol.Y;
 			rotationMatrix.A21 = secondCol.Z;
 
-			rotationMatrix.A02 = -Math.Sqrt(1 - firstCol.X * firstCol.X - secondCol.X * secondCol.X);
-			rotationMatrix.A12 = Math.Sqrt(1 - firstCol.Y * firstCol.Y - secondCol.Y * secondCol.Y);
-			rotationMatrix.A22 = -Math.Sqrt(1 - firstCol.Z * firstCol.Z - secondCol.Z * secondCol.Z);
+			rotationMatrix.A02 = thirdCol.X;
+			rotationMatrix.A12 = thirdCol.Y;
+			rotationMatrix.A22 = thirdCol.Z;
 
 			return rotationMatrix;
+		}
+
+		private static Vector2 GetTriangleThirdVertexFromOrthocenter(Vector2 firstVertex, Vector2 secondVertex, Vector2 orthocenter)
+		{
+			Vector2 firstToSecond = secondVertex - firstVertex;
+			Vector2 firstToOrtho = orthocenter - firstVertex;
+			Vector2 orthoProj = firstVertex + Vector2.Dot(firstToOrtho, firstToSecond) / Vector2.Dot(firstToSecond, firstToSecond) * firstToSecond;
+
+			Vector2 ortoProjToOrto = orthocenter - orthoProj;
+			Vector2 ortoProjToFirst = firstVertex - orthoProj;
+			Vector2 secondToOrtho = orthocenter - secondVertex;
+			Vector2 thirdVertex = orthoProj + Vector2.Dot(ortoProjToFirst, secondToOrtho) / Vector2.Dot(ortoProjToOrto, secondToOrtho) * ortoProjToOrto;
+
+			return thirdVertex;
 		}
 	}
 }
