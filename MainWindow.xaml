@@ -9,7 +9,7 @@
     <DockPanel>
         <Menu DockPanel.Dock="Top">
             <MenuItem Header="File">
-                <MenuItem Header="Load Image" Click="MenuItem_Click"/>
+                <MenuItem Header="Load Image" Click="LoadImage_Click"/>
             </MenuItem>
         </Menu>
 

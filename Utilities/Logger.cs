@@ -2,17 +2,17 @@
 
 namespace Logging
 {
-	enum LogType
+	public enum LogType
 	{
 		Error, Warning, Info
 	}
 
-	interface ILogger
+	public interface ILogger
 	{
 		void Log(string title, string message, LogType type);
 	}
 
-	class MultiLogger : ILogger
+	public class MultiLogger : ILogger
 	{
 		public List<ILogger> Loggers { get; } = new List<ILogger>();
 

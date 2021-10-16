@@ -4,9 +4,9 @@ using System.Windows.Controls;
 
 using Logging;
 
-namespace GuiLogging
+namespace WpfLogging
 {
-	class WarningErrorGUILogger : ILogger
+	public class WarningErrorGUILogger : ILogger
 	{
 		public void Log(string title, string message, LogType type)
 		{
@@ -26,7 +26,7 @@ namespace GuiLogging
 		}
 	}
 
-	class StatusStripLogger : ILogger
+	public class StatusStripLogger : ILogger
 	{
 		private readonly TextBlock StatusLabel = null;
 		private System.Windows.Threading.DispatcherTimer timer = new System.Windows.Threading.DispatcherTimer();

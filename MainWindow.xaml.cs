@@ -17,19 +17,144 @@ using System.Windows.Navigation;
 using System.Windows.Shapes;
 
 using Logging;
-using GuiLogging;
+using WpfLogging;
 using MatrixVector;
 using Perspective;
 using Lines;
 
 namespace Photomatch_ProofOfConcept_WPF
 {
+
+
+	public interface MasterGUI : ILogger
+	{
+		string GetImageFilePath();
+		void CreateImageWindow(int id);
+		void SetImage(int id, System.Drawing.Bitmap image);
+	}
+
+	public interface Actions
+	{
+		void LoadImage_Pressed();
+	}
+
+	public class ImageWindow
+	{
+		private MasterGUI Gui;
+		private ILogger Logger;
+		private int WindowID { get; }
+
+		private PerspectiveData Perspective;
+
+		public ImageWindow(System.Drawing.Bitmap image, MasterGUI gui, ILogger logger, int windowID)
+		{
+			this.Gui = gui;
+			this.Logger = logger;
+			this.WindowID = windowID;
+
+			this.Perspective = new PerspectiveData(image);
+
+			Gui.CreateImageWindow(WindowID);
+			Gui.SetImage(WindowID, image);
+		}
+
+		public void MouseMove(Vector2 mouseCoord)
+		{
+
+		}
+
+		public void MouseDown(Vector2 mouseCoord)
+		{
+
+		}
+
+		public void MouseUp(Vector2 mouseCoord)
+		{
+
+		}
+	}
+
+	public class MasterControl : Actions
+	{
+		private MasterGUI Gui;
+		private ILogger Logger;
+		private Dictionary<int, ImageWindow> Windows;
+		private int NextWindowID = 0;
+
+		public MasterControl(MasterGUI gui)
+		{
+			this.Gui = gui;
+			this.Logger = gui;
+			this.Windows = new Dictionary<int, ImageWindow>();
+		}
+
+		public void MouseMove(Vector2 mouseCoord, int windowID)
+		{
+			ValidateWindowID(windowID);
+			Windows[windowID].MouseMove(mouseCoord);
+		}
+
+		public void MouseDown(Vector2 mouseCoord, int windowID)
+		{
+			ValidateWindowID(windowID);
+			Windows[windowID].MouseDown(mouseCoord);
+		}
+
+		public void MouseUp(Vector2 mouseCoord, int windowID)
+		{
+			ValidateWindowID(windowID);
+			Windows[windowID].MouseUp(mouseCoord);
+		}
+
+		private void ValidateWindowID(int windowID)
+		{
+			if (!Windows.ContainsKey(windowID))
+			{
+				throw new ArgumentException($"Unknown windowID={windowID}.");
+			}
+		}
+
+		public void LoadImage_Pressed()
+		{
+			string filePath = Gui.GetImageFilePath();
+			if (filePath == null)
+			{
+				Logger.Log("Load Image", "No file was selected.", LogType.Info);
+				return;
+			}
+
+			System.Drawing.Bitmap image = null;
+			try
+			{
+				using (var bitmap = new System.Drawing.Bitmap(filePath))
+				{
+					image = new System.Drawing.Bitmap(bitmap);
+				}
+			}
+			catch (Exception ex)
+			{
+				if (ex is FileNotFoundException)
+					Logger.Log("Load Image", "File not found.", LogType.Warning);
+				else if (ex is ArgumentException)
+					Logger.Log("Load Image", "Incorrect or unsupported image format.", LogType.Warning);
+				else
+					throw ex;
+			}
+
+			if (image != null)
+			{
+				Logger.Log("Load Image", "File loaded successfully.", LogType.Info);
+				Windows[NextWindowID] = new ImageWindow(image, Gui, Logger, NextWindowID);
+				NextWindowID++;
+			}
+		}
+	}
+
 	/// <summary>
 	/// Interaction logic for MainWindow.xaml
 	/// </summary>
-	public partial class MainWindow : Window
+	public partial class MainWindow : Window, MasterGUI
 	{
-		private ILogger Logger = null;
 		private List<PerspectiveData> perspectives = new List<PerspectiveData>();
 		private List<IMouseEvents> mouseListeners = new List<IMouseEvents>();
 		private List<IScalable> scalables = new List<IScalable>();
@@ -38,23 +163,81 @@ namespace Photomatch_ProofOfConcept_WPF
 		private static readonly double LineEndGrabRadius = 8;
 		private static readonly double LineStrokeThickness = 1;
 
+		private MasterControl AppControl;
+		private Actions ActionListener;
+		private ILogger Logger = null;
+
 		public MainWindow()
 		{
 			InitializeComponent();
+
+			AppControl = new MasterControl(this);
+			ActionListener = AppControl;
 
 			var multiLogger = new MultiLogger();
 			multiLogger.Loggers.Add(new StatusStripLogger(StatusText));
 			multiLogger.Loggers.Add(new WarningErrorGUILogger());
 			Logger = multiLogger;
 
-			MainPath.Data = geometry;
+			/*MainPath.Data = geometry;
 			geometry.FillRule = FillRule.Nonzero;
 
-			MainPath.StrokeThickness = LineStrokeThickness;
+			MainPath.StrokeThickness = LineStrokeThickness;*/
 		}
 
-		private void MenuItem_Click(object sender, RoutedEventArgs e)
+		public void Log(string title, string message, LogType type)
 		{
+			Logger.Log(title, message, type);
+		}
+
+		private string GetFilePath(string filter)
+		{
+			OpenFileDialog openFileDialog = new OpenFileDialog();
+			openFileDialog.Filter = filter;
+			openFileDialog.RestoreDirectory = true;
+			if (openFileDialog.ShowDialog() ?? false)
+			{
+				return openFileDialog.FileName;
+			}
+
+			return null;
+		}
+
+		public string GetImageFilePath()
+		{
+			return GetFilePath("Image Files (*.BMP;*.JPG;*.GIF;*.PNG;*.TIFF)|*.BMP;*.JPG;*.GIF;*.PNG;*.TIFF");
+		}
+
+		public void CreateImageWindow(int id)
+		{
+			// this will be used when multiple windows are implemented
+		}
+
+		public void SetImage(int id, System.Drawing.Bitmap image)
+		{
+			// id will be used when multiple windows are implemented
+			SetBitmapAsImage(image, MainImage);
+		}
+
+		private void SetBitmapAsImage(System.Drawing.Bitmap bitmap, Image image)
+		{
+			var stream = new MemoryStream();
+			bitmap.Save(stream, System.Drawing.Imaging.ImageFormat.Bmp);
+			stream.Seek(0, SeekOrigin.Begin);
+
+			BitmapImage imageCopy = new BitmapImage();
+			imageCopy.BeginInit();
+			imageCopy.StreamSource = stream;
+			imageCopy.EndInit();
+
+			image.Source = imageCopy;
+		}
+
+		private void LoadImage_Click(object sender, RoutedEventArgs e)
+		{
+			ActionListener.LoadImage_Pressed();
+			return;
+
 			string filePath = null;
 
 			System.Drawing.Bitmap image = null;
@@ -126,20 +309,6 @@ namespace Photomatch_ProofOfConcept_WPF
 		private LineGeometry Line2dToLineGeometry(Line2D line)
 		{
 			return new LineGeometry(new Point(line.Start.X, line.Start.Y), new Point(line.End.X, line.End.Y));
-		}
-
-		private void SetBitmapAsImage(System.Drawing.Bitmap bitmap, Image image)
-		{
-			var stream = new MemoryStream();
-			bitmap.Save(stream, System.Drawing.Imaging.ImageFormat.Bmp);
-			stream.Seek(0, SeekOrigin.Begin);
-
-			BitmapImage imageCopy = new BitmapImage();
-			imageCopy.BeginInit();
-			imageCopy.StreamSource = stream;
-			imageCopy.EndInit();
-
-			image.Source = imageCopy;
 		}
 
 		private void CreateDraggableLine(LineGeometry line, List<IChangeListener> changeListeners, UpdateValue<Point> updateValueStart, UpdateValue<Point> updateValueEnd)
