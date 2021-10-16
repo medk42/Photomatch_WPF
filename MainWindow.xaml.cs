@@ -26,6 +26,8 @@ namespace Photomatch_ProofOfConcept_WPF
 {
 	public enum MouseButton { Left, Right, Middle }
 
+	public enum ApplicationColor { XAxis, YAxis, ZAxis, Model }
+
 	public delegate void UpdateValue<T>(T value);
 
 	public interface IPoint
@@ -63,7 +65,6 @@ namespace Photomatch_ProofOfConcept_WPF
 		private Vector2 DraggingOffset;
 		private IWindow Window;
 		private double MaxMouseDistance;
-		private int WindowId;
 
 		public DraggablePoints(IWindow window, double maxMouseDistance)
 		{
@@ -120,7 +121,7 @@ namespace Photomatch_ProofOfConcept_WPF
 	{
 		void SetImage(System.Drawing.Bitmap image);
 		double ScreenDistance(Vector2 pointA, Vector2 pointB);
-		ILine CreateLine(Vector2 start, Vector2 end, double endRadius);
+		ILine CreateLine(Vector2 start, Vector2 end, double endRadius, ApplicationColor color);
 	}
 
 	public interface Actions
@@ -140,6 +141,8 @@ namespace Photomatch_ProofOfConcept_WPF
 		private PerspectiveData Perspective;
 		private DraggablePoints DraggablePoints;
 
+		private ILine LineX, LineY, LineZ;
+
 		public ImageWindow(System.Drawing.Bitmap image, MasterGUI gui, ILogger logger)
 		{
 			this.Gui = gui;
@@ -151,6 +154,7 @@ namespace Photomatch_ProofOfConcept_WPF
 
 			Window.SetImage(image);
 
+			CreateCoordSystemLines();
 			CreatePerspectiveLines();
 		}
 
@@ -171,10 +175,10 @@ namespace Photomatch_ProofOfConcept_WPF
 
 		private void CreatePerspectiveLines()
 		{
-			var lineX1 = Window.CreateLine(Perspective.LineX1.Start, Perspective.LineX1.End, PointDrawRadius);
-			var lineX2 = Window.CreateLine(Perspective.LineX2.Start, Perspective.LineX2.End, PointDrawRadius);
-			var lineY1 = Window.CreateLine(Perspective.LineY1.Start, Perspective.LineY1.End, PointDrawRadius);
-			var lineY2 = Window.CreateLine(Perspective.LineY2.Start, Perspective.LineY2.End, PointDrawRadius);
+			var lineX1 = Window.CreateLine(Perspective.LineX1.Start, Perspective.LineX1.End, PointDrawRadius, ApplicationColor.XAxis);
+			var lineX2 = Window.CreateLine(Perspective.LineX2.Start, Perspective.LineX2.End, PointDrawRadius, ApplicationColor.XAxis);
+			var lineY1 = Window.CreateLine(Perspective.LineY1.Start, Perspective.LineY1.End, PointDrawRadius, ApplicationColor.YAxis);
+			var lineY2 = Window.CreateLine(Perspective.LineY2.Start, Perspective.LineY2.End, PointDrawRadius, ApplicationColor.YAxis);
 
 			AddDraggablePointsForPerspectiveLine(lineX1,
 				(value) => Perspective.LineX1 = Perspective.LineX1.WithStart(value),
@@ -204,9 +208,50 @@ namespace Photomatch_ProofOfConcept_WPF
 			}));
 		}
 
+		private void CreateCoordSystemLines()
+		{
+			var origin = new Vector2();
+			LineX = Window.CreateLine(origin, origin, PointDrawRadius, ApplicationColor.XAxis);
+			LineY = Window.CreateLine(origin, origin, PointDrawRadius, ApplicationColor.YAxis);
+			LineZ = Window.CreateLine(origin, origin, PointDrawRadius, ApplicationColor.ZAxis);
+
+			Vector2 midPicture = new Vector2(Perspective.Bitmap.Width / 2, Perspective.Bitmap.Height / 2);
+			DraggablePoints.Points.Add(new ActionPoint(midPicture, (value) => {
+				Perspective.Origin = value;
+				UpdateCoordSystemLines();
+			}));
+
+			UpdateCoordSystemLines();
+		}
+
 		private void UpdateCoordSystemLines()
 		{
+			Vector2 dirX = Perspective.GetXDirAt(Perspective.Origin);
+			Vector2 dirY = Perspective.GetYDirAt(Perspective.Origin);
+			Vector2 dirZ = Perspective.GetZDirAt(Perspective.Origin);
 
+			LineX.Start = Perspective.Origin;
+			LineY.Start = Perspective.Origin;
+			LineZ.Start = Perspective.Origin;
+
+			if (dirX.Valid && dirY.Valid && dirZ.Valid)
+			{
+				Vector2 imageSize = new Vector2(Perspective.Bitmap.Width, Perspective.Bitmap.Height);
+
+				Vector2 endX = Intersections2D.GetRayInsideBoxIntersection(new Ray2D(Perspective.Origin, dirX), new Vector2(), imageSize);
+				Vector2 endY = Intersections2D.GetRayInsideBoxIntersection(new Ray2D(Perspective.Origin, dirY), new Vector2(), imageSize);
+				Vector2 endZ = Intersections2D.GetRayInsideBoxIntersection(new Ray2D(Perspective.Origin, dirZ), new Vector2(), imageSize);
+
+				LineX.End = endX;
+				LineY.End = endY;
+				LineZ.End = endZ;
+			}
+			else
+			{
+				LineX.End = LineX.Start + new Vector2(Perspective.Bitmap.Height * 0.1, 0);
+				LineY.End = LineY.Start + new Vector2(0, Perspective.Bitmap.Height * 0.1);
+				LineZ.End = LineZ.Start;
+			}
 		}
 	}
 
@@ -262,14 +307,14 @@ namespace Photomatch_ProofOfConcept_WPF
 	{
 		public Line Line { get; }
 
-		public WpfLine(Point Start, Point End)
+		public WpfLine(Point Start, Point End, Brush color)
 		{
 			Line = new Line();
 			Line.X1 = Start.X;
 			Line.Y1 = Start.Y;
 			Line.X2 = End.X;
 			Line.Y2 = End.Y;
-			Line.Stroke = Brushes.Red;
+			Line.Stroke = color;
 		}
 
 		public Vector2 Start
@@ -390,10 +435,30 @@ namespace Photomatch_ProofOfConcept_WPF
 			return new Point(vect.X, vect.Y);
 		}
 
-		public ILine CreateLine(Vector2 start, Vector2 end, double endRadius)
+		public ILine CreateLine(Vector2 start, Vector2 end, double endRadius, ApplicationColor color)
 		{
 			// TODO missing endRadius
-			var wpfLine = new WpfLine(Vector2ToPoint(start), Vector2ToPoint(end));
+			Brush brush;
+
+			switch (color)
+			{
+				case ApplicationColor.XAxis:
+					brush = Brushes.Red;
+					break;
+				case ApplicationColor.YAxis:
+					brush = Brushes.Green;
+					break;
+				case ApplicationColor.ZAxis:
+					brush = Brushes.Blue;
+					break;
+				case ApplicationColor.Model:
+					brush = Brushes.Gray;
+					break;
+				default:
+					throw new ArgumentException("Unknown application color.");
+			}
+
+			var wpfLine = new WpfLine(Vector2ToPoint(start), Vector2ToPoint(end), brush);
 			MainCanvas.Children.Add(wpfLine.Line);
 			return wpfLine;
 		}

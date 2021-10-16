@@ -106,5 +106,60 @@ namespace Lines
 
 			return new IntersectionPoint2D(new Vector2(x1 + t * (x2 - x1), y1 + t * (y2 - y1)), t, u);
 		}
+
+		/// <summary>
+		/// Get the point of intersection between a ray and a box specified by "top-left" (smaller X and Y) and
+		/// "bottom-right" (bigger X and Y) corners. If the ray is outside the box, return ray origin.
+		/// </summary>
+		/// <param name="corner1">Corner with smaller X and Y.</param>
+		/// <param name="corner2">Corner with bigger X and Y.</param>
+		/// <returns>Point of intersection between the ray and the box or ray origin if ray is outside the box</returns>
+		public static Vector2 GetRayInsideBoxIntersection(Ray2D ray, Vector2 corner1, Vector2 corner2)
+		{
+			if (corner1.X > corner2.X || corner1.Y > corner2.Y)
+				throw new ArgumentException("\"corner1\" needs to have smaller coordinates than \"corner2\".");
+
+			Vector2 topLeft = new Vector2(corner1.X, corner1.Y);
+			Vector2 topRight = new Vector2(corner2.X, corner1.Y);
+			Vector2 bottomLeft = new Vector2(corner1.X, corner2.Y);
+			Vector2 bottomRight = new Vector2(corner2.X, corner2.Y);
+
+			Line2D top = new Line2D(topLeft, topRight);
+			Line2D bottom = new Line2D(bottomLeft, bottomRight);
+			Line2D left = new Line2D(topLeft, bottomLeft);
+			Line2D right = new Line2D(topRight, bottomRight);
+
+			Line2D rayLine = ray.AsLine();
+
+			if (ray.Start.Y >= corner1.Y)
+			{
+				var intersection = Intersections2D.GetLineLineIntersection(rayLine, top);
+				if (intersection.LineARelative >= 0 && (intersection.LineBRelative >= 0 && intersection.LineBRelative <= 1))
+					return intersection.Intersection;
+			}
+
+			if (ray.Start.Y < corner2.Y)
+			{
+				var intersection = Intersections2D.GetLineLineIntersection(rayLine, bottom);
+				if (intersection.LineARelative >= 0 && (intersection.LineBRelative >= 0 && intersection.LineBRelative <= 1))
+					return intersection.Intersection;
+			}
+
+			if (ray.Start.X >= corner1.X)
+			{
+				var intersection = Intersections2D.GetLineLineIntersection(rayLine, left);
+				if (intersection.LineARelative >= 0 && (intersection.LineBRelative >= 0 && intersection.LineBRelative <= 1))
+					return intersection.Intersection;
+			}
+
+			if (ray.Start.X < corner2.X)
+			{
+				var intersection = Intersections2D.GetLineLineIntersection(rayLine, right);
+				if (intersection.LineARelative >= 0 && (intersection.LineBRelative >= 0 && intersection.LineBRelative <= 1))
+					return intersection.Intersection;
+			}
+
+			return ray.Start;
+		}
 	}
 }
