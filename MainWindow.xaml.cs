@@ -24,13 +24,103 @@ using Lines;
 
 namespace Photomatch_ProofOfConcept_WPF
 {
+	public enum MouseButton { Left, Right, Middle }
 
+	public delegate void UpdateValue<T>(T value);
+
+	public interface IPoint
+	{
+		public Vector2 Position { get; set; }
+	}
+
+	public class ActionPoint : IPoint
+	{
+		private Vector2 position_;
+		public Vector2 Position 
+		{
+			get => position_;
+			set
+			{
+				position_ = value;
+				UpdateValue(position_);
+			}
+		}
+
+		private UpdateValue<Vector2> UpdateValue;
+
+		public ActionPoint(Vector2 position, UpdateValue<Vector2> updateValue)
+		{
+			this.UpdateValue = updateValue;
+			this.Position = position;
+		}
+	}
+
+	public class DraggablePoints
+	{
+		public List<IPoint> Points { get; } = new List<IPoint>();
+
+		private IPoint CurrentPoint = null;
+		private Vector2 DraggingOffset;
+		private IWindow Window;
+		private double MaxMouseDistance;
+		private int WindowId;
+
+		public DraggablePoints(IWindow window, double maxMouseDistance)
+		{
+			this.Window = window;
+			this.MaxMouseDistance = maxMouseDistance;
+		}
+
+		public void MouseMove(Vector2 mouseCoord)
+		{
+			if (CurrentPoint != null)
+			{
+				CurrentPoint.Position = mouseCoord + DraggingOffset;
+			}
+		}
+
+		public void MouseDown(Vector2 mouseCoord, MouseButton button)
+		{
+			if (button == MouseButton.Left)
+			{
+				foreach (IPoint p in Points)
+				{
+					if (Window.ScreenDistance(mouseCoord, p.Position) < MaxMouseDistance)
+					{
+						DraggingOffset = p.Position - mouseCoord;
+						CurrentPoint = p;
+						break;
+					}
+				}
+			}
+		}
+
+		public void MouseUp(Vector2 mouseCoord, MouseButton button)
+		{
+			if (button == MouseButton.Left)
+			{
+				CurrentPoint = null;
+			}
+		}
+	}
+
+	public interface ILine
+	{
+		Vector2 Start { get; set; }
+		Vector2 End { get; set; }
+	}
 
 	public interface MasterGUI : ILogger
 	{
 		string GetImageFilePath();
-		void CreateImageWindow(int id);
-		void SetImage(int id, System.Drawing.Bitmap image);
+		IWindow CreateImageWindow(ImageWindow imageWindow);
+	}
+
+	public interface IWindow
+	{
+		void SetImage(System.Drawing.Bitmap image);
+		double ScreenDistance(Vector2 pointA, Vector2 pointB);
+		ILine CreateLine(Vector2 start, Vector2 end, double endRadius);
 	}
 
 	public interface Actions
@@ -40,35 +130,81 @@ namespace Photomatch_ProofOfConcept_WPF
 
 	public class ImageWindow
 	{
+		private static readonly double PointGrabRadius = 8;
+		private static readonly double PointDrawRadius = 4;
+
 		private MasterGUI Gui;
 		private ILogger Logger;
-		private int WindowID { get; }
+		private IWindow Window { get; }
 
 		private PerspectiveData Perspective;
+		private DraggablePoints DraggablePoints;
 
-		public ImageWindow(System.Drawing.Bitmap image, MasterGUI gui, ILogger logger, int windowID)
+		public ImageWindow(System.Drawing.Bitmap image, MasterGUI gui, ILogger logger)
 		{
 			this.Gui = gui;
 			this.Logger = logger;
-			this.WindowID = windowID;
+			this.Window = Gui.CreateImageWindow(this);
 
 			this.Perspective = new PerspectiveData(image);
+			this.DraggablePoints = new DraggablePoints(Window, PointGrabRadius);
 
-			Gui.CreateImageWindow(WindowID);
-			Gui.SetImage(WindowID, image);
+			Window.SetImage(image);
+
+			CreatePerspectiveLines();
 		}
 
 		public void MouseMove(Vector2 mouseCoord)
 		{
-
+			DraggablePoints.MouseMove(mouseCoord);
 		}
 
-		public void MouseDown(Vector2 mouseCoord)
+		public void MouseDown(Vector2 mouseCoord, MouseButton button)
 		{
-
+			DraggablePoints.MouseDown(mouseCoord, button);
 		}
 
-		public void MouseUp(Vector2 mouseCoord)
+		public void MouseUp(Vector2 mouseCoord, MouseButton button)
+		{
+			DraggablePoints.MouseUp(mouseCoord, button);
+		}
+
+		private void CreatePerspectiveLines()
+		{
+			var lineX1 = Window.CreateLine(Perspective.LineX1.Start, Perspective.LineX1.End, PointDrawRadius);
+			var lineX2 = Window.CreateLine(Perspective.LineX2.Start, Perspective.LineX2.End, PointDrawRadius);
+			var lineY1 = Window.CreateLine(Perspective.LineY1.Start, Perspective.LineY1.End, PointDrawRadius);
+			var lineY2 = Window.CreateLine(Perspective.LineY2.Start, Perspective.LineY2.End, PointDrawRadius);
+
+			AddDraggablePointsForPerspectiveLine(lineX1,
+				(value) => Perspective.LineX1 = Perspective.LineX1.WithStart(value),
+				(value) => Perspective.LineX1 = Perspective.LineX1.WithEnd(value));
+			AddDraggablePointsForPerspectiveLine(lineX2,
+				(value) => Perspective.LineX2 = Perspective.LineX2.WithStart(value),
+				(value) => Perspective.LineX2 = Perspective.LineX2.WithEnd(value));
+			AddDraggablePointsForPerspectiveLine(lineY1,
+				(value) => Perspective.LineY1 = Perspective.LineY1.WithStart(value),
+				(value) => Perspective.LineY1 = Perspective.LineY1.WithEnd(value));
+			AddDraggablePointsForPerspectiveLine(lineY2,
+				(value) => Perspective.LineY2 = Perspective.LineY2.WithStart(value),
+				(value) => Perspective.LineY2 = Perspective.LineY2.WithEnd(value));
+		}
+
+		private void AddDraggablePointsForPerspectiveLine(ILine line, UpdateValue<Vector2> updateValueStart, UpdateValue<Vector2> updateValueEnd)
+		{
+			DraggablePoints.Points.Add(new ActionPoint(line.Start, (value) => {
+				line.Start = value;
+				updateValueStart(value);
+				UpdateCoordSystemLines();
+			}));
+			DraggablePoints.Points.Add(new ActionPoint(line.End, (value) => {
+				line.End = value;
+				updateValueEnd(value);
+				UpdateCoordSystemLines();
+			}));
+		}
+
+		private void UpdateCoordSystemLines()
 		{
 
 		}
@@ -78,40 +214,13 @@ namespace Photomatch_ProofOfConcept_WPF
 	{
 		private MasterGUI Gui;
 		private ILogger Logger;
-		private Dictionary<int, ImageWindow> Windows;
-		private int NextWindowID = 0;
+		private List<ImageWindow> Windows;
 
 		public MasterControl(MasterGUI gui)
 		{
 			this.Gui = gui;
 			this.Logger = gui;
-			this.Windows = new Dictionary<int, ImageWindow>();
-		}
-
-		public void MouseMove(Vector2 mouseCoord, int windowID)
-		{
-			ValidateWindowID(windowID);
-			Windows[windowID].MouseMove(mouseCoord);
-		}
-
-		public void MouseDown(Vector2 mouseCoord, int windowID)
-		{
-			ValidateWindowID(windowID);
-			Windows[windowID].MouseDown(mouseCoord);
-		}
-
-		public void MouseUp(Vector2 mouseCoord, int windowID)
-		{
-			ValidateWindowID(windowID);
-			Windows[windowID].MouseUp(mouseCoord);
-		}
-
-		private void ValidateWindowID(int windowID)
-		{
-			if (!Windows.ContainsKey(windowID))
-			{
-				throw new ArgumentException($"Unknown windowID={windowID}.");
-			}
+			this.Windows = new List<ImageWindow>();
 		}
 
 		public void LoadImage_Pressed()
@@ -144,8 +253,42 @@ namespace Photomatch_ProofOfConcept_WPF
 			if (image != null)
 			{
 				Logger.Log("Load Image", "File loaded successfully.", LogType.Info);
-				Windows[NextWindowID] = new ImageWindow(image, Gui, Logger, NextWindowID);
-				NextWindowID++;
+				Windows.Add(new ImageWindow(image, Gui, Logger));
+			}
+		}
+	}
+
+	public class WpfLine : ILine
+	{
+		public Line Line { get; }
+
+		public WpfLine(Point Start, Point End)
+		{
+			Line = new Line();
+			Line.X1 = Start.X;
+			Line.Y1 = Start.Y;
+			Line.X2 = End.X;
+			Line.Y2 = End.Y;
+			Line.Stroke = Brushes.Red;
+		}
+
+		public Vector2 Start
+		{
+			get => new Vector2(Line.X1, Line.Y1);
+			set
+			{
+				Line.X1 = value.X;
+				Line.Y1 = value.Y;
+			}
+		}
+
+		public Vector2 End
+		{
+			get => new Vector2(Line.X2, Line.Y2);
+			set
+			{
+				Line.X2 = value.X;
+				Line.Y2 = value.Y;
 			}
 		}
 	}
@@ -153,11 +296,9 @@ namespace Photomatch_ProofOfConcept_WPF
 	/// <summary>
 	/// Interaction logic for MainWindow.xaml
 	/// </summary>
-	public partial class MainWindow : Window, MasterGUI
+	public partial class MainWindow : Window, MasterGUI, IWindow
 	{
-		private List<PerspectiveData> perspectives = new List<PerspectiveData>();
-		private List<IMouseEvents> mouseListeners = new List<IMouseEvents>();
-		private List<IScalable> scalables = new List<IScalable>();
+		private List<IScalable> scalables = new List<IScalable>(); // ????
 
 		private static readonly double LineEndRadius = 4;
 		private static readonly double LineEndGrabRadius = 8;
@@ -166,6 +307,7 @@ namespace Photomatch_ProofOfConcept_WPF
 		private MasterControl AppControl;
 		private Actions ActionListener;
 		private ILogger Logger = null;
+		private ImageWindow ImageWindow;
 
 		public MainWindow()
 		{
@@ -208,14 +350,16 @@ namespace Photomatch_ProofOfConcept_WPF
 			return GetFilePath("Image Files (*.BMP;*.JPG;*.GIF;*.PNG;*.TIFF)|*.BMP;*.JPG;*.GIF;*.PNG;*.TIFF");
 		}
 
-		public void CreateImageWindow(int id)
+		public IWindow CreateImageWindow(ImageWindow imageWindow)
 		{
-			// this will be used when multiple windows are implemented
+			// TODO this will be used when multiple windows are implemented
+			ImageWindow = imageWindow;
+			return this;
 		}
 
-		public void SetImage(int id, System.Drawing.Bitmap image)
+		public void SetImage(System.Drawing.Bitmap image)
 		{
-			// id will be used when multiple windows are implemented
+			// TODO id will be used when multiple windows are implemented
 			SetBitmapAsImage(image, MainImage);
 		}
 
@@ -233,100 +377,38 @@ namespace Photomatch_ProofOfConcept_WPF
 			image.Source = imageCopy;
 		}
 
+		public double ScreenDistance(Vector2 pointA, Vector2 pointB)
+		{
+			// TODO id will be used when multiple windows are implemented
+			Point pointATranslated = MainImage.TranslatePoint(Vector2ToPoint(pointA), MyMainWindow);
+			Point pointBTranslated = MainImage.TranslatePoint(Vector2ToPoint(pointB), MyMainWindow);
+			return (pointATranslated - pointBTranslated).Length;
+		}
+
+		private Point Vector2ToPoint(Vector2 vect)
+		{
+			return new Point(vect.X, vect.Y);
+		}
+
+		public ILine CreateLine(Vector2 start, Vector2 end, double endRadius)
+		{
+			// TODO missing endRadius
+			var wpfLine = new WpfLine(Vector2ToPoint(start), Vector2ToPoint(end));
+			MainCanvas.Children.Add(wpfLine.Line);
+			return wpfLine;
+		}
+
 		private void LoadImage_Click(object sender, RoutedEventArgs e)
 		{
 			ActionListener.LoadImage_Pressed();
 			return;
 
-			string filePath = null;
-
-			System.Drawing.Bitmap image = null;
-
-			OpenFileDialog openFileDialog = new OpenFileDialog();
-			openFileDialog.Filter = "Image Files (*.BMP;*.JPG;*.GIF;*.PNG;*.TIFF)|*.BMP;*.JPG;*.GIF;*.PNG;*.TIFF";
-			openFileDialog.RestoreDirectory = true;
-			if (openFileDialog.ShowDialog() ?? false)
-			{
-				filePath = openFileDialog.FileName;
-			}
-
-			if (filePath == null) // user closed dialog
-			{
-				Logger.Log("Load Image", "User closed dialog before selecting file.", LogType.Info);
-			}
-			else
-			{
-				try
-				{
-					using (var bitmap = new System.Drawing.Bitmap(filePath))
-					{
-						image = new System.Drawing.Bitmap(bitmap);
-					}
-				}
-				catch (Exception ex)
-				{
-					if (ex is FileNotFoundException)
-						Logger.Log("Load Image", "File not found.", LogType.Warning);
-					else if (ex is ArgumentException)
-						Logger.Log("Load Image", "Incorrect or unsupported image format.", LogType.Warning);
-					else
-						throw ex;
-				}
-			}
-
-			if (image != null)
-			{
-				Logger.Log("Load Image", "File loaded successfully.", LogType.Info);
-
-				var perspective = new PerspectiveData(image);
-				perspectives.Add(perspective);
-				SetBitmapAsImage(image, MainImage);
-
-				var startGuide = CreateStartGuide(new Point(image.Width / 2, image.Height / 2));
-
-				var listeners = new List<IChangeListener>();
-				listeners.Add(startGuide);
-
-				CreateDraggableLine(Line2dToLineGeometry(perspective.LineX1), listeners,
-									(value) => perspective.LineX1 = perspective.LineX1.WithStart(value.AsVector2()),
-									(value) => perspective.LineX1 = perspective.LineX1.WithEnd(value.AsVector2())
-				);
-				CreateDraggableLine(Line2dToLineGeometry(perspective.LineX2), listeners,
-									(value) => perspective.LineX2 = perspective.LineX2.WithStart(value.AsVector2()),
-									(value) => perspective.LineX2 = perspective.LineX2.WithEnd(value.AsVector2())
-				);
-				CreateDraggableLine(Line2dToLineGeometry(perspective.LineY1), listeners,
-									(value) => perspective.LineY1 = perspective.LineY1.WithStart(value.AsVector2()),
-									(value) => perspective.LineY1 = perspective.LineY1.WithEnd(value.AsVector2())
-				);
-				CreateDraggableLine(Line2dToLineGeometry(perspective.LineY2), listeners,
-									(value) => perspective.LineY2 = perspective.LineY2.WithStart(value.AsVector2()),
-									(value) => perspective.LineY2 = perspective.LineY2.WithEnd(value.AsVector2())
-				);
-			}
+			
 		}
 
-		private LineGeometry Line2dToLineGeometry(Line2D line)
-		{
-			return new LineGeometry(new Point(line.Start.X, line.Start.Y), new Point(line.End.X, line.End.Y));
-		}
-
-		private void CreateDraggableLine(LineGeometry line, List<IChangeListener> changeListeners, UpdateValue<Point> updateValueStart, UpdateValue<Point> updateValueEnd)
-		{
-			DraggableLineGeometry draggableLine = new DraggableLineGeometry(line, LineEndRadius, updateValueStart, updateValueEnd);
-			geometry.Children.Add(draggableLine.GetGeometry());
-			DraggableLineEvents draggableLineEvents = new DraggableLineEvents(draggableLine, LineEndGrabRadius, MainImage);
-			mouseListeners.Add(draggableLineEvents);
-			scalables.Add(draggableLine);
-			scalables.Add(draggableLineEvents);
-
-			foreach (var listener in changeListeners)
-			{
-				draggableLine.AddListener(listener);
-			}
-		}
-
-		private StartGuideGeometry CreateStartGuide(Point point)
+		/*var startGuide = CreateStartGuide(new Point(image.Width / 2, image.Height / 2));
+		 * 
+		 * private StartGuideGeometry CreateStartGuide(Point point)
 		{
 			StartGuideGeometry startGuide = new StartGuideGeometry(perspectives[0], MainCanvas);
 			StartGuideEvents startGuideEvents = new StartGuideEvents(startGuide, LineEndGrabRadius, MainImage);
@@ -334,56 +416,46 @@ namespace Photomatch_ProofOfConcept_WPF
 			scalables.Add(startGuideEvents);
 
 			return startGuide;
+		}*/
+
+		private MouseButton? GetMouseButton(System.Windows.Input.MouseButton button)
+		{
+			if (button == System.Windows.Input.MouseButton.Left)
+				return MouseButton.Left;
+			else if (button == System.Windows.Input.MouseButton.Right)
+				return MouseButton.Right;
+			else if (button == System.Windows.Input.MouseButton.Middle)
+				return MouseButton.Middle;
+			else
+				return null;
 		}
-
-
-		// testing  stuff START
-
-		LineGeometry lineGeometry = null;
-		GeometryGroup geometry = new GeometryGroup();
 
 		private void MainCanvas_MouseDown(object sender, MouseButtonEventArgs e)
 		{
+			MouseButton? button = GetMouseButton(e.ChangedButton);
+			if (!button.HasValue)
+				return;
+			
 			Point point = e.GetPosition(MainImage);
 			if (point.X < 0 || point.Y < 0 || point.X >= MainImage.ActualWidth || point.Y >= MainImage.ActualHeight)
 				return;
 
-			foreach (var listener in mouseListeners)
-			{
-				if (listener.MouseDown(sender, e))
-					break;
-			}
-
-			/*if (e.ChangedButton == MouseButton.Left)
-			{
-				Point eventPos = e.GetPosition(MainImage);
-
-				lineGeometry = new LineGeometry(eventPos, eventPos);
-				geometry.Children.Add(lineGeometry);
-			}*/
+			ImageWindow.MouseDown(point.AsVector2(), button.Value);
 
 			Logger.Log("Mouse Event", $"Mouse Down at {e.GetPosition(MainImage).X}, {e.GetPosition(MainImage).Y} by {e.ChangedButton}", LogType.Info);
 		}
 
 		private void MainCanvas_MouseUp(object sender, MouseButtonEventArgs e)
 		{
+			MouseButton? button = GetMouseButton(e.ChangedButton);
+			if (!button.HasValue)
+				return;
+
 			Point point = e.GetPosition(MainImage);
 			if (point.X < 0 || point.Y < 0 || point.X >= MainImage.ActualWidth || point.Y >= MainImage.ActualHeight)
 				return;
 
-			foreach (var listener in mouseListeners)
-			{
-				if (listener.MouseUp(sender, e))
-					break;
-			}
-
-			/*if (e.ChangedButton == MouseButton.Left && lineGeometry != null)
-			{
-				Point eventPos = e.GetPosition(MainImage);
-
-				lineGeometry.EndPoint = eventPos;
-				lineGeometry = null;
-			}*/
+			ImageWindow.MouseUp(point.AsVector2(), button.Value);
 
 			Logger.Log("Mouse Event", $"Mouse Up at {e.GetPosition(MainImage).X}, {e.GetPosition(MainImage).Y} by {e.ChangedButton}", LogType.Info);
 		}
@@ -394,20 +466,10 @@ namespace Photomatch_ProofOfConcept_WPF
 			if (point.X < 0 || point.Y < 0 || point.X >= MainImage.ActualWidth || point.Y >= MainImage.ActualHeight)
 				return;
 
-			foreach (var listener in mouseListeners)
-			{
-				if (listener.MouseMove(sender, e))
-					break;
-			}
+			ImageWindow.MouseMove(point.AsVector2());
 
-			/*if (lineGeometry != null)
-			{
-				Point eventPos = e.GetPosition(MainImage);
-
-				lineGeometry.EndPoint = eventPos;
-			}*/
-
-			Logger.Log("Mouse Event", $"Mouse Move at {e.GetPosition(MainImage).X}, {e.GetPosition(MainImage).Y} (MainCanvas) and at {e.GetPosition(MainImage).X}, {e.GetPosition(MainImage).Y} (MainImage)", LogType.Info);
+			Point afterTranslate = MainImage.TranslatePoint(point, MyMainWindow);
+			Logger.Log("Mouse Event", $"Mouse Move at {e.GetPosition(MainImage).X}, {e.GetPosition(MainImage).Y} (MainCanvas) and at {e.GetPosition(MainImage).X}, {e.GetPosition(MainImage).Y} (MainImage) which is at {afterTranslate.X}, {afterTranslate.Y} (translated to MainWindow)", LogType.Info);
 		}
 
 		private void MainWindow_SizeChanged(object sender, SizeChangedEventArgs e)
@@ -429,6 +491,11 @@ namespace Photomatch_ProofOfConcept_WPF
 
 			Logger.Log($"Size Change Event ({sender.GetType().Name})", $"{MainImage.RenderSize} => {MainViewbox.RenderSize} with scale {scale}x", LogType.Info);
 		}
+
+		// testing  stuff START
+
+		LineGeometry lineGeometry = null;
+		GeometryGroup geometry = new GeometryGroup();
 
 		private void UpdateGeometryTransform()
 		{
@@ -459,8 +526,6 @@ namespace Photomatch_ProofOfConcept_WPF
 	{
 		void SetNewScale(double scale);
 	}
-
-	delegate void UpdateValue<T>(T value);
 
 	class DraggableLineGeometry : IScalable
 	{
@@ -592,7 +657,7 @@ namespace Photomatch_ProofOfConcept_WPF
 
 		public bool MouseUp(object sender, MouseButtonEventArgs e)
 		{
-			if (e.ChangedButton != MouseButton.Left)
+			if (e.ChangedButton != System.Windows.Input.MouseButton.Left)
 				return false;
 
 			if (draggingStartOffset != null)
@@ -612,7 +677,7 @@ namespace Photomatch_ProofOfConcept_WPF
 
 		public bool MouseDown(object sender, MouseButtonEventArgs e)
 		{
-			if (e.ChangedButton != MouseButton.Left)
+			if (e.ChangedButton != System.Windows.Input.MouseButton.Left)
 				return false;
 			
 			Point eventPos = e.GetPosition(positionRelativeToElement);
@@ -805,7 +870,7 @@ namespace Photomatch_ProofOfConcept_WPF
 
 		public bool MouseUp(object sender, MouseButtonEventArgs e)
 		{
-			if (e.ChangedButton != MouseButton.Left)
+			if (e.ChangedButton != System.Windows.Input.MouseButton.Left)
 				return false;
 
 			if (draggingOffset != null)
@@ -819,7 +884,7 @@ namespace Photomatch_ProofOfConcept_WPF
 
 		public bool MouseDown(object sender, MouseButtonEventArgs e)
 		{
-			if (e.ChangedButton != MouseButton.Left)
+			if (e.ChangedButton != System.Windows.Input.MouseButton.Left)
 				return false;
 
 			Point eventPos = e.GetPosition(positionRelativeToElement);
