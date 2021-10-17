@@ -28,7 +28,10 @@
                 </Grid>
             </Viewbox>
 
-            <Path x:Name="MainPath" Stroke="Red" Fill="Red"/>
+            <Path x:Name="XAxisLines" Stroke="Red" Fill="Red"/>
+            <Path x:Name="YAxisLines" Stroke="Green" Fill="Green"/>
+            <Path x:Name="ZAxisLines" Stroke="Blue" Fill="Blue"/>
+            <Path x:Name="ModelLines" Stroke="Cyan" Fill="Cyan"/>
         </Grid>
         
     </DockPanel>

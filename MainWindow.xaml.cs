@@ -38,7 +38,7 @@ namespace Photomatch_ProofOfConcept_WPF
 	public class ActionPoint : IPoint
 	{
 		private Vector2 position_;
-		public Vector2 Position 
+		public Vector2 Position
 		{
 			get => position_;
 			set
@@ -196,12 +196,14 @@ namespace Photomatch_ProofOfConcept_WPF
 
 		private void AddDraggablePointsForPerspectiveLine(ILine line, UpdateValue<Vector2> updateValueStart, UpdateValue<Vector2> updateValueEnd)
 		{
-			DraggablePoints.Points.Add(new ActionPoint(line.Start, (value) => {
+			DraggablePoints.Points.Add(new ActionPoint(line.Start, (value) =>
+			{
 				line.Start = value;
 				updateValueStart(value);
 				UpdateCoordSystemLines();
 			}));
-			DraggablePoints.Points.Add(new ActionPoint(line.End, (value) => {
+			DraggablePoints.Points.Add(new ActionPoint(line.End, (value) =>
+			{
 				line.End = value;
 				updateValueEnd(value);
 				UpdateCoordSystemLines();
@@ -216,7 +218,8 @@ namespace Photomatch_ProofOfConcept_WPF
 			LineZ = Window.CreateLine(origin, origin, PointDrawRadius, ApplicationColor.ZAxis);
 
 			Vector2 midPicture = new Vector2(Perspective.Bitmap.Width / 2, Perspective.Bitmap.Height / 2);
-			DraggablePoints.Points.Add(new ActionPoint(midPicture, (value) => {
+			DraggablePoints.Points.Add(new ActionPoint(midPicture, (value) =>
+			{
 				Perspective.Origin = value;
 				UpdateCoordSystemLines();
 			}));
@@ -303,38 +306,62 @@ namespace Photomatch_ProofOfConcept_WPF
 		}
 	}
 
-	public class WpfLine : ILine
+	public class WpfLine : ILine, IScalable
 	{
-		public Line Line { get; }
+		public LineGeometry Line { get; }
+		public EllipseGeometry StartEllipse { get; }
+		public EllipseGeometry EndEllipse { get; }
 
-		public WpfLine(Point Start, Point End, Brush color)
+		private double EndRadius;
+
+		public WpfLine(Point Start, Point End, double endRadius)
 		{
-			Line = new Line();
-			Line.X1 = Start.X;
-			Line.Y1 = Start.Y;
-			Line.X2 = End.X;
-			Line.Y2 = End.Y;
-			Line.Stroke = color;
+			Line = new LineGeometry();
+			Line.StartPoint = Start;
+			Line.EndPoint = End;
+
+			EndRadius = endRadius;
+
+			if (endRadius != 0)
+			{
+				StartEllipse = new EllipseGeometry(Start, endRadius, endRadius);
+				EndEllipse = new EllipseGeometry(End, endRadius, endRadius);
+			}
+			else
+			{
+				StartEllipse = null;
+				EndEllipse = null;
+			}
 		}
 
 		public Vector2 Start
 		{
-			get => new Vector2(Line.X1, Line.Y1);
+			get => Line.StartPoint.AsVector2();
 			set
 			{
-				Line.X1 = value.X;
-				Line.Y1 = value.Y;
+				Line.StartPoint = value.AsPoint();
+				if (StartEllipse != null)
+					StartEllipse.Center = value.AsPoint();
 			}
 		}
 
 		public Vector2 End
 		{
-			get => new Vector2(Line.X2, Line.Y2);
+			get => Line.EndPoint.AsVector2();
 			set
 			{
-				Line.X2 = value.X;
-				Line.Y2 = value.Y;
+				Line.EndPoint = value.AsPoint();
+				if (EndEllipse != null)
+					EndEllipse.Center = value.AsPoint();
 			}
+		}
+
+		public void SetNewScale(double scale)
+		{
+			StartEllipse.RadiusX = EndRadius / scale;
+			StartEllipse.RadiusY = EndRadius / scale;
+			EndEllipse.RadiusX = EndRadius / scale;
+			EndEllipse.RadiusY = EndRadius / scale;
 		}
 	}
 
@@ -343,16 +370,19 @@ namespace Photomatch_ProofOfConcept_WPF
 	/// </summary>
 	public partial class MainWindow : Window, MasterGUI, IWindow
 	{
-		private List<IScalable> scalables = new List<IScalable>(); // ????
-
-		private static readonly double LineEndRadius = 4;
-		private static readonly double LineEndGrabRadius = 8;
-		private static readonly double LineStrokeThickness = 1;
+		private static readonly double LineStrokeThickness = 2;
 
 		private MasterControl AppControl;
 		private Actions ActionListener;
 		private ILogger Logger = null;
 		private ImageWindow ImageWindow;
+
+		private GeometryGroup XAxisLinesGeometry = new GeometryGroup();
+		private GeometryGroup YAxisLinesGeometry = new GeometryGroup();
+		private GeometryGroup ZAxisLinesGeometry = new GeometryGroup();
+		private GeometryGroup ModelLinesGeometry = new GeometryGroup();
+
+		private List<IScalable> scalables = new List<IScalable>();
 
 		public MainWindow()
 		{
@@ -366,10 +396,18 @@ namespace Photomatch_ProofOfConcept_WPF
 			multiLogger.Loggers.Add(new WarningErrorGUILogger());
 			Logger = multiLogger;
 
-			/*MainPath.Data = geometry;
-			geometry.FillRule = FillRule.Nonzero;
+			SetUpPathGeometry(XAxisLines, XAxisLinesGeometry);
+			SetUpPathGeometry(YAxisLines, YAxisLinesGeometry);
+			SetUpPathGeometry(ZAxisLines, ZAxisLinesGeometry);
+			SetUpPathGeometry(ModelLines, ModelLinesGeometry);
+		}
 
-			MainPath.StrokeThickness = LineStrokeThickness;*/
+		private void SetUpPathGeometry(System.Windows.Shapes.Path path, GeometryGroup geometry)
+		{
+			path.Data = geometry;
+			path.StrokeThickness = LineStrokeThickness;
+
+			geometry.FillRule = FillRule.Nonzero;
 		}
 
 		public void Log(string title, string message, LogType type)
@@ -425,63 +463,46 @@ namespace Photomatch_ProofOfConcept_WPF
 		public double ScreenDistance(Vector2 pointA, Vector2 pointB)
 		{
 			// TODO id will be used when multiple windows are implemented
-			Point pointATranslated = MainImage.TranslatePoint(Vector2ToPoint(pointA), MyMainWindow);
-			Point pointBTranslated = MainImage.TranslatePoint(Vector2ToPoint(pointB), MyMainWindow);
+			Point pointATranslated = MainImage.TranslatePoint(pointA.AsPoint(), MyMainWindow);
+			Point pointBTranslated = MainImage.TranslatePoint(pointB.AsPoint(), MyMainWindow);
 			return (pointATranslated - pointBTranslated).Length;
-		}
-
-		private Point Vector2ToPoint(Vector2 vect)
-		{
-			return new Point(vect.X, vect.Y);
 		}
 
 		public ILine CreateLine(Vector2 start, Vector2 end, double endRadius, ApplicationColor color)
 		{
-			// TODO missing endRadius
-			Brush brush;
+			GeometryGroup geometry;
 
 			switch (color)
 			{
 				case ApplicationColor.XAxis:
-					brush = Brushes.Red;
+					geometry = XAxisLinesGeometry;
 					break;
 				case ApplicationColor.YAxis:
-					brush = Brushes.Green;
+					geometry = YAxisLinesGeometry;
 					break;
 				case ApplicationColor.ZAxis:
-					brush = Brushes.Blue;
+					geometry = ZAxisLinesGeometry;
 					break;
 				case ApplicationColor.Model:
-					brush = Brushes.Gray;
+					geometry = ModelLinesGeometry;
 					break;
 				default:
 					throw new ArgumentException("Unknown application color.");
 			}
 
-			var wpfLine = new WpfLine(Vector2ToPoint(start), Vector2ToPoint(end), brush);
-			MainCanvas.Children.Add(wpfLine.Line);
+			var wpfLine = new WpfLine(start.AsPoint(), end.AsPoint(), endRadius);
+			geometry.Children.Add(wpfLine.Line);
+			if (wpfLine.StartEllipse != null && wpfLine.EndEllipse != null)
+			{
+				geometry.Children.Add(wpfLine.StartEllipse);
+				geometry.Children.Add(wpfLine.EndEllipse);
+				scalables.Add(wpfLine);
+			}
+
 			return wpfLine;
 		}
 
-		private void LoadImage_Click(object sender, RoutedEventArgs e)
-		{
-			ActionListener.LoadImage_Pressed();
-			return;
-
-			
-		}
-
-		/*var startGuide = CreateStartGuide(new Point(image.Width / 2, image.Height / 2));
-		 * 
-		 * private StartGuideGeometry CreateStartGuide(Point point)
-		{
-			StartGuideGeometry startGuide = new StartGuideGeometry(perspectives[0], MainCanvas);
-			StartGuideEvents startGuideEvents = new StartGuideEvents(startGuide, LineEndGrabRadius, MainImage);
-			mouseListeners.Add(startGuideEvents);
-			scalables.Add(startGuideEvents);
-
-			return startGuide;
-		}*/
+		private void LoadImage_Click(object sender, RoutedEventArgs e) => ActionListener.LoadImage_Pressed();
 
 		private MouseButton? GetMouseButton(System.Windows.Input.MouseButton button)
 		{
@@ -500,7 +521,7 @@ namespace Photomatch_ProofOfConcept_WPF
 			MouseButton? button = GetMouseButton(e.ChangedButton);
 			if (!button.HasValue)
 				return;
-			
+
 			Point point = e.GetPosition(MainImage);
 			if (point.X < 0 || point.Y < 0 || point.X >= MainImage.ActualWidth || point.Y >= MainImage.ActualHeight)
 				return;
@@ -557,15 +578,14 @@ namespace Photomatch_ProofOfConcept_WPF
 			Logger.Log($"Size Change Event ({sender.GetType().Name})", $"{MainImage.RenderSize} => {MainViewbox.RenderSize} with scale {scale}x", LogType.Info);
 		}
 
-		// testing  stuff START
-
-		LineGeometry lineGeometry = null;
-		GeometryGroup geometry = new GeometryGroup();
-
 		private void UpdateGeometryTransform()
 		{
-			Matrix transform = GetRectToRectTransform(new Rect(MainImage.RenderSize), new Rect(MainImage.TranslatePoint(new Point(0, 0), MainPath), MainViewbox.RenderSize));
-			geometry.Transform = new MatrixTransform(transform);
+			Matrix transform = GetRectToRectTransform(new Rect(MainImage.RenderSize), new Rect(MainImage.TranslatePoint(new Point(0, 0), XAxisLines), MainViewbox.RenderSize));
+			MatrixTransform matrixTransform = new MatrixTransform(transform);
+			XAxisLinesGeometry.Transform = matrixTransform;
+			YAxisLinesGeometry.Transform = matrixTransform;
+			ZAxisLinesGeometry.Transform = matrixTransform;
+			ModelLinesGeometry.Transform = matrixTransform;
 		}
 
 		/// <summary>
@@ -587,385 +607,13 @@ namespace Photomatch_ProofOfConcept_WPF
 		public static Vector2 AsVector2(this Point p) => new Vector2(p.X, p.Y);
 	}
 
+	static class Vector2Extensions
+	{
+		public static Point AsPoint(this Vector2 v) => new Point(v.X, v.Y);
+	}
+
 	interface IScalable
 	{
 		void SetNewScale(double scale);
-	}
-
-	class DraggableLineGeometry : IScalable
-	{
-		private GeometryGroup geometry = new GeometryGroup();
-		private LineGeometry line;
-		private EllipseGeometry startPointEllipse;
-		private EllipseGeometry endPointEllipse;
-		private double endRadius;
-		private List<IChangeListener> changeListeners = new List<IChangeListener>();
-
-		private UpdateValue<Point> updateValueStart;
-		private UpdateValue<Point> updateValueEnd;
-
-		public Point StartPoint
-		{
-			get => line.StartPoint;
-			set
-			{
-				line.StartPoint = value;
-				startPointEllipse.Center = value;
-				updateValueStart(value);
-				NotifyListeners();
-			}
-		}
-
-		public Point EndPoint
-		{
-			get => line.EndPoint;
-			set
-			{
-				line.EndPoint = value;
-				endPointEllipse.Center = value;
-				updateValueEnd(value);
-				NotifyListeners();
-			}
-		}
-		
-		public void AddListener(IChangeListener listener)
-		{
-			changeListeners.Add(listener);
-		}
-
-		public DraggableLineGeometry(LineGeometry line, double endRadius, UpdateValue<Point> updateValueStart, UpdateValue<Point> updateValueEnd)
-		{
-			this.line = line;
-			this.endRadius = endRadius;
-
-			startPointEllipse = new EllipseGeometry(this.line.StartPoint, endRadius, endRadius);
-			endPointEllipse = new EllipseGeometry(this.line.EndPoint, endRadius, endRadius);
-
-			geometry.Children.Add(this.line);
-			geometry.Children.Add(startPointEllipse);
-			geometry.Children.Add(endPointEllipse);
-
-			this.updateValueStart = updateValueStart;
-			this.updateValueEnd = updateValueEnd;
-		}
-
-		public DraggableLineGeometry(LineGeometry line, double endRadius) : this(line, endRadius, (val) => { }, (val) => { }) { }
-
-		public Geometry GetGeometry()
-		{
-			return geometry;
-		}
-
-		public void SetNewScale(double scale)
-		{
-			startPointEllipse.RadiusX = endRadius / scale;
-			startPointEllipse.RadiusY = endRadius / scale;
-			endPointEllipse.RadiusX = endRadius / scale;
-			endPointEllipse.RadiusY = endRadius / scale;
-		}
-
-		private void NotifyListeners()
-		{
-			foreach (var listener in changeListeners)
-			{
-				listener.NotifyDataChange(this);
-			}
-		}
-	}
-
-
-	/// <summary>
-	/// Bool return value means whether object wants to stop other object from getting the event (if there are two movable objects on top of each other, we only want to move one)
-	/// </summary>
-	interface IMouseEvents
-	{
-		bool MouseDown(object sender, MouseButtonEventArgs e);
-		bool MouseUp(object sender, MouseButtonEventArgs e);
-		bool MouseMove(object sender, MouseEventArgs e);
-	}
-
-	class DraggableLineEvents : IMouseEvents, IScalable
-	{
-		private DraggableLineGeometry line;
-		private double endMouseRadiusSquared;
-		private double currentScaleSquared = 1;
-		private IInputElement positionRelativeToElement;
-
-		private Vector? draggingStartOffset = null;
-		private Vector? draggingEndOffset = null;
-
-		public DraggableLineEvents(DraggableLineGeometry line, double endMouseRadius, IInputElement positionRelativeToElement)
-		{
-			this.line = line;
-			this.endMouseRadiusSquared = endMouseRadius * endMouseRadius;
-			this.positionRelativeToElement = positionRelativeToElement;
-		}
-
-		public bool MouseMove(object sender, MouseEventArgs e)
-		{
-			if (draggingStartOffset != null)
-			{
-				Point eventPos = e.GetPosition(positionRelativeToElement);
-				line.StartPoint = Point.Add(eventPos, draggingStartOffset.Value);
-				return true;
-			}
-
-			if (draggingEndOffset != null)
-			{
-				Point eventPos = e.GetPosition(positionRelativeToElement);
-				line.EndPoint = Point.Add(eventPos, draggingEndOffset.Value);
-				return true;
-			}
-
-			return false;
-		}
-
-		public bool MouseUp(object sender, MouseButtonEventArgs e)
-		{
-			if (e.ChangedButton != System.Windows.Input.MouseButton.Left)
-				return false;
-
-			if (draggingStartOffset != null)
-			{
-				draggingStartOffset = null;
-				return true;
-			}
-
-			if (draggingEndOffset != null)
-			{
-				draggingEndOffset = null;
-				return true;
-			}
-
-			return false;
-		}
-
-		public bool MouseDown(object sender, MouseButtonEventArgs e)
-		{
-			if (e.ChangedButton != System.Windows.Input.MouseButton.Left)
-				return false;
-			
-			Point eventPos = e.GetPosition(positionRelativeToElement);
-
-			// check start point
-			Vector startOffset = Point.Subtract(line.StartPoint, eventPos);
-			if (startOffset.LengthSquared < endMouseRadiusSquared / currentScaleSquared)
-			{
-				draggingStartOffset = startOffset;
-				return true;
-			}
-
-
-			// check end point
-			Vector endOffset = Point.Subtract(line.EndPoint, eventPos);
-			if (endOffset.LengthSquared < endMouseRadiusSquared / currentScaleSquared)
-			{
-				draggingEndOffset = endOffset;
-				return true;
-			}
-
-			return false;
-		}
-
-		public void SetNewScale(double scale)
-		{
-			currentScaleSquared = scale * scale;
-		}
-	}
-
-	interface IChangeListener
-	{
-		void NotifyDataChange(object source);
-	}
-
-	class StartGuideGeometry : IChangeListener
-	{
-		private Line lineX = new Line();
-		private Line lineY = new Line();
-		private Line lineZ = new Line();
-
-		private Canvas canvas;
-		private PerspectiveData perspective;
-
-		public Vector2 StartPoint
-		{
-			get => perspective.Origin;
-			set
-			{
-				perspective.Origin = value;
-
-				lineX.X1 = perspective.Origin.X;
-				lineX.Y1 = perspective.Origin.Y;
-				lineY.X1 = perspective.Origin.X;
-				lineY.Y1 = perspective.Origin.Y;
-				lineZ.X1 = perspective.Origin.X;
-				lineZ.Y1 = perspective.Origin.Y;
-
-				SetLines();
-			}
-		}
-
-		public StartGuideGeometry(PerspectiveData perspective, Canvas canvas)
-		{
-			this.perspective = perspective;
-			this.canvas = canvas;
-
-			StartPoint = perspective.Origin;
-
-			lineX.Stroke = Brushes.Red;
-			lineY.Stroke = Brushes.Green;
-			lineZ.Stroke = Brushes.Blue;
-
-			canvas.Children.Add(lineX);
-			canvas.Children.Add(lineY);
-			canvas.Children.Add(lineZ);
-		}
-
-		private void SetLines()
-		{
-			Vector2 dirX = perspective.GetXDirAt(StartPoint);
-			Vector2 dirY = perspective.GetYDirAt(StartPoint);
-			Vector2 dirZ = perspective.GetZDirAt(StartPoint);
-
-			if (dirX.Valid && dirY.Valid && dirZ.Valid)
-			{
-				Vector2 endX = GetRayCanvasBorderIntersection(new Ray2D(StartPoint, dirX));
-				Vector2 endY = GetRayCanvasBorderIntersection(new Ray2D(StartPoint, dirY));
-				Vector2 endZ = GetRayCanvasBorderIntersection(new Ray2D(StartPoint, dirZ));
-
-				lineX.X2 = endX.X;
-				lineX.Y2 = endX.Y;
-				lineY.X2 = endY.X;
-				lineY.Y2 = endY.Y;
-				lineZ.X2 = endZ.X;
-				lineZ.Y2 = endZ.Y;
-			}
-			else
-			{
-				lineX.X2 = lineX.X1 + perspective.Bitmap.Height * 0.1;
-				lineX.Y2 = lineX.Y1;
-				lineY.X2 = lineY.X1;
-				lineY.Y2 = lineY.Y1 + perspective.Bitmap.Height * 0.1;
-				lineZ.X2 = lineZ.X1;
-				lineZ.Y2 = lineZ.Y1;
-			}
-		}
-
-		private Vector2 GetRayCanvasBorderIntersection(Ray2D ray)
-		{
-			Vector2 topLeft = new Vector2(0, 0);
-			Vector2 topRight= new Vector2(perspective.Bitmap.Width, 0);
-			Vector2 bottomLeft = new Vector2(0, perspective.Bitmap.Height);
-			Vector2 bottomRight = new Vector2(perspective.Bitmap.Width, perspective.Bitmap.Height);
-
-			Line2D top = new Line2D(topLeft, topRight);
-			Line2D bottom = new Line2D(bottomLeft, bottomRight);
-			Line2D left = new Line2D(topLeft, bottomLeft);
-			Line2D right = new Line2D(topRight, bottomRight);
-
-			Line2D rayLine = ray.AsLine();
-			
-			if (ray.Start.Y >= 0)
-			{
-				var intersection = Intersections2D.GetLineLineIntersection(rayLine, top);
-				if (intersection.LineARelative >= 0 && (intersection.LineBRelative >= 0 && intersection.LineBRelative <= 1))
-					return intersection.Intersection;
-			}
-
-			if (ray.Start.Y < perspective.Bitmap.Height)
-			{
-				var intersection = Intersections2D.GetLineLineIntersection(rayLine, bottom);
-				if (intersection.LineARelative >= 0 && (intersection.LineBRelative >= 0 && intersection.LineBRelative <= 1))
-					return intersection.Intersection;
-			}
-			
-			if (ray.Start.X >= 0)
-			{
-				var intersection = Intersections2D.GetLineLineIntersection(rayLine, left);
-				if (intersection.LineARelative >= 0 && (intersection.LineBRelative >= 0 && intersection.LineBRelative <= 1))
-					return intersection.Intersection;
-			}
-			
-			if (ray.Start.X < perspective.Bitmap.Width)
-			{
-				var intersection = Intersections2D.GetLineLineIntersection(rayLine, right);
-				if (intersection.LineARelative >= 0 && (intersection.LineBRelative >= 0 && intersection.LineBRelative <= 1))
-					return intersection.Intersection;
-			}
-
-			return ray.Start;
-		}
-
-		public void NotifyDataChange(object source)
-		{
-			if (source.GetType() == typeof(DraggableLineGeometry))
-			{
-				SetLines();
-			}
-		}
-	}
-
-	class StartGuideEvents : IMouseEvents, IScalable
-	{
-		private StartGuideGeometry startGuide;
-		private double endMouseRadiusSquared;
-		private double currentScaleSquared = 1;
-		private IInputElement positionRelativeToElement;
-
-		private Vector2? draggingOffset = null;
-
-		public StartGuideEvents(StartGuideGeometry startGuide, double endMouseRadius, IInputElement positionRelativeToElement)
-		{
-			this.startGuide = startGuide;
-			this.endMouseRadiusSquared = endMouseRadius * endMouseRadius;
-			this.positionRelativeToElement = positionRelativeToElement;
-		}
-
-		public bool MouseMove(object sender, MouseEventArgs e)
-		{
-			if (draggingOffset != null)
-			{
-				Point eventPos = e.GetPosition(positionRelativeToElement);
-				startGuide.StartPoint = eventPos.AsVector2() + draggingOffset.Value;
-				return true;
-			}
-
-			return false;
-		}
-
-		public bool MouseUp(object sender, MouseButtonEventArgs e)
-		{
-			if (e.ChangedButton != System.Windows.Input.MouseButton.Left)
-				return false;
-
-			if (draggingOffset != null)
-			{
-				draggingOffset = null;
-				return true;
-			}
-
-			return false;
-		}
-
-		public bool MouseDown(object sender, MouseButtonEventArgs e)
-		{
-			if (e.ChangedButton != System.Windows.Input.MouseButton.Left)
-				return false;
-
-			Point eventPos = e.GetPosition(positionRelativeToElement);
-			Vector2 offset = startGuide.StartPoint - eventPos.AsVector2();
-			if (offset.MagnitudeSquared < endMouseRadiusSquared / currentScaleSquared)
-			{
-				draggingOffset = offset;
-				return true;
-			}
-
-			return false;
-		}
-
-		public void SetNewScale(double scale)
-		{
-			currentScaleSquared = scale * scale;
-		}
 	}
 }
