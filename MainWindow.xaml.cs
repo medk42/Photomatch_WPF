@@ -42,8 +42,6 @@ namespace Photomatch_ProofOfConcept_WPF
 
 		private List<IScalable> scalables = new List<IScalable>();
 
-		private double DpiScale;
-
 		public MainWindow()
 		{
 			InitializeComponent();
@@ -60,17 +58,6 @@ namespace Photomatch_ProofOfConcept_WPF
 			SetUpPathGeometry(YAxisLines, YAxisLinesGeometry);
 			SetUpPathGeometry(ZAxisLines, ZAxisLinesGeometry);
 			SetUpPathGeometry(ModelLines, ModelLinesGeometry);
-
-			SetDpiScale();
-		}
-
-		private void SetDpiScale()
-		{
-			var source = new HwndSource(new HwndSourceParameters());
-			Matrix matrix = source.CompositionTarget.TransformToDevice;
-			if (matrix.M11 != matrix.M22)
-				throw new Exception($"DPI Scale differs for X ({matrix.M11}x) and Y ({matrix.M22}x)");
-			DpiScale = matrix.M11;
 		}
 
 		private void SetUpPathGeometry(System.Windows.Shapes.Path path, GeometryGroup geometry)
@@ -119,6 +106,10 @@ namespace Photomatch_ProofOfConcept_WPF
 
 		private void SetImageSharpAsImage(SixLabors.ImageSharp.Image imageSharp, Image image)
 		{
+			imageSharp.Metadata.ResolutionUnits = SixLabors.ImageSharp.Metadata.PixelResolutionUnit.PixelsPerInch;
+			imageSharp.Metadata.VerticalResolution = 96;
+			imageSharp.Metadata.HorizontalResolution = 96;
+
 			var stream = new MemoryStream();
 			imageSharp.Save(stream, new SixLabors.ImageSharp.Formats.Bmp.BmpEncoder());
 			stream.Seek(0, SeekOrigin.Begin);
@@ -134,8 +125,8 @@ namespace Photomatch_ProofOfConcept_WPF
 		public double ScreenDistance(Vector2 pointA, Vector2 pointB)
 		{
 			// TODO id will be used when multiple windows are implemented
-			Point pointATranslated = MainImage.TranslatePoint(pointA.AsPoint(DpiScale), MyMainWindow);
-			Point pointBTranslated = MainImage.TranslatePoint(pointB.AsPoint(DpiScale), MyMainWindow);
+			Point pointATranslated = MainImage.TranslatePoint(pointA.AsPoint(), MyMainWindow);
+			Point pointBTranslated = MainImage.TranslatePoint(pointB.AsPoint(), MyMainWindow);
 			return (pointATranslated - pointBTranslated).Length;
 		}
 
@@ -161,7 +152,7 @@ namespace Photomatch_ProofOfConcept_WPF
 					throw new ArgumentException("Unknown application color.");
 			}
 
-			var wpfLine = new WpfLine(start.AsPoint(DpiScale), end.AsPoint(DpiScale), endRadius, DpiScale);
+			var wpfLine = new WpfLine(start.AsPoint(), end.AsPoint(), endRadius);
 			geometry.Children.Add(wpfLine.Line);
 			if (wpfLine.StartEllipse != null && wpfLine.EndEllipse != null)
 			{
@@ -197,7 +188,7 @@ namespace Photomatch_ProofOfConcept_WPF
 			if (point.X < 0 || point.Y < 0 || point.X >= MainImage.ActualWidth || point.Y >= MainImage.ActualHeight)
 				return;
 
-			ImageWindow.MouseDown(point.AsVector2(DpiScale), button.Value);
+			ImageWindow.MouseDown(point.AsVector2(), button.Value);
 
 			Logger.Log("Mouse Event", $"Mouse Down at {e.GetPosition(MainImage).X}, {e.GetPosition(MainImage).Y} by {e.ChangedButton}", LogType.Info);
 		}
@@ -212,7 +203,7 @@ namespace Photomatch_ProofOfConcept_WPF
 			if (point.X < 0 || point.Y < 0 || point.X >= MainImage.ActualWidth || point.Y >= MainImage.ActualHeight)
 				return;
 
-			ImageWindow.MouseUp(point.AsVector2(DpiScale), button.Value);
+			ImageWindow.MouseUp(point.AsVector2(), button.Value);
 
 			Logger.Log("Mouse Event", $"Mouse Up at {e.GetPosition(MainImage).X}, {e.GetPosition(MainImage).Y} by {e.ChangedButton}", LogType.Info);
 		}
@@ -223,7 +214,7 @@ namespace Photomatch_ProofOfConcept_WPF
 			if (point.X < 0 || point.Y < 0 || point.X >= MainImage.ActualWidth || point.Y >= MainImage.ActualHeight)
 				return;
 
-			ImageWindow.MouseMove(point.AsVector2(DpiScale));
+			ImageWindow.MouseMove(point.AsVector2());
 
 			Point afterTranslate = MainImage.TranslatePoint(point, MyMainWindow);
 			Logger.Log("Mouse Event", $"Mouse Move at {e.GetPosition(MainImage).X}, {e.GetPosition(MainImage).Y} (MainCanvas) and at {e.GetPosition(MainImage).X}, {e.GetPosition(MainImage).Y} (MainImage) which is at {afterTranslate.X}, {afterTranslate.Y} (translated to MainWindow)", LogType.Info);
