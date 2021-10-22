@@ -11,7 +11,7 @@ namespace WpfExtensions
 		/// <summary>
 		/// Convert Point to Vector2.
 		/// </summary>
-		public static Vector2 AsVector2(this Point p) => new Vector2(p.X, p.Y);
+		public static Vector2 AsVector2(this Point p, double dpiScale = 1) => new Vector2(p.X, p.Y) * dpiScale;
 	}
 
 	static class Vector2Extensions
@@ -19,6 +19,6 @@ namespace WpfExtensions
 		/// <summary>
 		/// Convert Vector2 to Point. No validity checks performed.
 		/// </summary>
-		public static Point AsPoint(this Vector2 v) => new Point(v.X, v.Y);
+		public static Point AsPoint(this Vector2 v, double dpiScale = 1) => new Point(v.X / dpiScale, v.Y / dpiScale);
 	}
 }

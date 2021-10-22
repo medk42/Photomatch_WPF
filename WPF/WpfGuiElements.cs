@@ -19,13 +19,16 @@ namespace WpfGuiElements
 
 		private double EndRadius;
 
-		public WpfLine(Point Start, Point End, double endRadius)
+		private double DpiScale;
+
+		public WpfLine(Point Start, Point End, double endRadius, double dpiScale)
 		{
 			Line = new LineGeometry();
 			Line.StartPoint = Start;
 			Line.EndPoint = End;
 
 			EndRadius = endRadius;
+			DpiScale = dpiScale;
 
 			if (endRadius != 0)
 			{
@@ -41,23 +44,25 @@ namespace WpfGuiElements
 
 		public Vector2 Start
 		{
-			get => Line.StartPoint.AsVector2();
+			get => Line.StartPoint.AsVector2() * DpiScale;
 			set
 			{
-				Line.StartPoint = value.AsPoint();
+				var point = (value / DpiScale).AsPoint();
+				Line.StartPoint = point;
 				if (StartEllipse != null)
-					StartEllipse.Center = value.AsPoint();
+					StartEllipse.Center = point;
 			}
 		}
 
 		public Vector2 End
 		{
-			get => Line.EndPoint.AsVector2();
+			get => Line.EndPoint.AsVector2() * DpiScale;
 			set
 			{
-				Line.EndPoint = value.AsPoint();
+				var point = (value / DpiScale).AsPoint();
+				Line.EndPoint = point;
 				if (EndEllipse != null)
-					EndEllipse.Center = value.AsPoint();
+					EndEllipse.Center = point;
 			}
 		}
 
