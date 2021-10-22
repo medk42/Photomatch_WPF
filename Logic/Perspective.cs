@@ -1,12 +1,13 @@
 ﻿using MatrixVector;
 using System;
 using Lines;
+using SixLabors.ImageSharp;
 
 namespace Perspective
 {
 	public class PerspectiveData // should contain image and perspective data
 	{
-		public System.Drawing.Bitmap Bitmap { get; }
+		public Image Image { get; }
 
 		private Camera _camera = new Camera();
 		private Vector2 _origin;
@@ -67,9 +68,9 @@ namespace Perspective
 
 
 
-		public PerspectiveData(System.Drawing.Bitmap image)
+		public PerspectiveData(Image image)
 		{
-			Bitmap = (System.Drawing.Bitmap)image.Clone();
+			Image = image;
 
 			LineX1 = ScaleLine(LineX1, image.Width, image.Height);
 			LineX2 = ScaleLine(LineX2, image.Width, image.Height);
@@ -92,7 +93,7 @@ namespace Perspective
 		{
 			Vector2 vanishingPointX = Intersections2D.GetLineLineIntersection(LineX1, LineX2).Intersection;
 			Vector2 vanishingPointY = Intersections2D.GetLineLineIntersection(LineY1, LineY2).Intersection;
-			Vector2 principalPoint = new Vector2(Bitmap.Width / 2, Bitmap.Height / 2);
+			Vector2 principalPoint = new Vector2(Image.Width / 2, Image.Height / 2);
 			double viewRatio = 1;
 
 			_camera.UpdateView(viewRatio, principalPoint, vanishingPointX, vanishingPointY, Origin);

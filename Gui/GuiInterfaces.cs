@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using SixLabors.ImageSharp;
 
 using MatrixVector;
 using Logging;
@@ -23,7 +24,7 @@ namespace GuiInterfaces
 
 	public interface IWindow
 	{
-		void SetImage(System.Drawing.Bitmap image);
+		void SetImage(Image image);
 		double ScreenDistance(Vector2 pointA, Vector2 pointB);
 		ILine CreateLine(Vector2 start, Vector2 end, double endRadius, ApplicationColor color);
 	}

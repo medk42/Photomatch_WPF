@@ -111,16 +111,16 @@ namespace Photomatch_ProofOfConcept_WPF
 			return this;
 		}
 
-		public void SetImage(System.Drawing.Bitmap image)
+		public void SetImage(SixLabors.ImageSharp.Image image)
 		{
 			// TODO id will be used when multiple windows are implemented
-			SetBitmapAsImage(image, MainImage);
+			SetImageSharpAsImage(image, MainImage);
 		}
 
-		private void SetBitmapAsImage(System.Drawing.Bitmap bitmap, Image image)
+		private void SetImageSharpAsImage(SixLabors.ImageSharp.Image imageSharp, Image image)
 		{
 			var stream = new MemoryStream();
-			bitmap.Save(stream, System.Drawing.Imaging.ImageFormat.Bmp);
+			imageSharp.Save(stream, new SixLabors.ImageSharp.Formats.Bmp.BmpEncoder());
 			stream.Seek(0, SeekOrigin.Begin);
 
 			BitmapImage imageCopy = new BitmapImage();

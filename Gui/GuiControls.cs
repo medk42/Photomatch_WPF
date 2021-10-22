@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 using System.IO;
+using SixLabors.ImageSharp;
 
 using GuiInterfaces;
 using Logging;
@@ -27,7 +28,7 @@ namespace GuiControls
 
 		private ILine LineX, LineY, LineZ;
 
-		public ImageWindow(System.Drawing.Bitmap image, MasterGUI gui, ILogger logger)
+		public ImageWindow(Image image, MasterGUI gui, ILogger logger)
 		{
 			this.Gui = gui;
 			this.Logger = logger;
@@ -101,7 +102,7 @@ namespace GuiControls
 			LineY = Window.CreateLine(origin, origin, PointDrawRadius, ApplicationColor.YAxis);
 			LineZ = Window.CreateLine(origin, origin, PointDrawRadius, ApplicationColor.ZAxis);
 
-			Vector2 midPicture = new Vector2(Perspective.Bitmap.Width / 2, Perspective.Bitmap.Height / 2);
+			Vector2 midPicture = new Vector2(Perspective.Image.Width / 2.0, Perspective.Image.Height / 2.0);
 			DraggablePoints.Points.Add(new ActionPoint(midPicture, (value) =>
 			{
 				Perspective.Origin = value;
@@ -123,7 +124,7 @@ namespace GuiControls
 
 			if (dirX.Valid && dirY.Valid && dirZ.Valid)
 			{
-				Vector2 imageSize = new Vector2(Perspective.Bitmap.Width, Perspective.Bitmap.Height);
+				Vector2 imageSize = new Vector2(Perspective.Image.Width, Perspective.Image.Height);
 
 				Vector2 endX = Intersections2D.GetRayInsideBoxIntersection(new Ray2D(Perspective.Origin, dirX), new Vector2(), imageSize);
 				Vector2 endY = Intersections2D.GetRayInsideBoxIntersection(new Ray2D(Perspective.Origin, dirY), new Vector2(), imageSize);
@@ -135,8 +136,8 @@ namespace GuiControls
 			}
 			else
 			{
-				LineX.End = LineX.Start + new Vector2(Perspective.Bitmap.Height * 0.1, 0);
-				LineY.End = LineY.Start + new Vector2(0, Perspective.Bitmap.Height * 0.1);
+				LineX.End = LineX.Start + new Vector2(Perspective.Image.Height * 0.1, 0);
+				LineY.End = LineY.Start + new Vector2(0, Perspective.Image.Height * 0.1);
 				LineZ.End = LineZ.Start;
 			}
 		}
@@ -164,19 +165,16 @@ namespace GuiControls
 				return;
 			}
 
-			System.Drawing.Bitmap image = null;
+			Image image = null;
 			try
 			{
-				using (var bitmap = new System.Drawing.Bitmap(filePath))
-				{
-					image = new System.Drawing.Bitmap(bitmap);
-				}
+				image = Image.Load(filePath);
 			}
 			catch (Exception ex)
 			{
 				if (ex is FileNotFoundException)
 					Logger.Log("Load Image", "File not found.", LogType.Warning);
-				else if (ex is ArgumentException)
+				else if (ex is UnknownImageFormatException)
 					Logger.Log("Load Image", "Incorrect or unsupported image format.", LogType.Warning);
 				else
 					throw ex;
