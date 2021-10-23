@@ -7,4 +7,6 @@ namespace GuiEnums
 	public enum MouseButton { Left, Right, Middle }
 
 	public enum ApplicationColor { XAxis, YAxis, ZAxis, Model }
+
+	public enum ProjectState { None, NewProject, NamedProject }
 }

@@ -1,13 +1,16 @@
-﻿using MatrixVector;
+﻿using System.IO;
+
+using MatrixVector;
 using System;
 using Lines;
 using SixLabors.ImageSharp;
+using Serializables;
 
 namespace Perspective
 {
-	public class PerspectiveData // should contain image and perspective data
+	public class PerspectiveData : ISafeSerializable<PerspectiveData> 
 	{
-		public Image Image { get; }
+		public Image Image { get; private set; }
 
 		private Camera _camera = new Camera();
 		private Vector2 _origin;
@@ -66,8 +69,6 @@ namespace Perspective
 			}
 		}
 
-
-
 		public PerspectiveData(Image image)
 		{
 			Image = image;
@@ -78,6 +79,51 @@ namespace Perspective
 			LineY2 = ScaleLine(LineY2, image.Width, image.Height);
 
 			Origin = new Vector2(image.Width / 2, image.Height / 2);
+
+			RecalculateProjection();
+		}
+
+		/// <summary>
+		/// Only for deserialization!
+		/// </summary>
+		public PerspectiveData() { }
+
+		public void Serialize(BinaryWriter writer)
+		{
+			byte[] imageData = null;
+			using (var stream = new MemoryStream())
+			{
+				Image.SaveAsBmp(stream);
+				imageData = stream.ToArray();
+			}
+
+			if (imageData == null)
+				throw new Exception("Image serialization failed.");
+
+			writer.Write(imageData.Length);
+			writer.Write(imageData);
+
+			_origin.Serialize(writer);
+			_lineX1.Serialize(writer);
+			_lineX2.Serialize(writer);
+			_lineY1.Serialize(writer);
+			_lineY2.Serialize(writer);
+		}
+
+		public void Deserialize(BinaryReader reader)
+		{
+			int imageDataLength = reader.ReadInt32();
+			byte[] imageData = reader.ReadBytes(imageDataLength);
+			using (var stream = new MemoryStream(imageData))
+			{
+				Image = Image.Load(stream);
+			}
+
+			_origin = ISafeSerializable<Vector2>.CreateDeserialize(reader);
+			_lineX1 = ISafeSerializable<Line2D>.CreateDeserialize(reader);
+			_lineX2 = ISafeSerializable<Line2D>.CreateDeserialize(reader);
+			_lineY1 = ISafeSerializable<Line2D>.CreateDeserialize(reader);
+			_lineY2 = ISafeSerializable<Line2D>.CreateDeserialize(reader);
 
 			RecalculateProjection();
 		}
@@ -127,8 +173,6 @@ namespace Perspective
 
 	public class Camera
 	{
-		private Matrix3x3 projectionInverse = Matrix3x3.CreateUnitMatrix();
-
 		private Matrix3x3 intrinsicMatrix;
 		private Matrix3x3 rotationMatrix;
 

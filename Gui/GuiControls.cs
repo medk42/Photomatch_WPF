@@ -11,6 +11,7 @@ using Perspective;
 using MatrixVector;
 using GuiEnums;
 using Lines;
+using Serializables;
 
 namespace GuiControls
 {
@@ -28,16 +29,21 @@ namespace GuiControls
 
 		private ILine LineX, LineY, LineZ;
 
-		public ImageWindow(Image image, MasterGUI gui, ILogger logger)
+		public ISafeSerializable<PerspectiveData> PerspectiveSafeSerializable
+		{
+			get => Perspective;
+		}
+
+		public ImageWindow(PerspectiveData perspective, MasterGUI gui, ILogger logger)
 		{
 			this.Gui = gui;
 			this.Logger = logger;
 			this.Window = Gui.CreateImageWindow(this);
 
-			this.Perspective = new PerspectiveData(image);
+			this.Perspective = perspective;
 			this.DraggablePoints = new DraggablePoints(Window, PointGrabRadius);
 
-			Window.SetImage(image);
+			Window.SetImage(perspective.Image);
 
 			CreateCoordSystemLines();
 			CreatePerspectiveLines();
@@ -102,8 +108,7 @@ namespace GuiControls
 			LineY = Window.CreateLine(origin, origin, PointDrawRadius, ApplicationColor.YAxis);
 			LineZ = Window.CreateLine(origin, origin, PointDrawRadius, ApplicationColor.ZAxis);
 
-			Vector2 midPicture = new Vector2(Perspective.Image.Width / 2.0, Perspective.Image.Height / 2.0);
-			DraggablePoints.Points.Add(new ActionPoint(midPicture, (value) =>
+			DraggablePoints.Points.Add(new ActionPoint(Perspective.Origin, (value) =>
 			{
 				Perspective.Origin = value;
 				UpdateCoordSystemLines();
@@ -141,19 +146,30 @@ namespace GuiControls
 				LineZ.End = LineZ.Start;
 			}
 		}
+
+		public void Dispose()
+		{
+			Window.DisposeAll();
+		}
 	}
 
 	public class MasterControl : Actions
 	{
+		private static readonly ulong ProjectFileChecksum = 0x54_07_02_47_23_43_94_42;
+
 		private MasterGUI Gui;
 		private ILogger Logger;
 		private List<ImageWindow> Windows;
+		private ProjectState State;
+		private string ProjectPath;
 
 		public MasterControl(MasterGUI gui)
 		{
 			this.Gui = gui;
 			this.Logger = gui;
 			this.Windows = new List<ImageWindow>();
+			this.State = ProjectState.None;
+			this.ProjectPath = null;
 		}
 
 		public void LoadImage_Pressed()
@@ -183,8 +199,154 @@ namespace GuiControls
 			if (image != null)
 			{
 				Logger.Log("Load Image", "File loaded successfully.", LogType.Info);
-				Windows.Add(new ImageWindow(image, Gui, Logger));
+				Windows.Add(new ImageWindow(new PerspectiveData(image), Gui, Logger));
+				State = ProjectState.NewProject;
 			}
+		}
+
+		public void SaveProject_Pressed()
+		{
+			switch (State)
+			{
+				case ProjectState.None:
+					Logger.Log("Save Project", "Nothing to save.", LogType.Warning);
+					return;
+				case ProjectState.NewProject:
+					SaveProjectAs_Pressed();
+					break;
+				case ProjectState.NamedProject:
+					if (!SaveProject(ProjectPath))
+						return;
+					break;
+				default:
+					throw new NotImplementedException("Unknown ProjectState");
+			}
+
+			Logger.Log("Save Project", "Successfully saved project.", LogType.Info);
+		}
+
+		public void SaveProjectAs_Pressed()
+		{
+			switch (State)
+			{
+				case ProjectState.None:
+					Logger.Log("Save Project", "Nothing to save.", LogType.Warning);
+					return;
+				case ProjectState.NewProject:
+				case ProjectState.NamedProject:
+					string filePath = Gui.GetSaveProjectFilePath();
+					if (filePath == null)
+					{
+						Logger.Log("Save Project", "No file was selected.", LogType.Info);
+						return;
+					}
+					if (!SaveProject(filePath))
+						return;
+					State = ProjectState.NamedProject;
+					ProjectPath = filePath;
+					break;
+				default:
+					throw new NotImplementedException("Unknown ProjectState");
+			}
+
+			Logger.Log("Save Project", "Successfully saved project.", LogType.Info);
+		}
+
+		private bool SaveProject(string fileName)
+		{
+			try
+			{
+				using (var fileStream = File.Create(fileName))
+				{
+					var writer = new BinaryWriter(fileStream);
+
+					writer.Write(ProjectFileChecksum);
+					writer.Write(Windows.Count);
+					foreach (ImageWindow window in Windows)
+					{
+						window.PerspectiveSafeSerializable.Serialize(writer);
+					}
+				}
+			}
+			catch (Exception ex)
+			{
+				if (ex is UnauthorizedAccessException)
+					Logger.Log("Save Project", "Unauthorized access to file.", LogType.Warning);
+				else if (ex is IOException)
+					Logger.Log("Save Project", "Save operation was not successful.", LogType.Warning);
+				else if (ex is ArgumentException || ex is DirectoryNotFoundException || ex is NotSupportedException)
+					Logger.Log("Save Project", "Path is invalid.", LogType.Warning);
+				else if (ex is PathTooLongException)
+					Logger.Log("Save Project", "Path is too long.", LogType.Warning);
+				else throw ex;
+
+				return false;
+			}
+
+			return true;
+		}
+
+		public void LoadProject_Pressed()
+		{
+			string filePath = Gui.GetLoadProjectFilePath();
+			if (filePath == null)
+			{
+				Logger.Log("Load Project", "No file was selected.", LogType.Info);
+				return;
+			}
+
+			this.Reset();
+
+			try
+			{
+				using (var fileStream = File.OpenRead(filePath))
+				{
+					var reader = new BinaryReader(fileStream);
+
+					ulong checksum = reader.ReadUInt64();
+					if (ProjectFileChecksum != checksum)
+					{
+						Logger.Log("Load Project", "Invalid file.", LogType.Warning);
+						return;
+					}
+
+					int windowCount = reader.ReadInt32();
+					for (int i = 0; i < windowCount; i++)
+					{
+						PerspectiveData perspective = ISafeSerializable<PerspectiveData>.CreateDeserialize(reader);
+						Windows.Add(new ImageWindow(perspective, Gui, Logger));
+					}
+				}
+
+				State = ProjectState.NamedProject;
+				ProjectPath = filePath; 
+				Logger.Log("Load Project", "Successfully loaded project.", LogType.Info);
+			}
+			catch (Exception ex)
+			{
+				if (ex is UnauthorizedAccessException)
+					Logger.Log("Load Project", "Unauthorized access to file or path was directory.", LogType.Warning);
+				else if (ex is IOException)
+					Logger.Log("Load Project", "Load operation was not successful.", LogType.Warning);
+				else if (ex is ArgumentException || ex is DirectoryNotFoundException || ex is NotSupportedException)
+					Logger.Log("Load Project", "Path is invalid.", LogType.Warning);
+				else if (ex is PathTooLongException)
+					Logger.Log("Load Project", "Path is too long.", LogType.Warning);
+				else if (ex is FileNotFoundException)
+					Logger.Log("Load Project", "File not found.", LogType.Warning);
+				else
+					Logger.Log("Load Project", "Invalid file.", LogType.Warning);
+			}
+		}
+
+		public void Reset()
+		{
+			foreach (ImageWindow window in Windows)
+				window.Dispose();
+
+			Windows.Clear();
+			State = ProjectState.None;
+			ProjectPath = null;
 		}
 	}
 }

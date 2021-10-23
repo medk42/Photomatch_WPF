@@ -1,8 +1,10 @@
-﻿using System;
+﻿using Serializables;
+using System;
+using System.IO;
 
 namespace MatrixVector
 {
-	public struct Matrix3x3
+	public struct Matrix3x3 : ISafeSerializable<Matrix3x3>
 	{
 		public double A00 { get; set; }
 		public double A01 { get; set; }
@@ -67,9 +69,35 @@ namespace MatrixVector
 
 			return result;
 		}
+
+		public void Serialize(BinaryWriter writer)
+		{
+			writer.Write(A00);
+			writer.Write(A01);
+			writer.Write(A02);
+			writer.Write(A10);
+			writer.Write(A11);
+			writer.Write(A12);
+			writer.Write(A20);
+			writer.Write(A21);
+			writer.Write(A22);
+		}
+
+		public void Deserialize(BinaryReader reader)
+		{
+			A00 = reader.ReadDouble();
+			A01 = reader.ReadDouble();
+			A02 = reader.ReadDouble();
+			A10 = reader.ReadDouble();
+			A11 = reader.ReadDouble();
+			A12 = reader.ReadDouble();
+			A20 = reader.ReadDouble();
+			A21 = reader.ReadDouble();
+			A22 = reader.ReadDouble();
+		}
 	}
 
-	public struct Vector3
+	public struct Vector3 : ISafeSerializable<Vector3>
 	{
 		public Vector3(double X, double Y, double Z)
 		{
@@ -108,9 +136,23 @@ namespace MatrixVector
 		{
 			return new Vector3() { X = vector.X / value, Y = vector.Y / value, Z = vector.Z / value };
 		}
+
+		public void Serialize(BinaryWriter writer)
+		{
+			writer.Write(X);
+			writer.Write(Y);
+			writer.Write(Z);
+		}
+
+		public void Deserialize(BinaryReader reader)
+		{
+			X = reader.ReadDouble();
+			Y = reader.ReadDouble();
+			Z = reader.ReadDouble();
+		}
 	}
 
-	public struct Vector2
+	public struct Vector2 : ISafeSerializable<Vector2>
 	{
 		public Vector2(double X, double Y)
 		{
@@ -158,6 +200,18 @@ namespace MatrixVector
 		public static double Dot(Vector2 first, Vector2 second)
 		{
 			return first.X * second.X + first.Y * second.Y;
+		}
+
+		public void Serialize(BinaryWriter writer)
+		{
+			writer.Write(X);
+			writer.Write(Y);
+		}
+
+		public void Deserialize(BinaryReader reader)
+		{
+			X = reader.ReadDouble();
+			Y = reader.ReadDouble();
 		}
 	}
 }

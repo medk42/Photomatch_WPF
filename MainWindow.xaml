@@ -10,6 +10,9 @@
     <DockPanel>
         <Menu DockPanel.Dock="Top">
             <MenuItem Header="File">
+                <MenuItem Header="Save Project" Click="SaveProject_Click"/>
+                <MenuItem Header="Save Project As" Click="SaveProjectAs_Click"/>
+                <MenuItem Header="Load Project" Click="LoadProject_Click"/>
                 <MenuItem Header="Load Image" Click="LoadImage_Click"/>
             </MenuItem>
         </Menu>

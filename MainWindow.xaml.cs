@@ -29,6 +29,7 @@ namespace Photomatch_ProofOfConcept_WPF
 	public partial class MainWindow : Window, MasterGUI, IWindow
 	{
 		private static readonly double LineStrokeThickness = 2;
+		private static readonly string PhotomatcherProjectFileFilter = "Photomatcher Project Files (*.ppf)|*.ppf";
 
 		private MasterControl AppControl;
 		private Actions ActionListener;
@@ -86,10 +87,24 @@ namespace Photomatch_ProofOfConcept_WPF
 			return null;
 		}
 
-		public string GetImageFilePath()
+		private string SaveFilePath(string filter)
 		{
-			return GetFilePath("Image Files (*.BMP;*.JPG;*.GIF;*.PNG;*.TIFF)|*.BMP;*.JPG;*.GIF;*.PNG;*.TIFF");
+			SaveFileDialog saveFileDialog = new SaveFileDialog();
+			saveFileDialog.Filter = filter;
+			saveFileDialog.RestoreDirectory = true;
+			if (saveFileDialog.ShowDialog() ?? false)
+			{
+				return saveFileDialog.FileName;
+			}
+
+			return null;
 		}
+
+		public string GetImageFilePath() => GetFilePath("Image Files (*.BMP;*.JPG;*.GIF;*.PNG;*.TIFF)|*.BMP;*.JPG;*.GIF;*.PNG;*.TIFF");
+
+		public string GetSaveProjectFilePath() => SaveFilePath(PhotomatcherProjectFileFilter);
+
+		public string GetLoadProjectFilePath() => GetFilePath(PhotomatcherProjectFileFilter);
 
 		public IWindow CreateImageWindow(ImageWindow imageWindow)
 		{
@@ -153,6 +168,7 @@ namespace Photomatch_ProofOfConcept_WPF
 			}
 
 			var wpfLine = new WpfLine(start.AsPoint(), end.AsPoint(), endRadius);
+			wpfLine.SetNewScale(MainViewbox.ActualHeight / MainImage.ActualHeight);
 			geometry.Children.Add(wpfLine.Line);
 			if (wpfLine.StartEllipse != null && wpfLine.EndEllipse != null)
 			{
@@ -164,7 +180,20 @@ namespace Photomatch_ProofOfConcept_WPF
 			return wpfLine;
 		}
 
+		public void DisposeAll()
+		{
+			XAxisLinesGeometry.Children.Clear();
+			YAxisLinesGeometry.Children.Clear();
+			ZAxisLinesGeometry.Children.Clear();
+			ModelLinesGeometry.Children.Clear();
+			scalables.Clear();
+			MainImage.Source = null;
+		}
+
 		private void LoadImage_Click(object sender, RoutedEventArgs e) => ActionListener.LoadImage_Pressed();
+		private void SaveProject_Click(object sender, RoutedEventArgs e) => ActionListener.SaveProject_Pressed();
+		private void SaveProjectAs_Click(object sender, RoutedEventArgs e) => ActionListener.SaveProjectAs_Pressed();
+		private void LoadProject_Click(object sender, RoutedEventArgs e) => ActionListener.LoadProject_Pressed();
 
 		private GuiEnums.MouseButton? GetMouseButton(System.Windows.Input.MouseButton button)
 		{

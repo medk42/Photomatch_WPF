@@ -1,9 +1,11 @@
 ﻿using MatrixVector;
 using System;
+using Serializables;
+using System.IO;
 
 namespace Lines
 {
-	public struct Line2D
+	public struct Line2D : ISafeSerializable<Line2D>
 	{
 		public Vector2 Start { get; set; }
 		public Vector2 End { get; set; }
@@ -18,9 +20,21 @@ namespace Lines
 		public Line2D WithEnd(Vector2 NewEnd) => new Line2D(this.Start, NewEnd);
 
 		public Ray2D AsRay() => new Ray2D(Start, End - Start);
+
+		public void Serialize(BinaryWriter writer)
+		{
+			Start.Serialize(writer);
+			End.Serialize(writer);
+		}
+
+		public void Deserialize(BinaryReader reader)
+		{
+			Start = ISafeSerializable<Vector2>.CreateDeserialize(reader);
+			End = ISafeSerializable<Vector2>.CreateDeserialize(reader);
+		}
 	}
 
-	public struct Ray2D
+	public struct Ray2D : ISafeSerializable<Ray2D>
 	{
 		public Vector2 Start { get; set; }
 
@@ -41,6 +55,19 @@ namespace Lines
 		public Ray2D WithDirection(Vector2 NewDirection) => new Ray2D(this.Start, NewDirection);
 
 		public Line2D AsLine() => new Line2D(Start, Start + Direction);
+
+
+		public void Serialize(BinaryWriter writer)
+		{
+			Start.Serialize(writer);
+			Direction.Serialize(writer);
+		}
+
+		public void Deserialize(BinaryReader reader)
+		{
+			Start = ISafeSerializable<Vector2>.CreateDeserialize(reader);
+			Direction = ISafeSerializable<Vector2>.CreateDeserialize(reader);
+		}
 	}
 
 	public struct IntersectionPoint2D
