@@ -93,7 +93,7 @@ namespace Perspective
 			byte[] imageData = null;
 			using (var stream = new MemoryStream())
 			{
-				Image.SaveAsBmp(stream);
+				Image.SaveAsPng(stream);
 				imageData = stream.ToArray();
 			}
 
