@@ -327,7 +327,7 @@ namespace GuiControls
 				if (ex is UnauthorizedAccessException)
 					Logger.Log("Load Project", "Unauthorized access to file or path was directory.", LogType.Warning);
 				else if (ex is IOException)
-					Logger.Log("Load Project", "Load operation was not successful.", LogType.Warning);
+					Logger.Log("Load Project", "Invalid file.", LogType.Warning);
 				else if (ex is ArgumentException || ex is DirectoryNotFoundException || ex is NotSupportedException)
 					Logger.Log("Load Project", "Path is invalid.", LogType.Warning);
 				else if (ex is PathTooLongException)
