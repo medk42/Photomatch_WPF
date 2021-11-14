@@ -20,6 +20,7 @@ using WpfExtensions;
 using GuiInterfaces;
 using GuiControls;
 using GuiEnums;
+using Photomatch_ProofOfConcept_WPF.WPF.ViewModel;
 
 namespace Photomatch_ProofOfConcept_WPF
 {
@@ -35,6 +36,7 @@ namespace Photomatch_ProofOfConcept_WPF
 		private Actions ActionListener;
 		private ILogger Logger = null;
 		private ImageWindow ImageWindow;
+		private MainViewModel mainViewModel;
 
 		private GeometryGroup XAxisLinesGeometry = new GeometryGroup();
 		private GeometryGroup YAxisLinesGeometry = new GeometryGroup();
@@ -59,6 +61,9 @@ namespace Photomatch_ProofOfConcept_WPF
 			SetUpPathGeometry(YAxisLines, YAxisLinesGeometry);
 			SetUpPathGeometry(ZAxisLines, ZAxisLinesGeometry);
 			SetUpPathGeometry(ModelLines, ModelLinesGeometry);
+
+			mainViewModel = new MainViewModel();
+			this.DataContext = mainViewModel;
 		}
 
 		private void SetUpPathGeometry(System.Windows.Shapes.Path path, GeometryGroup geometry)
@@ -109,8 +114,11 @@ namespace Photomatch_ProofOfConcept_WPF
 		public IWindow CreateImageWindow(ImageWindow imageWindow)
 		{
 			// TODO this will be used when multiple windows are implemented
-			ImageWindow = imageWindow;
-			return this;
+			//ImageWindow = imageWindow;
+			//return this;
+			var window = new ImageViewModel(imageWindow) { Title = "Image" };
+			mainViewModel.DockManagerViewModel.AddDocument(window);
+			return window;
 		}
 
 		public void SetImage(SixLabors.ImageSharp.Image image)
