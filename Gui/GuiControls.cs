@@ -38,7 +38,7 @@ namespace GuiControls
 		{
 			this.Gui = gui;
 			this.Logger = logger;
-			this.Window = Gui.CreateImageWindow(this);
+			this.Window = Gui.CreateImageWindow(this, Path.GetFileName(perspective.ImagePath));
 
 			this.Perspective = perspective;
 			this.DraggablePoints = new DraggablePoints(Window, PointGrabRadius);
@@ -199,7 +199,7 @@ namespace GuiControls
 			if (image != null)
 			{
 				Logger.Log("Load Image", "File loaded successfully.", LogType.Info);
-				Windows.Add(new ImageWindow(new PerspectiveData(image), Gui, Logger));
+				Windows.Add(new ImageWindow(new PerspectiveData(image, filePath), Gui, Logger));
 				State = ProjectState.NewProject;
 			}
 		}

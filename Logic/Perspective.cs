@@ -8,7 +8,7 @@ using Serializables;
 
 namespace Perspective
 {
-	public class PerspectiveData : ISafeSerializable<PerspectiveData> 
+	public class PerspectiveData : ISafeSerializable<PerspectiveData>
 	{
 		public Image Image { get; private set; }
 
@@ -69,9 +69,12 @@ namespace Perspective
 			}
 		}
 
-		public PerspectiveData(Image image)
+		public string ImagePath { get; private set; }
+
+		public PerspectiveData(Image image, string imagePath)
 		{
 			Image = image;
+			ImagePath = imagePath;
 
 			LineX1 = ScaleLine(LineX1, image.Width, image.Height);
 			LineX2 = ScaleLine(LineX2, image.Width, image.Height);
@@ -103,6 +106,8 @@ namespace Perspective
 			writer.Write(imageData.Length);
 			writer.Write(imageData);
 
+			writer.Write(ImagePath);
+
 			_origin.Serialize(writer);
 			_lineX1.Serialize(writer);
 			_lineX2.Serialize(writer);
@@ -118,6 +123,8 @@ namespace Perspective
 			{
 				Image = Image.Load(stream);
 			}
+
+			ImagePath = reader.ReadString();
 
 			_origin = ISafeSerializable<Vector2>.CreateDeserialize(reader);
 			_lineX1 = ISafeSerializable<Line2D>.CreateDeserialize(reader);

@@ -21,7 +21,7 @@ namespace GuiInterfaces
 		string GetImageFilePath();
 		string GetSaveProjectFilePath();
 		string GetLoadProjectFilePath();
-		IWindow CreateImageWindow(ImageWindow imageWindow);
+		IWindow CreateImageWindow(ImageWindow imageWindow, string title);
 	}
 
 	public interface IWindow

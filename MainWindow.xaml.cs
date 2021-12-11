@@ -27,7 +27,7 @@ namespace Photomatch_ProofOfConcept_WPF
 	/// <summary>
 	/// Interaction logic for MainWindow.xaml
 	/// </summary>
-	public partial class MainWindow : Window, MasterGUI, IWindow
+	public partial class MainWindow : Window, MasterGUI
 	{
 		private static readonly double LineStrokeThickness = 2;
 		private static readonly string PhotomatcherProjectFileFilter = "Photomatcher Project Files (*.ppf)|*.ppf";
@@ -35,8 +35,7 @@ namespace Photomatch_ProofOfConcept_WPF
 		private MasterControl AppControl;
 		private Actions ActionListener;
 		private ILogger Logger = null;
-		private ImageWindow ImageWindow;
-		private MainViewModel mainViewModel;
+		private MainViewModel MainViewModel;
 
 		private GeometryGroup XAxisLinesGeometry = new GeometryGroup();
 		private GeometryGroup YAxisLinesGeometry = new GeometryGroup();
@@ -62,8 +61,8 @@ namespace Photomatch_ProofOfConcept_WPF
 			SetUpPathGeometry(ZAxisLines, ZAxisLinesGeometry);
 			SetUpPathGeometry(ModelLines, ModelLinesGeometry);
 
-			mainViewModel = new MainViewModel();
-			this.DataContext = mainViewModel;
+			MainViewModel = new MainViewModel();
+			this.DataContext = MainViewModel;
 		}
 
 		private void SetUpPathGeometry(System.Windows.Shapes.Path path, GeometryGroup geometry)
@@ -111,91 +110,14 @@ namespace Photomatch_ProofOfConcept_WPF
 
 		public string GetLoadProjectFilePath() => GetFilePath(PhotomatcherProjectFileFilter);
 
-		public IWindow CreateImageWindow(ImageWindow imageWindow)
+		public IWindow CreateImageWindow(ImageWindow imageWindow, string title)
 		{
-			// TODO this will be used when multiple windows are implemented
-			//ImageWindow = imageWindow;
-			//return this;
-			var window = new ImageViewModel(imageWindow) { Title = "Image" };
-			mainViewModel.DockManagerViewModel.AddDocument(window);
+			var window = new ImageViewModel(imageWindow, Logger) { Title = title };
+			MainViewModel.DockManagerViewModel.AddDocument(window);
+
+			MainDockMgr.ActiveContent = window;
+
 			return window;
-		}
-
-		public void SetImage(SixLabors.ImageSharp.Image image)
-		{
-			// TODO id will be used when multiple windows are implemented
-			SetImageSharpAsImage(image, MainImage);
-		}
-
-		private void SetImageSharpAsImage(SixLabors.ImageSharp.Image imageSharp, Image image)
-		{
-			imageSharp.Metadata.ResolutionUnits = SixLabors.ImageSharp.Metadata.PixelResolutionUnit.PixelsPerInch;
-			imageSharp.Metadata.VerticalResolution = 96;
-			imageSharp.Metadata.HorizontalResolution = 96;
-
-			var stream = new MemoryStream();
-			imageSharp.Save(stream, new SixLabors.ImageSharp.Formats.Bmp.BmpEncoder());
-			stream.Seek(0, SeekOrigin.Begin);
-
-			BitmapImage imageCopy = new BitmapImage();
-			imageCopy.BeginInit();
-			imageCopy.StreamSource = stream;
-			imageCopy.EndInit();
-
-			image.Source = imageCopy;
-		}
-
-		public double ScreenDistance(Vector2 pointA, Vector2 pointB)
-		{
-			// TODO id will be used when multiple windows are implemented
-			Point pointATranslated = MainImage.TranslatePoint(pointA.AsPoint(), MyMainWindow);
-			Point pointBTranslated = MainImage.TranslatePoint(pointB.AsPoint(), MyMainWindow);
-			return (pointATranslated - pointBTranslated).Length;
-		}
-
-		public ILine CreateLine(Vector2 start, Vector2 end, double endRadius, ApplicationColor color)
-		{
-			GeometryGroup geometry;
-
-			switch (color)
-			{
-				case ApplicationColor.XAxis:
-					geometry = XAxisLinesGeometry;
-					break;
-				case ApplicationColor.YAxis:
-					geometry = YAxisLinesGeometry;
-					break;
-				case ApplicationColor.ZAxis:
-					geometry = ZAxisLinesGeometry;
-					break;
-				case ApplicationColor.Model:
-					geometry = ModelLinesGeometry;
-					break;
-				default:
-					throw new ArgumentException("Unknown application color.");
-			}
-
-			var wpfLine = new WpfLine(start.AsPoint(), end.AsPoint(), endRadius);
-			wpfLine.SetNewScale(MainViewbox.ActualHeight / MainImage.ActualHeight);
-			geometry.Children.Add(wpfLine.Line);
-			if (wpfLine.StartEllipse != null && wpfLine.EndEllipse != null)
-			{
-				geometry.Children.Add(wpfLine.StartEllipse);
-				geometry.Children.Add(wpfLine.EndEllipse);
-				scalables.Add(wpfLine);
-			}
-
-			return wpfLine;
-		}
-
-		public void DisposeAll()
-		{
-			XAxisLinesGeometry.Children.Clear();
-			YAxisLinesGeometry.Children.Clear();
-			ZAxisLinesGeometry.Children.Clear();
-			ModelLinesGeometry.Children.Clear();
-			scalables.Clear();
-			MainImage.Source = null;
 		}
 
 		private void LoadImage_Click(object sender, RoutedEventArgs e) => ActionListener.LoadImage_Pressed();
@@ -203,7 +125,7 @@ namespace Photomatch_ProofOfConcept_WPF
 		private void SaveProjectAs_Click(object sender, RoutedEventArgs e) => ActionListener.SaveProjectAs_Pressed();
 		private void LoadProject_Click(object sender, RoutedEventArgs e) => ActionListener.LoadProject_Pressed();
 
-		private GuiEnums.MouseButton? GetMouseButton(System.Windows.Input.MouseButton button)
+		/*private GuiEnums.MouseButton? GetMouseButton(System.Windows.Input.MouseButton button)
 		{
 			if (button == System.Windows.Input.MouseButton.Left)
 				return GuiEnums.MouseButton.Left;
@@ -225,7 +147,7 @@ namespace Photomatch_ProofOfConcept_WPF
 			if (point.X < 0 || point.Y < 0 || point.X >= MainImage.ActualWidth || point.Y >= MainImage.ActualHeight)
 				return;
 
-			ImageWindow.MouseDown(point.AsVector2(), button.Value);
+			//ImageWindow.MouseDown(point.AsVector2(), button.Value);
 
 			Logger.Log("Mouse Event", $"Mouse Down at {e.GetPosition(MainImage).X}, {e.GetPosition(MainImage).Y} by {e.ChangedButton}", LogType.Info);
 		}
@@ -240,7 +162,7 @@ namespace Photomatch_ProofOfConcept_WPF
 			if (point.X < 0 || point.Y < 0 || point.X >= MainImage.ActualWidth || point.Y >= MainImage.ActualHeight)
 				return;
 
-			ImageWindow.MouseUp(point.AsVector2(), button.Value);
+			//ImageWindow.MouseUp(point.AsVector2(), button.Value);
 
 			Logger.Log("Mouse Event", $"Mouse Up at {e.GetPosition(MainImage).X}, {e.GetPosition(MainImage).Y} by {e.ChangedButton}", LogType.Info);
 		}
@@ -251,11 +173,11 @@ namespace Photomatch_ProofOfConcept_WPF
 			if (point.X < 0 || point.Y < 0 || point.X >= MainImage.ActualWidth || point.Y >= MainImage.ActualHeight)
 				return;
 
-			ImageWindow.MouseMove(point.AsVector2());
+			//ImageWindow.MouseMove(point.AsVector2());
 
 			Point afterTranslate = MainImage.TranslatePoint(point, MyMainWindow);
 			Logger.Log("Mouse Event", $"Mouse Move at {e.GetPosition(MainImage).X}, {e.GetPosition(MainImage).Y} (MainCanvas) and at {e.GetPosition(MainImage).X}, {e.GetPosition(MainImage).Y} (MainImage) which is at {afterTranslate.X}, {afterTranslate.Y} (translated to MainWindow)", LogType.Info);
-		}
+		}*/
 
 		private void MainWindow_SizeChanged(object sender, SizeChangedEventArgs e)
 		{
