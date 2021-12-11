@@ -9,9 +9,7 @@
              d:DesignHeight="450" d:DesignWidth="800">
     <Grid>
         <Viewbox x:Name="MainViewbox" 
-                 behavior:MouseBehavior.MouseDownCommand="{Binding MouseDown}" 
-                 behavior:MouseBehavior.MouseUpCommand="{Binding MouseUp}"
-                 behavior:MouseBehavior.MouseMoveCommand="{Binding MouseMove}">
+                 behavior:MouseBehavior.MouseHandler="{Binding MouseHandler}">
             <Grid>
                 <Image x:Name="MainImage" Source="{Binding ImageSource}"></Image>
                 <Canvas x:Name="MainCanvas"/>

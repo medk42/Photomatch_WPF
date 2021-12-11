@@ -7,87 +7,36 @@ using System.Windows.Input;
 namespace Photomatch_ProofOfConcept_WPF.WPF.Helper
 {
     public static class MouseBehavior
-    { 
-        private static readonly DependencyProperty MouseDownCommandProperty = DependencyProperty.RegisterAttached(
-            "MouseDownCommand",
-            typeof(ICommand),
+    {
+        private static readonly DependencyProperty MouseHandlerProperty = DependencyProperty.RegisterAttached(
+            "MouseHandler",
+            typeof(IMouseHandler),
             typeof(MouseBehavior),
-            new PropertyMetadata(MouseDownCommandPropertyChangedCallBack)
+            new PropertyMetadata(MouseHandlerPropertyChangedCallBack)
         );
 
-        private static readonly DependencyProperty MouseUpCommandProperty = DependencyProperty.RegisterAttached(
-            "MouseUpCommand",
-            typeof(ICommand),
-            typeof(MouseBehavior),
-            new PropertyMetadata(MouseUpCommandPropertyChangedCallBack)
-        );
-
-        private static readonly DependencyProperty MouseMoveCommandProperty = DependencyProperty.RegisterAttached(
-            "MouseMoveCommand",
-            typeof(ICommand),
-            typeof(MouseBehavior),
-            new PropertyMetadata(MouseMoveCommandPropertyChangedCallBack)
-        );
-
-        public static void SetMouseDownCommand(this UIElement inUIElement, ICommand inCommand)
+        public static void SetMouseHandler(this UIElement UIElement, IMouseHandler mouseHandler)
         {
-            inUIElement.SetValue(MouseDownCommandProperty, inCommand);
+            UIElement.SetValue(MouseHandlerProperty, mouseHandler);
         }
 
-        public static void SetMouseUpCommand(this UIElement inUIElement, ICommand inCommand)
+        private static void MouseHandlerPropertyChangedCallBack(DependencyObject dependencyObject, DependencyPropertyChangedEventArgs eventArgs)
         {
-            inUIElement.SetValue(MouseUpCommandProperty, inCommand);
-        }
-
-        public static void SetMouseMoveCommand(this UIElement inUIElement, ICommand inCommand)
-        {
-            inUIElement.SetValue(MouseMoveCommandProperty, inCommand);
-        }
-
-        private static ICommand GetMouseCommand(UIElement inUIElement, DependencyProperty property)
-        {
-            return (ICommand)inUIElement.GetValue(property);
-        }
-
-        private static void MouseDownCommandPropertyChangedCallBack(DependencyObject inDependencyObject, DependencyPropertyChangedEventArgs inEventArgs)
-        {
-            UIElement uiElement = ToUiElement(inDependencyObject);
-            uiElement.MouseDown += (sender, args) =>
+            UIElement uiElement = dependencyObject as UIElement;
+            if (uiElement == null)
             {
-                GetMouseCommand(uiElement, MouseDownCommandProperty).Execute(args);
-                args.Handled = true;
-            };
-        }
-
-        private static void MouseUpCommandPropertyChangedCallBack(DependencyObject inDependencyObject, DependencyPropertyChangedEventArgs inEventArgs)
-        {
-            UIElement uiElement = ToUiElement(inDependencyObject);
-            uiElement.MouseUp += (sender, args) =>
-            {
-                GetMouseCommand(uiElement, MouseUpCommandProperty).Execute(args);
-                args.Handled = true;
-            };
-        }
-
-        private static void MouseMoveCommandPropertyChangedCallBack(DependencyObject inDependencyObject, DependencyPropertyChangedEventArgs inEventArgs)
-        {
-            UIElement uiElement = ToUiElement(inDependencyObject);
-            uiElement.MouseMove += (sender, args) =>
-            {
-                GetMouseCommand(uiElement, MouseMoveCommandProperty).Execute(args);
-                args.Handled = true;
-            };
-        }
-
-        public static UIElement ToUiElement(DependencyObject dependency)
-		{
-            UIElement uiElement = dependency as UIElement;
-            if (null == uiElement)
-            {
-                throw new ArgumentException("inDependencyObject is not UIElement");
+                throw new ArgumentException("dependencyObject is not UIElement");
             }
 
-            return uiElement;
+            IMouseHandler handler = (IMouseHandler)uiElement.GetValue(MouseHandlerProperty);
+            if (handler == null)
+            {
+                throw new ArgumentException("handler is not IMouseHandler");
+            }
+
+            uiElement.MouseDown += handler.MouseDown;
+            uiElement.MouseUp += handler.MouseUp;
+            uiElement.MouseMove += handler.MouseMove;
         }
     }
 }

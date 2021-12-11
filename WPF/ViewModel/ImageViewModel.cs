@@ -15,7 +15,7 @@ using System.Windows.Media.Imaging;
 
 namespace Photomatch_ProofOfConcept_WPF.WPF.ViewModel
 {
-	public class ImageViewModel : IWindow
+	public class ImageViewModel : IWindow, IMouseHandler
 	{
 		public Action CloseCommand { get; }
 		public bool IsClosed { get; set; }
@@ -24,9 +24,10 @@ namespace Photomatch_ProofOfConcept_WPF.WPF.ViewModel
 
 		public BitmapImage ImageSource { get; private set; }
 
-		public ICommand MouseDown { get; }
-		public ICommand MouseUp { get; }
-		public ICommand MouseMove { get; }
+		public IMouseHandler MouseHandler
+		{
+			get => this;
+		}
 
 		private ILogger Logger;
 
@@ -35,9 +36,6 @@ namespace Photomatch_ProofOfConcept_WPF.WPF.ViewModel
             this.CanClose = true;
             this.IsClosed = false;
             this.CloseCommand = () => Close();
-			this.MouseDown = new RelayCommand(obj => _MouseDown(obj as MouseButtonEventArgs));
-			this.MouseUp = new RelayCommand(obj => _MouseUp(obj as MouseButtonEventArgs));
-			this.MouseMove = new RelayCommand(obj => _MouseMove(obj as MouseButtonEventArgs));
 			this.Logger = logger;
 		}
 
@@ -93,17 +91,17 @@ namespace Photomatch_ProofOfConcept_WPF.WPF.ViewModel
 			throw new NotImplementedException();
 		}
 
-		private void _MouseDown(MouseButtonEventArgs e)
+		public void MouseDown(object sender, MouseButtonEventArgs e)
 		{
 			Logger.Log("Mouse Event", $"Mouse Down by {e.ChangedButton}", LogType.Info);
 		}
 
-		private void _MouseUp(MouseButtonEventArgs e)
+		public void MouseUp(object sender, MouseButtonEventArgs e)
 		{
 			Logger.Log("Mouse Event", $"Mouse Up by {e.ChangedButton}", LogType.Info);
 		}
 
-		private void _MouseMove(MouseButtonEventArgs e)
+		public void MouseMove(object sender, MouseEventArgs e)
 		{
 			Logger.Log("Mouse Event", $"Mouse Move", LogType.Info);
 		}
