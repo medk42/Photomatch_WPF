@@ -30,6 +30,7 @@ namespace Photomatch_ProofOfConcept_WPF
 	public partial class MainWindow : Window, MasterGUI
 	{
 		private static readonly string PhotomatcherProjectFileFilter = "Photomatcher Project Files (*.ppf)|*.ppf";
+		private static readonly string ImageFileFilter = "Image Files(*.BMP;*.JPG;*.GIF;*.PNG;*.TIFF)|*.BMP;*.JPG;*.GIF;*.PNG;*.TIFF";
 
 		private MasterControl AppControl;
 		private Actions ActionListener;
@@ -59,9 +60,11 @@ namespace Photomatch_ProofOfConcept_WPF
 
 		private string GetFilePath(string filter)
 		{
-			OpenFileDialog openFileDialog = new OpenFileDialog();
-			openFileDialog.Filter = filter;
-			openFileDialog.RestoreDirectory = true;
+			OpenFileDialog openFileDialog = new OpenFileDialog
+			{
+				Filter = filter,
+				RestoreDirectory = true
+			};
 			if (openFileDialog.ShowDialog() ?? false)
 			{
 				return openFileDialog.FileName;
@@ -72,9 +75,11 @@ namespace Photomatch_ProofOfConcept_WPF
 
 		private string SaveFilePath(string filter)
 		{
-			SaveFileDialog saveFileDialog = new SaveFileDialog();
-			saveFileDialog.Filter = filter;
-			saveFileDialog.RestoreDirectory = true;
+			SaveFileDialog saveFileDialog = new SaveFileDialog
+			{
+				Filter = filter,
+				RestoreDirectory = true
+			};
 			if (saveFileDialog.ShowDialog() ?? false)
 			{
 				return saveFileDialog.FileName;
@@ -83,7 +88,7 @@ namespace Photomatch_ProofOfConcept_WPF
 			return null;
 		}
 
-		public string GetImageFilePath() => GetFilePath("Image Files (*.BMP;*.JPG;*.GIF;*.PNG;*.TIFF)|*.BMP;*.JPG;*.GIF;*.PNG;*.TIFF");
+		public string GetImageFilePath() => GetFilePath(ImageFileFilter);
 
 		public string GetSaveProjectFilePath() => SaveFilePath(PhotomatcherProjectFileFilter);
 
