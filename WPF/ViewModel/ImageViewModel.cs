@@ -11,7 +11,9 @@ using System.Text;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using System.Windows.Media;
 using System.Windows.Media.Imaging;
+using WpfExtensions;
 
 namespace Photomatch_ProofOfConcept_WPF.WPF.ViewModel
 {
@@ -24,19 +26,38 @@ namespace Photomatch_ProofOfConcept_WPF.WPF.ViewModel
 
 		public BitmapImage ImageSource { get; private set; }
 
+		public GeometryGroup XAxisLinesGeometry { get; private set; } = new GeometryGroup();
+		public GeometryGroup YAxisLinesGeometry { get; private set; } = new GeometryGroup();
+		public GeometryGroup ZAxisLinesGeometry { get; private set; } = new GeometryGroup();
+		public GeometryGroup ModelLinesGeometry { get; private set; } = new GeometryGroup();
+
+		public static double LineStrokeThickness { get; } = 2;
+
 		public IMouseHandler MouseHandler
 		{
 			get => this;
 		}
 
 		private ILogger Logger;
+		private ImageWindow ImageWindow;
 
-        public ImageViewModel(ImageWindow imageWindow, ILogger logger)
+		public ImageViewModel(ImageWindow imageWindow, ILogger logger)
         {
             this.CanClose = true;
             this.IsClosed = false;
             this.CloseCommand = () => Close();
 			this.Logger = logger;
+			this.ImageWindow = imageWindow;
+
+			SetupGeometry();
+		}
+
+		private void SetupGeometry()
+		{
+			XAxisLinesGeometry.FillRule = FillRule.Nonzero;
+			YAxisLinesGeometry.FillRule = FillRule.Nonzero;
+			ZAxisLinesGeometry.FillRule = FillRule.Nonzero;
+			ModelLinesGeometry.FillRule = FillRule.Nonzero;
 		}
 
         public void Close()
@@ -73,7 +94,7 @@ namespace Photomatch_ProofOfConcept_WPF.WPF.ViewModel
 			throw new NotImplementedException();
 		}
 
-		class L : ILine
+		class L : ILine // TODO delete when rewriting CreateLine?
 		{
 			public Vector2 Start { get; set; }
 			public Vector2 End { get; set; }
@@ -91,20 +112,107 @@ namespace Photomatch_ProofOfConcept_WPF.WPF.ViewModel
 			throw new NotImplementedException();
 		}
 
+		private GuiEnums.MouseButton? GetMouseButton(System.Windows.Input.MouseButton button)
+		{
+			if (button == System.Windows.Input.MouseButton.Left)
+				return GuiEnums.MouseButton.Left;
+			else if (button == System.Windows.Input.MouseButton.Right)
+				return GuiEnums.MouseButton.Right;
+			else if (button == System.Windows.Input.MouseButton.Middle)
+				return GuiEnums.MouseButton.Middle;
+			else
+				return null;
+		}
+
 		public void MouseDown(object sender, MouseButtonEventArgs e)
 		{
-			Logger.Log("Mouse Event", $"Mouse Down by {e.ChangedButton}", LogType.Info);
+			GuiEnums.MouseButton? button = GetMouseButton(e.ChangedButton);
+			if (!button.HasValue)
+				return;
+
+			Image image = sender as Image;
+			if (image == null)
+				return;
+
+			Point point = e.GetPosition(image);
+			ImageWindow.MouseDown(point.AsVector2(), button.Value);
+
+			Logger.Log($"Mouse Event (\"{Title}\")", $"Mouse Down at {point.X}, {point.Y} by {e.ChangedButton}", LogType.Info);
 		}
 
 		public void MouseUp(object sender, MouseButtonEventArgs e)
 		{
-			Logger.Log("Mouse Event", $"Mouse Up by {e.ChangedButton}", LogType.Info);
+			GuiEnums.MouseButton? button = GetMouseButton(e.ChangedButton);
+			if (!button.HasValue)
+				return;
+
+			Image image = sender as Image;
+			if (image == null)
+				return;
+
+			Point point = e.GetPosition(image);
+			ImageWindow.MouseUp(point.AsVector2(), button.Value);
+
+			Logger.Log($"Mouse Event (\"{Title}\")", $"Mouse Up at {point.X}, {point.Y} by {e.ChangedButton}", LogType.Info);
 		}
 
 		public void MouseMove(object sender, MouseEventArgs e)
 		{
-			Logger.Log("Mouse Event", $"Mouse Move", LogType.Info);
+			Image image = sender as Image;
+			if (image == null)
+				return;
+
+			Point point = e.GetPosition(image);
+			ImageWindow.MouseMove(point.AsVector2());
+
+			Logger.Log($"Mouse Event (\"{Title}\")", $"Mouse Move at {point.X}, {point.Y}", LogType.Info);
 		}
+
+
+		/*
+		private List<IScalable> scalables = new List<IScalable>(); 
+		private void MainWindow_SizeChanged(object sender, SizeChangedEventArgs e)
+		{
+			UpdateGeometryTransform();
+
+			double scale = MainViewbox.ActualHeight / MainImage.ActualHeight;
+			Logger.Log($"Size Change Event ({sender.GetType().Name})", $"{MainImage.RenderSize} => {MainViewbox.RenderSize} with scale {scale}x", LogType.Info);
+		}
+		private void MainViewbox_SizeChanged(object sender, SizeChangedEventArgs e)
+		{
+			UpdateGeometryTransform();
+
+			double scale = MainViewbox.ActualHeight / MainImage.ActualHeight;
+			foreach (var scalable in scalables)
+			{
+				scalable.SetNewScale(scale);
+			}
+
+			Logger.Log($"Size Change Event ({sender.GetType().Name})", $"{MainImage.RenderSize} => {MainViewbox.RenderSize} with scale {scale}x", LogType.Info);
+		}
+
+		private void UpdateGeometryTransform()
+		{
+			Matrix transform = GetRectToRectTransform(new Rect(MainImage.RenderSize), new Rect(MainImage.TranslatePoint(new Point(0, 0), XAxisLines), MainViewbox.RenderSize));
+			MatrixTransform matrixTransform = new MatrixTransform(transform);
+			XAxisLinesGeometry.Transform = matrixTransform;
+			YAxisLinesGeometry.Transform = matrixTransform;
+			ZAxisLinesGeometry.Transform = matrixTransform;
+			ModelLinesGeometry.Transform = matrixTransform;
+		}
+
+		/// <summary>
+		/// Source: https://stackoverflow.com/questions/724139/invariant-stroke-thickness-of-path-regardless-of-the-scale
+		/// </summary>
+		private static Matrix GetRectToRectTransform(Rect from, Rect to)
+		{
+			Matrix transform = Matrix.Identity;
+			transform.Translate(-from.X, -from.Y);
+			transform.Scale(to.Width / from.Width, to.Height / from.Height);
+			transform.Translate(to.X, to.Y);
+
+			return transform;
+		}*/
 
 
 		/*

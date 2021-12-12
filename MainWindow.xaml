@@ -12,7 +12,7 @@
         xmlns:dockctrl="clr-namespace:AvalonDock.Controls;assembly=AvalonDock"
         
         mc:Ignorable="d"
-        Title="Photomatcher" Height="450" Width="800" SizeChanged="MainWindow_SizeChanged">
+        Title="Photomatcher" Height="450" Width="800">
     <DockPanel>
         <Menu DockPanel.Dock="Top">
             <MenuItem Header="File">
@@ -37,7 +37,6 @@
             </DockingManager.Resources>
 
             <DockingManager.LayoutItemContainerStyle>
-                <!-- you can add additional bindings from the layoutitem to the DockWindowViewModel -->
                 <Style TargetType="{x:Type dockctrl:LayoutItem}" >
                     <Setter Property="Title" Value="{Binding Model.Title}" />
                     <Setter Property="CloseCommand" Value="{Binding Model.CloseCommand}" />
@@ -45,21 +44,5 @@
                 </Style>
             </DockingManager.LayoutItemContainerStyle>
         </DockingManager>
-
-
-        <Grid> <!-- MouseDown="MainCanvas_MouseDown" MouseUp="MainCanvas_MouseUp" MouseMove="MainCanvas_MouseMove" -->
-            <Viewbox x:Name="MainViewbox" SizeChanged="MainViewbox_SizeChanged">
-                <Grid>
-                    <Image x:Name="MainImage"></Image>
-                    <Canvas x:Name="MainCanvas"/>
-                </Grid>
-            </Viewbox>
-
-            <Path x:Name="XAxisLines" Stroke="Red" Fill="Red"/>
-            <Path x:Name="YAxisLines" Stroke="Green" Fill="Green"/>
-            <Path x:Name="ZAxisLines" Stroke="Blue" Fill="Blue"/>
-            <Path x:Name="ModelLines" Stroke="Cyan" Fill="Cyan"/>
-        </Grid>
-
     </DockPanel>
 </Window>

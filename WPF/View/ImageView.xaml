@@ -8,17 +8,15 @@
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
     <Grid>
-        <Viewbox x:Name="MainViewbox" 
-                 behavior:MouseBehavior.MouseHandler="{Binding MouseHandler}">
+        <Viewbox>
             <Grid>
-                <Image x:Name="MainImage" Source="{Binding ImageSource}"></Image>
-                <Canvas x:Name="MainCanvas"/>
+                <Image Source="{Binding ImageSource}" behavior:MouseBehavior.MouseHandler="{Binding MouseHandler}"></Image>
             </Grid>
         </Viewbox>
 
-        <Path x:Name="XAxisLines" Stroke="Red" Fill="Red"/>
-        <Path x:Name="YAxisLines" Stroke="Green" Fill="Green"/>
-        <Path x:Name="ZAxisLines" Stroke="Blue" Fill="Blue"/>
-        <Path x:Name="ModelLines" Stroke="Cyan" Fill="Cyan"/>
+        <Path Stroke="Red" Fill="Red" Data="{Binding XAxisLinesGeometry}" StrokeThickness="{Binding LineStrokeThickness}"/>
+        <Path Stroke="Green" Fill="Green" Data="{Binding YAxisLinesGeometry}" StrokeThickness="{Binding LineStrokeThickness}"/>
+        <Path Stroke="Blue" Fill="Blue" Data="{Binding ZAxisLinesGeometry}" StrokeThickness="{Binding LineStrokeThickness}"/>
+        <Path Stroke="Cyan" Fill="Cyan" Data="{Binding ModelLinesGeometry}" StrokeThickness="{Binding LineStrokeThickness}"/>
     </Grid>
 </UserControl>
