@@ -6,17 +6,18 @@
              xmlns:local="clr-namespace:Photomatch_ProofOfConcept_WPF.WPF.View"
              xmlns:behavior="clr-namespace:Photomatch_ProofOfConcept_WPF.WPF.Helper"
              mc:Ignorable="d" 
-             d:DesignHeight="450" d:DesignWidth="800">
+             d:DesignHeight="450" d:DesignWidth="800"
+             SizeChanged="Control_SizeChanged">
     <Grid>
-        <Viewbox>
+        <Viewbox x:Name="MainViewbox" SizeChanged="Viewbox_SizeChanged">
             <Grid>
-                <Image Source="{Binding ImageSource}" behavior:MouseBehavior.MouseHandler="{Binding MouseHandler}"></Image>
+                <Image x:Name="MainImage" Source="{Binding ImageSource}" behavior:ControlProperties.MouseHandler="{Binding MouseHandler}"></Image>
             </Grid>
         </Viewbox>
 
-        <Path Stroke="Red" Fill="Red" Data="{Binding XAxisLinesGeometry}" StrokeThickness="{Binding LineStrokeThickness}"/>
-        <Path Stroke="Green" Fill="Green" Data="{Binding YAxisLinesGeometry}" StrokeThickness="{Binding LineStrokeThickness}"/>
-        <Path Stroke="Blue" Fill="Blue" Data="{Binding ZAxisLinesGeometry}" StrokeThickness="{Binding LineStrokeThickness}"/>
-        <Path Stroke="Cyan" Fill="Cyan" Data="{Binding ModelLinesGeometry}" StrokeThickness="{Binding LineStrokeThickness}"/>
+        <Path x:Name="XAxisLines" Stroke="Red" Fill="Red" Data="{Binding XAxisLinesGeometry}" StrokeThickness="{Binding LineStrokeThickness}"/>
+        <Path x:Name="YAxisLines" Stroke="Green" Fill="Green" Data="{Binding YAxisLinesGeometry}" StrokeThickness="{Binding LineStrokeThickness}"/>
+        <Path x:Name="ZAxisLines" Stroke="Blue" Fill="Blue" Data="{Binding ZAxisLinesGeometry}" StrokeThickness="{Binding LineStrokeThickness}"/>
+        <Path x:Name="ModelLines" Stroke="Cyan" Fill="Cyan" Data="{Binding ModelLinesGeometry}" StrokeThickness="{Binding LineStrokeThickness}"/>
     </Grid>
 </UserControl>

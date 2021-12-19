@@ -7,41 +7,21 @@ namespace Photomatch_ProofOfConcept_WPF.WPF.Helper
 {
     public class RelayCommand : ICommand
     {
-        #region Properties
+        private readonly Action<object> Action;
 
-        private readonly Action<object> ExecuteAction;
-        private readonly Predicate<object> CanExecuteAction;
-
-        #endregion
-
-        public RelayCommand(Action<object> execute)
-          : this(execute, _ => true)
+        public RelayCommand(Action<object> action)
         {
-        }
-        public RelayCommand(Action<object> action, Predicate<object> canExecute)
-        {
-            ExecuteAction = action;
-            CanExecuteAction = canExecute;
+            Action = action;
         }
 
-        #region Methods
+        public bool CanExecute(object parameter) => true;
 
-        public bool CanExecute(object parameter)
-        {
-            return CanExecuteAction(parameter);
-        }
+        public void Execute(object parameter) => Action(parameter);
 
-        public event EventHandler CanExecuteChanged
+        public event EventHandler CanExecuteChanged 
         {
             add { CommandManager.RequerySuggested += value; }
             remove { CommandManager.RequerySuggested -= value; }
         }
-
-        public void Execute(object parameter)
-        {
-            ExecuteAction(parameter);
-        }
-
-        #endregion
     }
 }

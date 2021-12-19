@@ -40,7 +40,6 @@ namespace Photomatch_ProofOfConcept_WPF
 		public MainWindow()
 		{
 			InitializeComponent();
-
 			AppControl = new MasterControl(this);
 			ActionListener = AppControl;
 

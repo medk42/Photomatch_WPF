@@ -6,6 +6,7 @@ using MatrixVector;
 using Photomatch_ProofOfConcept_WPF.WPF.Helper;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.IO;
 using System.Text;
 using System.Windows;
@@ -17,8 +18,10 @@ using WpfExtensions;
 
 namespace Photomatch_ProofOfConcept_WPF.WPF.ViewModel
 {
-	public class ImageViewModel : IWindow, IMouseHandler
+	public class ImageViewModel : BaseViewModel, IWindow, IMouseHandler
 	{
+		private static readonly double DefaultLineStrokeThickness = 2;
+
 		public Action CloseCommand { get; }
 		public bool IsClosed { get; set; }
 		public bool CanClose { get; set; }
@@ -26,12 +29,20 @@ namespace Photomatch_ProofOfConcept_WPF.WPF.ViewModel
 
 		public BitmapImage ImageSource { get; private set; }
 
-		public GeometryGroup XAxisLinesGeometry { get; private set; } = new GeometryGroup();
-		public GeometryGroup YAxisLinesGeometry { get; private set; } = new GeometryGroup();
-		public GeometryGroup ZAxisLinesGeometry { get; private set; } = new GeometryGroup();
-		public GeometryGroup ModelLinesGeometry { get; private set; } = new GeometryGroup();
+		public GeometryGroup XAxisLinesGeometry { get; } = new GeometryGroup();
+		public GeometryGroup YAxisLinesGeometry { get; } = new GeometryGroup();
+		public GeometryGroup ZAxisLinesGeometry { get; } = new GeometryGroup();
+		public GeometryGroup ModelLinesGeometry { get; } = new GeometryGroup();
 
-		public static double LineStrokeThickness { get; } = 2;
+		private double _LineStrokeThickness = DefaultLineStrokeThickness;
+		public double LineStrokeThickness {
+			get => _LineStrokeThickness;
+			private set
+			{
+				_LineStrokeThickness = value;
+				OnPropertyChanged(nameof(LineStrokeThickness));
+			}
+		}
 
 		public IMouseHandler MouseHandler
 		{
@@ -50,6 +61,8 @@ namespace Photomatch_ProofOfConcept_WPF.WPF.ViewModel
 			this.ImageWindow = imageWindow;
 
 			SetupGeometry();
+			XAxisLinesGeometry.Children.Add(new LineGeometry(new Point(100, 100), new Point(200, 300)));
+			YAxisLinesGeometry.Children.Add(new LineGeometry(new Point(100, 300), new Point(200, 100)));
 		}
 
 		private void SetupGeometry()
@@ -167,52 +180,6 @@ namespace Photomatch_ProofOfConcept_WPF.WPF.ViewModel
 
 			Logger.Log($"Mouse Event (\"{Title}\")", $"Mouse Move at {point.X}, {point.Y}", LogType.Info);
 		}
-
-
-		/*
-		private List<IScalable> scalables = new List<IScalable>(); 
-		private void MainWindow_SizeChanged(object sender, SizeChangedEventArgs e)
-		{
-			UpdateGeometryTransform();
-
-			double scale = MainViewbox.ActualHeight / MainImage.ActualHeight;
-			Logger.Log($"Size Change Event ({sender.GetType().Name})", $"{MainImage.RenderSize} => {MainViewbox.RenderSize} with scale {scale}x", LogType.Info);
-		}
-		private void MainViewbox_SizeChanged(object sender, SizeChangedEventArgs e)
-		{
-			UpdateGeometryTransform();
-
-			double scale = MainViewbox.ActualHeight / MainImage.ActualHeight;
-			foreach (var scalable in scalables)
-			{
-				scalable.SetNewScale(scale);
-			}
-
-			Logger.Log($"Size Change Event ({sender.GetType().Name})", $"{MainImage.RenderSize} => {MainViewbox.RenderSize} with scale {scale}x", LogType.Info);
-		}
-
-		private void UpdateGeometryTransform()
-		{
-			Matrix transform = GetRectToRectTransform(new Rect(MainImage.RenderSize), new Rect(MainImage.TranslatePoint(new Point(0, 0), XAxisLines), MainViewbox.RenderSize));
-			MatrixTransform matrixTransform = new MatrixTransform(transform);
-			XAxisLinesGeometry.Transform = matrixTransform;
-			YAxisLinesGeometry.Transform = matrixTransform;
-			ZAxisLinesGeometry.Transform = matrixTransform;
-			ModelLinesGeometry.Transform = matrixTransform;
-		}
-
-		/// <summary>
-		/// Source: https://stackoverflow.com/questions/724139/invariant-stroke-thickness-of-path-regardless-of-the-scale
-		/// </summary>
-		private static Matrix GetRectToRectTransform(Rect from, Rect to)
-		{
-			Matrix transform = Matrix.Identity;
-			transform.Translate(-from.X, -from.Y);
-			transform.Scale(to.Width / from.Width, to.Height / from.Height);
-			transform.Translate(to.X, to.Y);
-
-			return transform;
-		}*/
 
 
 		/*
