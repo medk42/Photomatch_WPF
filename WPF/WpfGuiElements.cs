@@ -65,10 +65,16 @@ namespace WpfGuiElements
 
 		public void SetNewScale(double scale)
 		{
-			StartEllipse.RadiusX = EndRadius / scale;
-			StartEllipse.RadiusY = EndRadius / scale;
-			EndEllipse.RadiusX = EndRadius / scale;
-			EndEllipse.RadiusY = EndRadius / scale;
+			if (StartEllipse != null)
+			{
+				StartEllipse.RadiusX = EndRadius / scale;
+				StartEllipse.RadiusY = EndRadius / scale;
+			}
+			if (EndEllipse != null)
+			{
+				EndEllipse.RadiusX = EndRadius / scale;
+				EndEllipse.RadiusY = EndRadius / scale;
+			}
 		}
 	}
 }

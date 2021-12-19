@@ -7,11 +7,12 @@
              xmlns:behavior="clr-namespace:Photomatch_ProofOfConcept_WPF.WPF.Helper"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800"
-             SizeChanged="Control_SizeChanged">
+             SizeChanged="Control_SizeChanged"
+             behavior:ControlProperties.MouseHandler="{Binding MouseHandler}" >
     <Grid>
-        <Viewbox x:Name="MainViewbox" SizeChanged="Viewbox_SizeChanged">
+        <Viewbox x:Name="MainViewbox" behavior:ControlProperties.SizeChanged="{Binding Viewbox_SizeChanged}">
             <Grid>
-                <Image x:Name="MainImage" Source="{Binding ImageSource}" behavior:ControlProperties.MouseHandler="{Binding MouseHandler}"></Image>
+                <Image x:Name="MainImage" Source="{Binding ImageSource}" behavior:ControlProperties.Loaded="{Binding Image_Loaded}"></Image>
             </Grid>
         </Viewbox>
 

@@ -15,6 +15,8 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using WpfExtensions;
+using WpfGuiElements;
+using WpfInterfaces;
 
 namespace Photomatch_ProofOfConcept_WPF.WPF.ViewModel
 {
@@ -33,6 +35,8 @@ namespace Photomatch_ProofOfConcept_WPF.WPF.ViewModel
 		public GeometryGroup YAxisLinesGeometry { get; } = new GeometryGroup();
 		public GeometryGroup ZAxisLinesGeometry { get; } = new GeometryGroup();
 		public GeometryGroup ModelLinesGeometry { get; } = new GeometryGroup();
+		public ICommand Viewbox_SizeChanged { get; private set; }
+		public ICommand Image_Loaded { get; private set; }
 
 		private double _LineStrokeThickness = DefaultLineStrokeThickness;
 		public double LineStrokeThickness {
@@ -51,6 +55,9 @@ namespace Photomatch_ProofOfConcept_WPF.WPF.ViewModel
 
 		private ILogger Logger;
 		private ImageWindow ImageWindow;
+		private double ViewboxImageScale;
+		private List<IScalable> scalables = new List<IScalable>();
+		private Image ImageView;
 
 		public ImageViewModel(ImageWindow imageWindow, ILogger logger)
         {
@@ -60,9 +67,10 @@ namespace Photomatch_ProofOfConcept_WPF.WPF.ViewModel
 			this.Logger = logger;
 			this.ImageWindow = imageWindow;
 
+			this.Viewbox_SizeChanged = new RelayCommand(Viewbox_SizeChanged_);
+			this.Image_Loaded = new RelayCommand(Image_Loaded_);
+
 			SetupGeometry();
-			XAxisLinesGeometry.Children.Add(new LineGeometry(new Point(100, 100), new Point(200, 300)));
-			YAxisLinesGeometry.Children.Add(new LineGeometry(new Point(100, 300), new Point(200, 100)));
 		}
 
 		private void SetupGeometry()
@@ -103,20 +111,42 @@ namespace Photomatch_ProofOfConcept_WPF.WPF.ViewModel
 
 		public double ScreenDistance(Vector2 pointA, Vector2 pointB)
 		{
-			return (pointA - pointB).Magnitude;
-			throw new NotImplementedException();
-		}
-
-		class L : ILine // TODO delete when rewriting CreateLine?
-		{
-			public Vector2 Start { get; set; }
-			public Vector2 End { get; set; }
+			return ViewboxImageScale * (pointA - pointB).Magnitude;
 		}
 
 		public ILine CreateLine(Vector2 start, Vector2 end, double endRadius, ApplicationColor color)
 		{
-			return new L() { Start = start, End = end };
-			throw new NotImplementedException();
+			GeometryGroup geometry;
+
+			switch (color)
+			{
+				case ApplicationColor.XAxis:
+					geometry = XAxisLinesGeometry;
+					break;
+				case ApplicationColor.YAxis:
+					geometry = YAxisLinesGeometry;
+					break;
+				case ApplicationColor.ZAxis:
+					geometry = ZAxisLinesGeometry;
+					break;
+				case ApplicationColor.Model:
+					geometry = ModelLinesGeometry;
+					break;
+				default:
+					throw new ArgumentException("Unknown application color.");
+			}
+
+			var wpfLine = new WpfLine(start.AsPoint(), end.AsPoint(), endRadius);
+			wpfLine.SetNewScale(ViewboxImageScale);
+			geometry.Children.Add(wpfLine.Line);
+			if (wpfLine.StartEllipse != null && wpfLine.EndEllipse != null)
+			{
+				geometry.Children.Add(wpfLine.StartEllipse);
+				geometry.Children.Add(wpfLine.EndEllipse);
+				scalables.Add(wpfLine);
+			}
+
+			return wpfLine;
 		}
 
 		public void DisposeAll()
@@ -143,11 +173,10 @@ namespace Photomatch_ProofOfConcept_WPF.WPF.ViewModel
 			if (!button.HasValue)
 				return;
 
-			Image image = sender as Image;
-			if (image == null)
+			if (ImageView == null)
 				return;
 
-			Point point = e.GetPosition(image);
+			Point point = e.GetPosition(ImageView);
 			ImageWindow.MouseDown(point.AsVector2(), button.Value);
 
 			Logger.Log($"Mouse Event (\"{Title}\")", $"Mouse Down at {point.X}, {point.Y} by {e.ChangedButton}", LogType.Info);
@@ -159,11 +188,10 @@ namespace Photomatch_ProofOfConcept_WPF.WPF.ViewModel
 			if (!button.HasValue)
 				return;
 
-			Image image = sender as Image;
-			if (image == null)
+			if (ImageView == null)
 				return;
 
-			Point point = e.GetPosition(image);
+			Point point = e.GetPosition(ImageView);
 			ImageWindow.MouseUp(point.AsVector2(), button.Value);
 
 			Logger.Log($"Mouse Event (\"{Title}\")", $"Mouse Up at {point.X}, {point.Y} by {e.ChangedButton}", LogType.Info);
@@ -171,85 +199,47 @@ namespace Photomatch_ProofOfConcept_WPF.WPF.ViewModel
 
 		public void MouseMove(object sender, MouseEventArgs e)
 		{
-			Image image = sender as Image;
-			if (image == null)
+			if (ImageView == null)
 				return;
 
-			Point point = e.GetPosition(image);
+			Point point = e.GetPosition(ImageView);
 			ImageWindow.MouseMove(point.AsVector2());
 
 			Logger.Log($"Mouse Event (\"{Title}\")", $"Mouse Move at {point.X}, {point.Y}", LogType.Info);
 		}
 
+		private void Viewbox_SizeChanged_(object args)
+		{
+			SizeChangedEventArgs sizeArgs = args as SizeChangedEventArgs;
+			if (sizeArgs == null)
+			{
+				throw new ArgumentException("args is not of type SizeChangedEventArgs");
+			}
+
+			Size viewboxSize = sizeArgs.NewSize;
+			ViewboxImageScale = viewboxSize.Height / ImageSource.Height;
+
+			foreach (var scalable in scalables)
+			{
+				scalable.SetNewScale(ViewboxImageScale);
+			}
+
+			Logger.Log($"Viewbox Size Event (\"{Title}\")", $"Size change to {viewboxSize.Width}, {viewboxSize.Height}, Image {ImageSource.Width}, {ImageSource.Height}, Scale {viewboxSize.Height / ImageSource.Height}", LogType.Info);
+		}
+
+		private void Image_Loaded_(object obj)
+		{
+			Image image = obj as Image;
+			if (image == null)
+			{
+				throw new ArgumentException("obj is not of type Image");
+			}
+
+			ImageView = image;
+		}
+
 
 		/*
-		public void SetImage(SixLabors.ImageSharp.Image image)
-		{
-			// TODO id will be used when multiple windows are implemented
-			SetImageSharpAsImage(image, MainImage);
-		}
-
-		private void SetImageSharpAsImage(SixLabors.ImageSharp.Image imageSharp, Image image)
-		{
-			imageSharp.Metadata.ResolutionUnits = SixLabors.ImageSharp.Metadata.PixelResolutionUnit.PixelsPerInch;
-			imageSharp.Metadata.VerticalResolution = 96;
-			imageSharp.Metadata.HorizontalResolution = 96;
-
-			var stream = new MemoryStream();
-			imageSharp.Save(stream, new SixLabors.ImageSharp.Formats.Bmp.BmpEncoder());
-			stream.Seek(0, SeekOrigin.Begin);
-
-			BitmapImage imageCopy = new BitmapImage();
-			imageCopy.BeginInit();
-			imageCopy.StreamSource = stream;
-			imageCopy.EndInit();
-
-			image.Source = imageCopy;
-		}
-
-		public double ScreenDistance(Vector2 pointA, Vector2 pointB)
-		{
-			// TODO id will be used when multiple windows are implemented
-			Point pointATranslated = MainImage.TranslatePoint(pointA.AsPoint(), MyMainWindow);
-			Point pointBTranslated = MainImage.TranslatePoint(pointB.AsPoint(), MyMainWindow);
-			return (pointATranslated - pointBTranslated).Length;
-		}
-
-		public ILine CreateLine(Vector2 start, Vector2 end, double endRadius, ApplicationColor color)
-		{
-			GeometryGroup geometry;
-
-			switch (color)
-			{
-				case ApplicationColor.XAxis:
-					geometry = XAxisLinesGeometry;
-					break;
-				case ApplicationColor.YAxis:
-					geometry = YAxisLinesGeometry;
-					break;
-				case ApplicationColor.ZAxis:
-					geometry = ZAxisLinesGeometry;
-					break;
-				case ApplicationColor.Model:
-					geometry = ModelLinesGeometry;
-					break;
-				default:
-					throw new ArgumentException("Unknown application color.");
-			}
-
-			var wpfLine = new WpfLine(start.AsPoint(), end.AsPoint(), endRadius);
-			wpfLine.SetNewScale(MainViewbox.ActualHeight / MainImage.ActualHeight);
-			geometry.Children.Add(wpfLine.Line);
-			if (wpfLine.StartEllipse != null && wpfLine.EndEllipse != null)
-			{
-				geometry.Children.Add(wpfLine.StartEllipse);
-				geometry.Children.Add(wpfLine.EndEllipse);
-				scalables.Add(wpfLine);
-			}
-
-			return wpfLine;
-		}
-
 		public void DisposeAll()
 		{
 			XAxisLinesGeometry.Children.Clear();

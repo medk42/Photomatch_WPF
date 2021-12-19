@@ -22,6 +22,13 @@ namespace Photomatch_ProofOfConcept_WPF.WPF.Helper
             new PropertyMetadata(SizeChangedPropertyChangedCallBack)
         );
 
+        private static readonly DependencyProperty LoadedProperty = DependencyProperty.RegisterAttached(
+            "Loaded",
+            typeof(RelayCommand),
+            typeof(ControlProperties),
+            new PropertyMetadata(LoadedPropertyChangedCallBack)
+        );
+
         public static void SetMouseHandler(this UIElement UIElement, IMouseHandler mouseHandler)
         {
             UIElement.SetValue(MouseHandlerProperty, mouseHandler);
@@ -45,14 +52,28 @@ namespace Photomatch_ProofOfConcept_WPF.WPF.Helper
 
         private static void SizeChangedPropertyChangedCallBack(DependencyObject dependencyObject, DependencyPropertyChangedEventArgs eventArgs)
 		{
-            FrameworkElement uiElement = GetFrameworkElement(dependencyObject);
-            ICommand command = (ICommand)uiElement.GetValue(SizeChangedProperty);
+            FrameworkElement frameworkElement = GetFrameworkElement(dependencyObject);
+            ICommand command = (ICommand)frameworkElement.GetValue(SizeChangedProperty);
             if (command == null) throw new ArgumentException("command is not ICommand");
 
-            uiElement.SizeChanged += (sender, args) => command.Execute(args);
+            frameworkElement.SizeChanged += (sender, args) => command.Execute(args);
         }
 
-		private static UIElement GetUIElement(DependencyObject dependencyObject)
+        public static void SetLoaded(this UIElement UIElement, RelayCommand command)
+        {
+            UIElement.SetValue(LoadedProperty, command);
+        }
+
+        private static void LoadedPropertyChangedCallBack(DependencyObject dependencyObject, DependencyPropertyChangedEventArgs eventArgs)
+        {
+            FrameworkElement frameworkElement = GetFrameworkElement(dependencyObject);
+            ICommand command = (ICommand)frameworkElement.GetValue(LoadedProperty);
+            if (command == null) throw new ArgumentException("command is not ICommand");
+
+            frameworkElement.Loaded += (sender, args) => command.Execute(sender);
+        }
+
+        private static UIElement GetUIElement(DependencyObject dependencyObject)
 		{
             UIElement uiElement = dependencyObject as UIElement;
             if (uiElement == null)

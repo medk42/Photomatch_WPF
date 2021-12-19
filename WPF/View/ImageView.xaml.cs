@@ -23,13 +23,15 @@ namespace Photomatch_ProofOfConcept_WPF.WPF.View
 			InitializeComponent();
 		}
 
-		private void Viewbox_SizeChanged(object sender, SizeChangedEventArgs e) => UpdateGeometryTransform();
-
 		private void Control_SizeChanged(object sender, SizeChangedEventArgs e)
 		{
 			if (MainImage.RenderSize.Width > 0)
 			{
 				UpdateGeometryTransform();
+			} 
+			else
+			{
+				MainImage.Loaded += (sender, e) => UpdateGeometryTransform();
 			}
 		}
 
