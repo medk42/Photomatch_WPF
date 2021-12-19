@@ -31,6 +31,7 @@ namespace Photomatch_ProofOfConcept_WPF
 	{
 		private static readonly string PhotomatcherProjectFileFilter = "Photomatcher Project Files (*.ppf)|*.ppf";
 		private static readonly string ImageFileFilter = "Image Files(*.BMP;*.JPG;*.GIF;*.PNG;*.TIFF)|*.BMP;*.JPG;*.GIF;*.PNG;*.TIFF";
+		private static readonly string MainTitle = "Photomatcher";
 
 		private MasterControl AppControl;
 		private Actions ActionListener;
@@ -40,6 +41,7 @@ namespace Photomatch_ProofOfConcept_WPF
 		public MainWindow()
 		{
 			InitializeComponent();
+			MyMainWindow.Title = MainTitle;
 			AppControl = new MasterControl(this);
 			ActionListener = AppControl;
 
@@ -101,6 +103,11 @@ namespace Photomatch_ProofOfConcept_WPF
 			MainDockMgr.ActiveContent = window;
 
 			return window;
+		}
+
+		public void DisplayProjectName(string projectName)
+		{
+			MyMainWindow.Title = $"{MainTitle} - {projectName}";
 		}
 
 		private void LoadImage_Click(object sender, RoutedEventArgs e) => ActionListener.LoadImage_Pressed();

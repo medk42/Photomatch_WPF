@@ -170,6 +170,8 @@ namespace GuiControls
 			this.Windows = new List<ImageWindow>();
 			this.State = ProjectState.None;
 			this.ProjectPath = null;
+
+			Gui.DisplayProjectName("new project...");
 		}
 
 		public void LoadImage_Pressed()
@@ -244,6 +246,9 @@ namespace GuiControls
 						return;
 					State = ProjectState.NamedProject;
 					ProjectPath = filePath;
+
+					string projectName = Path.GetFileName(filePath);
+					Gui.DisplayProjectName(projectName);
 					break;
 				default:
 					throw new NotImplementedException("Unknown ProjectState");
@@ -318,9 +323,12 @@ namespace GuiControls
 					}
 				}
 
+				string projectName = Path.GetFileName(filePath);
+				Gui.DisplayProjectName(projectName);
+
 				State = ProjectState.NamedProject;
-				ProjectPath = filePath; 
-				Logger.Log("Load Project", "Successfully loaded project.", LogType.Info);
+				ProjectPath = filePath;
+				Logger.Log("Load Project", $"Successfully loaded project {projectName}.", LogType.Info);
 			}
 			catch (Exception ex)
 			{
