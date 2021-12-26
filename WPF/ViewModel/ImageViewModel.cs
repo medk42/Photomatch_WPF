@@ -164,12 +164,12 @@ namespace Photomatch_ProofOfConcept_WPF.WPF.ViewModel
 
 		public void DisposeAll()
 		{
-			/*XAxisLinesGeometry.Children.Clear();
+			XAxisLinesGeometry.Children.Clear();
 			YAxisLinesGeometry.Children.Clear();
 			ZAxisLinesGeometry.Children.Clear();
 			ModelLinesGeometry.Children.Clear();
 			scalables.Clear();
-			ImageSource = null;*/
+			ImageSource = null;
 
 			IsClosed = true;
 		}
