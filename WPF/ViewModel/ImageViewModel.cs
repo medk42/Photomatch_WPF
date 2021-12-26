@@ -25,14 +25,40 @@ namespace Photomatch_ProofOfConcept_WPF.WPF.ViewModel
 		private static readonly double DefaultLineStrokeThickness = 2;
 
 		public ICommand CloseCommand { get; }
-		public bool CanClose { get; set; }
-		public string Title { get; set; }
+
+		private bool CanClose_;
+		public bool CanClose
+		{
+			get => CanClose_;
+			set
+			{
+				if (CanClose_ != value)
+				{
+					CanClose_ = value;
+					OnPropertyChanged(nameof(CanClose));
+				}
+			}
+		}
+
+		private string Title_;
+		public string Title
+		{
+			get => Title_;
+			set
+			{
+				if (Title_ != value)
+				{
+					Title_ = value;
+					OnPropertyChanged(nameof(Title));
+				}
+			}
+		}
 
 		private bool _IsClosed;
 		public bool IsClosed
 		{
 			get => _IsClosed;
-			set
+			private set
 			{
 				if (_IsClosed != value)
 				{
@@ -42,7 +68,16 @@ namespace Photomatch_ProofOfConcept_WPF.WPF.ViewModel
 			}
 		}
 
-		public BitmapImage ImageSource { get; private set; }
+		private BitmapImage ImageSource_;
+		public BitmapImage ImageSource
+		{
+			get => ImageSource_;
+			private set
+			{
+				ImageSource_ = value;
+				OnPropertyChanged(nameof(ImageSource));
+			}
+		}
 
 		public GeometryGroup XAxisLinesGeometry { get; } = new GeometryGroup();
 		public GeometryGroup YAxisLinesGeometry { get; } = new GeometryGroup();

@@ -156,6 +156,7 @@ namespace GuiControls
 	public class MasterControl : Actions
 	{
 		private static readonly ulong ProjectFileChecksum = 0x54_07_02_47_23_43_94_42;
+		private static readonly string NewProjectName = "new project...";
 
 		private MasterGUI Gui;
 		private ILogger Logger;
@@ -171,7 +172,7 @@ namespace GuiControls
 			this.State = ProjectState.None;
 			this.ProjectPath = null;
 
-			Gui.DisplayProjectName("new project...");
+			Gui.DisplayProjectName(NewProjectName);
 		}
 
 		public void LoadImage_Pressed()
@@ -355,6 +356,8 @@ namespace GuiControls
 			Windows.Clear();
 			State = ProjectState.None;
 			ProjectPath = null;
+
+			Gui.DisplayProjectName(NewProjectName);
 		}
 	}
 }
