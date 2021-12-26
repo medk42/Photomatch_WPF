@@ -101,6 +101,10 @@ namespace Photomatch_ProofOfConcept_WPF.WPF.ViewModel
 			get => this;
 		}
 
+		public double Width => ImageSource.Width;
+
+		public double Height => ImageSource.Height;
+
 		private ILogger Logger;
 		private ImageWindow ImageWindow;
 		private double ViewboxImageScale;
@@ -231,6 +235,10 @@ namespace Photomatch_ProofOfConcept_WPF.WPF.ViewModel
 				return;
 
 			Point point = e.GetPosition(ImageView);
+
+			if (point.X < 0 || point.Y < 0 || point.X >= Width || point.Y >= Height)
+				return;
+
 			ImageWindow.MouseDown(point.AsVector2(), button.Value);
 
 			Logger.Log($"Mouse Event (\"{Title}\")", $"Mouse Down at {point.X}, {point.Y} by {e.ChangedButton}", LogType.Info);
@@ -246,6 +254,10 @@ namespace Photomatch_ProofOfConcept_WPF.WPF.ViewModel
 				return;
 
 			Point point = e.GetPosition(ImageView);
+
+			if (point.X < 0 || point.Y < 0 || point.X >= Width || point.Y >= Height)
+				return;
+
 			ImageWindow.MouseUp(point.AsVector2(), button.Value);
 
 			Logger.Log($"Mouse Event (\"{Title}\")", $"Mouse Up at {point.X}, {point.Y} by {e.ChangedButton}", LogType.Info);
@@ -257,9 +269,30 @@ namespace Photomatch_ProofOfConcept_WPF.WPF.ViewModel
 				return;
 
 			Point point = e.GetPosition(ImageView);
+
+			if (point.X < 0 || point.Y < 0 || point.X >= Width || point.Y >= Height)
+				return;
+
 			ImageWindow.MouseMove(point.AsVector2());
 
 			Logger.Log($"Mouse Event (\"{Title}\")", $"Mouse Move at {point.X}, {point.Y}", LogType.Info);
+		}
+
+		public void MouseEnter(object sender, MouseEventArgs e) { }
+
+		public void MouseLeave(object sender, MouseEventArgs e)
+		{
+			if (ImageView == null)
+				return;
+
+			Point point = e.GetPosition(ImageView);
+
+			point = new Point(Math.Clamp(point.X, 0, Width - 1), Math.Clamp(point.X, 0, Height - 1));
+			ImageWindow.MouseUp(point.AsVector2(), GuiEnums.MouseButton.Left);
+			ImageWindow.MouseUp(point.AsVector2(), GuiEnums.MouseButton.Middle);
+			ImageWindow.MouseUp(point.AsVector2(), GuiEnums.MouseButton.Right);
+
+			Logger.Log($"Mouse Event (\"{Title}\")", $"Mouse Leave at {point.X}, {point.Y}", LogType.Info);
 		}
 
 		private void Viewbox_SizeChanged_(object args)

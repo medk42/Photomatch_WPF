@@ -43,6 +43,8 @@ namespace Photomatch_ProofOfConcept_WPF.WPF.Helper
             uiElement.MouseDown += handler.MouseDown;
             uiElement.MouseUp += handler.MouseUp;
             uiElement.MouseMove += handler.MouseMove;
+            uiElement.MouseEnter += handler.MouseEnter;
+            uiElement.MouseLeave += handler.MouseLeave;
         }
 
         public static void SetSizeChanged(this UIElement UIElement, RelayCommand command)
