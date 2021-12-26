@@ -24,10 +24,23 @@ namespace Photomatch_ProofOfConcept_WPF.WPF.ViewModel
 	{
 		private static readonly double DefaultLineStrokeThickness = 2;
 
-		public Action CloseCommand { get; }
-		public bool IsClosed { get; set; }
+		public ICommand CloseCommand { get; }
 		public bool CanClose { get; set; }
 		public string Title { get; set; }
+
+		private bool _IsClosed;
+		public bool IsClosed
+		{
+			get => _IsClosed;
+			set
+			{
+				if (_IsClosed != value)
+				{
+					_IsClosed = value;
+					OnPropertyChanged(nameof(IsClosed));
+				}
+			}
+		}
 
 		public BitmapImage ImageSource { get; private set; }
 
@@ -63,7 +76,7 @@ namespace Photomatch_ProofOfConcept_WPF.WPF.ViewModel
         {
             this.CanClose = true;
             this.IsClosed = false;
-            this.CloseCommand = () => Close();
+            this.CloseCommand = new RelayCommand(obj => Close());
 			this.Logger = logger;
 			this.ImageWindow = imageWindow;
 
@@ -151,8 +164,14 @@ namespace Photomatch_ProofOfConcept_WPF.WPF.ViewModel
 
 		public void DisposeAll()
 		{
-			return;
-			throw new NotImplementedException();
+			/*XAxisLinesGeometry.Children.Clear();
+			YAxisLinesGeometry.Children.Clear();
+			ZAxisLinesGeometry.Children.Clear();
+			ModelLinesGeometry.Children.Clear();
+			scalables.Clear();
+			ImageSource = null;*/
+
+			IsClosed = true;
 		}
 
 		private GuiEnums.MouseButton? GetMouseButton(System.Windows.Input.MouseButton button)
@@ -237,17 +256,5 @@ namespace Photomatch_ProofOfConcept_WPF.WPF.ViewModel
 
 			ImageView = image;
 		}
-
-
-		/*
-		public void DisposeAll()
-		{
-			XAxisLinesGeometry.Children.Clear();
-			YAxisLinesGeometry.Children.Clear();
-			ZAxisLinesGeometry.Children.Clear();
-			ModelLinesGeometry.Children.Clear();
-			scalables.Clear();
-			MainImage.Source = null;
-		}*/
 	}
 }
