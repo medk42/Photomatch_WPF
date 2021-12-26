@@ -258,13 +258,11 @@ namespace Perspective
 
 		public static Matrix3x3 GetRotationalMatrix(Matrix3x3 invertedIntrinsicMatrix, Vector2 firstVanishingPoint, Vector2 secondVanishingPoint, Vector2 principalPoint)
 		{
-			Vector2 thirdVanishingPoint = GetTriangleThirdVertexFromOrthocenter(firstVanishingPoint, secondVanishingPoint, principalPoint);
-
 			Matrix3x3 rotationMatrix = new Matrix3x3();
 
 			Vector3 firstCol = (invertedIntrinsicMatrix * new Vector3(firstVanishingPoint.X, firstVanishingPoint.Y, 1)).Normalized();
 			Vector3 secondCol = (invertedIntrinsicMatrix * new Vector3(secondVanishingPoint.X, secondVanishingPoint.Y, 1)).Normalized();
-			Vector3 thirdCol = (invertedIntrinsicMatrix * new Vector3(thirdVanishingPoint.X, thirdVanishingPoint.Y, 1)).Normalized();
+			Vector3 thirdCol = Vector3.Cross(secondCol, firstCol);
 
 			rotationMatrix.A00 = firstCol.X;
 			rotationMatrix.A10 = firstCol.Y;

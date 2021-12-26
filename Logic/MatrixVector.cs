@@ -137,6 +137,11 @@ namespace MatrixVector
 			return new Vector3() { X = vector.X / value, Y = vector.Y / value, Z = vector.Z / value };
 		}
 
+		public static Vector3 Cross(Vector3 first, Vector3 second)
+		{
+			return new Vector3(first.Y * second.Z - first.Z * second.Y, first.Z * second.X - first.X * second.Z, first.X * second.Y - first.Y * second.X);
+		}
+
 		public void Serialize(BinaryWriter writer)
 		{
 			writer.Write(X);
