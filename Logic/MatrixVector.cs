@@ -132,6 +132,11 @@ namespace MatrixVector
 			return new Vector3() { X = first.X - second.X, Y = first.Y - second.Y, Z = first.Z - second.Z };
 		}
 
+		public static Vector3 operator -(Vector3 vector)
+		{
+			return new Vector3() { X = -vector.X, Y = -vector.Y, Z = -vector.Z };
+		}
+
 		public static Vector3 operator /(Vector3 vector, double value)
 		{
 			return new Vector3() { X = vector.X / value, Y = vector.Y / value, Z = vector.Z / value };

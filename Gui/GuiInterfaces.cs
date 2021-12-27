@@ -7,6 +7,7 @@ using MatrixVector;
 using Logging;
 using GuiEnums;
 using GuiControls;
+using Perspective;
 
 namespace GuiInterfaces
 {
@@ -14,6 +15,7 @@ namespace GuiInterfaces
 	{
 		Vector2 Start { get; set; }
 		Vector2 End { get; set; }
+		void SetColor(ApplicationColor color);
 	}
 
 	public interface MasterGUI : ILogger
@@ -31,6 +33,8 @@ namespace GuiInterfaces
 		double ScreenDistance(Vector2 pointA, Vector2 pointB);
 		ILine CreateLine(Vector2 start, Vector2 end, double endRadius, ApplicationColor color);
 		void DisposeAll();
+		void DisplayCalibrationAxes(CalibrationAxes calibrationAxes);
+		void DisplayInvertedAxes(InvertedAxes invertedAxes);
 	}
 
 	public interface Actions

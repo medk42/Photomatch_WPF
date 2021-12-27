@@ -27,7 +27,10 @@ namespace GuiControls
 		private PerspectiveData Perspective;
 		private DraggablePoints DraggablePoints;
 
+		private ILine LineA1, LineA2, LineB1, LineB2;
 		private ILine LineX, LineY, LineZ;
+
+		private bool Initialized = false;
 
 		public ISafeSerializable<PerspectiveData> PerspectiveSafeSerializable
 		{
@@ -44,9 +47,13 @@ namespace GuiControls
 			this.DraggablePoints = new DraggablePoints(Window, PointGrabRadius);
 
 			Window.SetImage(perspective.Image);
+			Window.DisplayCalibrationAxes(Perspective.CalibrationAxes);
+			Window.DisplayInvertedAxes(Perspective.InvertedAxes);
 
 			CreateCoordSystemLines();
 			CreatePerspectiveLines();
+
+			Initialized = true;
 		}
 
 		public void MouseMove(Vector2 mouseCoord)
@@ -66,23 +73,62 @@ namespace GuiControls
 
 		private void CreatePerspectiveLines()
 		{
-			var lineX1 = Window.CreateLine(Perspective.LineX1.Start, Perspective.LineX1.End, PointDrawRadius, ApplicationColor.XAxis);
-			var lineX2 = Window.CreateLine(Perspective.LineX2.Start, Perspective.LineX2.End, PointDrawRadius, ApplicationColor.XAxis);
-			var lineY1 = Window.CreateLine(Perspective.LineY1.Start, Perspective.LineY1.End, PointDrawRadius, ApplicationColor.YAxis);
-			var lineY2 = Window.CreateLine(Perspective.LineY2.Start, Perspective.LineY2.End, PointDrawRadius, ApplicationColor.YAxis);
+			Tuple<ApplicationColor, ApplicationColor> colors = GetColorsFromCalibrationAxes(Perspective.CalibrationAxes);
 
-			AddDraggablePointsForPerspectiveLine(lineX1,
-				(value) => Perspective.LineX1 = Perspective.LineX1.WithStart(value),
-				(value) => Perspective.LineX1 = Perspective.LineX1.WithEnd(value));
-			AddDraggablePointsForPerspectiveLine(lineX2,
-				(value) => Perspective.LineX2 = Perspective.LineX2.WithStart(value),
-				(value) => Perspective.LineX2 = Perspective.LineX2.WithEnd(value));
-			AddDraggablePointsForPerspectiveLine(lineY1,
-				(value) => Perspective.LineY1 = Perspective.LineY1.WithStart(value),
-				(value) => Perspective.LineY1 = Perspective.LineY1.WithEnd(value));
-			AddDraggablePointsForPerspectiveLine(lineY2,
-				(value) => Perspective.LineY2 = Perspective.LineY2.WithStart(value),
-				(value) => Perspective.LineY2 = Perspective.LineY2.WithEnd(value));
+			LineA1 = Window.CreateLine(Perspective.LineA1.Start, Perspective.LineA1.End, PointDrawRadius, colors.Item1);
+			LineA2 = Window.CreateLine(Perspective.LineA2.Start, Perspective.LineA2.End, PointDrawRadius, colors.Item1);
+			LineB1 = Window.CreateLine(Perspective.LineB1.Start, Perspective.LineB1.End, PointDrawRadius, colors.Item2);
+			LineB2 = Window.CreateLine(Perspective.LineB2.Start, Perspective.LineB2.End, PointDrawRadius, colors.Item2);
+
+			AddDraggablePointsForPerspectiveLine(LineA1,
+				(value) => Perspective.LineA1 = Perspective.LineA1.WithStart(value),
+				(value) => Perspective.LineA1 = Perspective.LineA1.WithEnd(value));
+			AddDraggablePointsForPerspectiveLine(LineA2,
+				(value) => Perspective.LineA2 = Perspective.LineA2.WithStart(value),
+				(value) => Perspective.LineA2 = Perspective.LineA2.WithEnd(value));
+			AddDraggablePointsForPerspectiveLine(LineB1,
+				(value) => Perspective.LineB1 = Perspective.LineB1.WithStart(value),
+				(value) => Perspective.LineB1 = Perspective.LineB1.WithEnd(value));
+			AddDraggablePointsForPerspectiveLine(LineB2,
+				(value) => Perspective.LineB2 = Perspective.LineB2.WithStart(value),
+				(value) => Perspective.LineB2 = Perspective.LineB2.WithEnd(value));
+		}
+
+		private Tuple<ApplicationColor, ApplicationColor> GetColorsFromCalibrationAxes(CalibrationAxes axes)
+		{
+			ApplicationColor colorA, colorB;
+
+			switch (axes)
+			{
+				case CalibrationAxes.XY:
+					colorA = ApplicationColor.XAxis;
+					colorB = ApplicationColor.YAxis;
+					break;
+				case CalibrationAxes.YX:
+					colorA = ApplicationColor.YAxis;
+					colorB = ApplicationColor.XAxis;
+					break;
+				case CalibrationAxes.XZ:
+					colorA = ApplicationColor.XAxis;
+					colorB = ApplicationColor.ZAxis;
+					break;
+				case CalibrationAxes.ZX:
+					colorA = ApplicationColor.ZAxis;
+					colorB = ApplicationColor.XAxis;
+					break;
+				case CalibrationAxes.YZ:
+					colorA = ApplicationColor.YAxis;
+					colorB = ApplicationColor.ZAxis;
+					break;
+				case CalibrationAxes.ZY:
+					colorA = ApplicationColor.ZAxis;
+					colorB = ApplicationColor.YAxis;
+					break;
+				default:
+					throw new Exception("Unexpected switch case.");
+			}
+
+			return new Tuple<ApplicationColor, ApplicationColor>(colorA, colorB);
 		}
 
 		private void AddDraggablePointsForPerspectiveLine(ILine line, UpdateValue<Vector2> updateValueStart, UpdateValue<Vector2> updateValueEnd)
@@ -151,6 +197,32 @@ namespace GuiControls
 		{
 			Window.DisposeAll();
 		}
+
+		public void CalibrationAxes_Changed(CalibrationAxes calibrationAxes)
+		{
+			if (Initialized)
+			{
+				Perspective.CalibrationAxes = calibrationAxes;
+				Window.DisplayCalibrationAxes(Perspective.CalibrationAxes);
+				UpdateCoordSystemLines();
+
+				Tuple<ApplicationColor, ApplicationColor> colors = GetColorsFromCalibrationAxes(Perspective.CalibrationAxes);
+				LineA1.SetColor(colors.Item1);
+				LineA2.SetColor(colors.Item1);
+				LineB1.SetColor(colors.Item2);
+				LineB2.SetColor(colors.Item2);
+			}	
+		}
+
+		public void InvertedAxes_Changed(InvertedAxes invertedAxes)
+		{
+			if (Initialized)
+			{
+				Perspective.InvertedAxes = invertedAxes;
+				Window.DisplayInvertedAxes(Perspective.InvertedAxes);
+				UpdateCoordSystemLines();
+			}
+		}
 	}
 
 	public class MasterControl : Actions
@@ -203,7 +275,9 @@ namespace GuiControls
 			{
 				Logger.Log("Load Image", "File loaded successfully.", LogType.Info);
 				Windows.Add(new ImageWindow(new PerspectiveData(image, filePath), Gui, Logger));
-				State = ProjectState.NewProject;
+
+				if (State == ProjectState.None)
+					State = ProjectState.NewProject;
 			}
 		}
 

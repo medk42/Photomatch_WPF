@@ -4,6 +4,11 @@ using GuiInterfaces;
 using Logging;
 using MatrixVector;
 using Photomatch_ProofOfConcept_WPF.WPF.Helper;
+using Perspective;
+using WpfExtensions;
+using WpfGuiElements;
+using WpfInterfaces;
+
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -14,9 +19,6 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
-using WpfExtensions;
-using WpfGuiElements;
-using WpfInterfaces;
 
 namespace Photomatch_ProofOfConcept_WPF.WPF.ViewModel
 {
@@ -105,19 +107,24 @@ namespace Photomatch_ProofOfConcept_WPF.WPF.ViewModel
 
 		public double Height => ImageSource.Height;
 
+		public CalibrationAxes CurrentCalibrationAxes { get; private set; }
+		public InvertedAxes CurrentInvertedAxes { get; private set; }
+
 		private ILogger Logger;
 		private ImageWindow ImageWindow;
 		private double ViewboxImageScale;
 		private List<IScalable> scalables = new List<IScalable>();
 		private Image ImageView;
+		private MainWindow MainWindow;
 
-		public ImageViewModel(ImageWindow imageWindow, ILogger logger)
+		public ImageViewModel(ImageWindow imageWindow, ILogger logger, MainWindow mainWindow)
         {
             this.CanClose = true;
             this.IsClosed = false;
             this.CloseCommand = new RelayCommand(obj => Close());
 			this.Logger = logger;
 			this.ImageWindow = imageWindow;
+			this.MainWindow = mainWindow;
 
 			this.Viewbox_SizeChanged = new RelayCommand(Viewbox_SizeChanged_);
 			this.Image_Loaded = new RelayCommand(Image_Loaded_);
@@ -168,35 +175,11 @@ namespace Photomatch_ProofOfConcept_WPF.WPF.ViewModel
 
 		public ILine CreateLine(Vector2 start, Vector2 end, double endRadius, ApplicationColor color)
 		{
-			GeometryGroup geometry;
+			var wpfLine = new WpfLine(start.AsPoint(), end.AsPoint(), endRadius, this, color);
 
-			switch (color)
-			{
-				case ApplicationColor.XAxis:
-					geometry = XAxisLinesGeometry;
-					break;
-				case ApplicationColor.YAxis:
-					geometry = YAxisLinesGeometry;
-					break;
-				case ApplicationColor.ZAxis:
-					geometry = ZAxisLinesGeometry;
-					break;
-				case ApplicationColor.Model:
-					geometry = ModelLinesGeometry;
-					break;
-				default:
-					throw new ArgumentException("Unknown application color.");
-			}
-
-			var wpfLine = new WpfLine(start.AsPoint(), end.AsPoint(), endRadius);
 			wpfLine.SetNewScale(ViewboxImageScale);
-			geometry.Children.Add(wpfLine.Line);
 			if (wpfLine.StartEllipse != null && wpfLine.EndEllipse != null)
-			{
-				geometry.Children.Add(wpfLine.StartEllipse);
-				geometry.Children.Add(wpfLine.EndEllipse);
 				scalables.Add(wpfLine);
-			}
 
 			return wpfLine;
 		}
@@ -323,6 +306,28 @@ namespace Photomatch_ProofOfConcept_WPF.WPF.ViewModel
 			}
 
 			ImageView = image;
+		}
+
+		public void DisplayCalibrationAxes(CalibrationAxes calibrationAxes)
+		{
+			CurrentCalibrationAxes = calibrationAxes;
+			MainWindow.DisplayCalibrationAxes(calibrationAxes);
+		}
+
+		public void CalibrationAxes_Changed(CalibrationAxes calibrationAxes)
+		{
+			ImageWindow.CalibrationAxes_Changed(calibrationAxes);
+		}
+
+		public void DisplayInvertedAxes(InvertedAxes invertedAxes)
+		{
+			CurrentInvertedAxes = invertedAxes;
+			MainWindow.DisplayInvertedAxes(invertedAxes);
+		}
+
+		public void InvertedAxes_Changed(InvertedAxes invertedAxes)
+		{
+			ImageWindow.InvertedAxes_Changed(invertedAxes);
 		}
 	}
 }

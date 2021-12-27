@@ -8,16 +8,27 @@ using Serializables;
 
 namespace Perspective
 {
+	public enum CalibrationAxes { XY, YX, XZ, ZX, YZ, ZY };
+
+	public struct InvertedAxes
+	{
+		public bool X;
+		public bool Y;
+		public bool Z;
+	}
+
 	public class PerspectiveData : ISafeSerializable<PerspectiveData>
 	{
 		public Image Image { get; private set; }
 
 		private Camera _camera = new Camera();
 		private Vector2 _origin;
-		private Line2D _lineX1 = new Line2D(new Vector2(0.52, 0.19), new Vector2(0.76, 0.28));
-		private Line2D _lineX2 = new Line2D(new Vector2(0.35, 0.67), new Vector2(0.46, 0.82));
-		private Line2D _lineY1 = new Line2D(new Vector2(0.27, 0.31), new Vector2(0.48, 0.21));
-		private Line2D _lineY2 = new Line2D(new Vector2(0.55, 0.78), new Vector2(0.71, 0.68));
+		private Line2D _lineA1 = new Line2D(new Vector2(0.52, 0.19), new Vector2(0.76, 0.28));
+		private Line2D _lineA2 = new Line2D(new Vector2(0.35, 0.67), new Vector2(0.46, 0.82));
+		private Line2D _lineB1 = new Line2D(new Vector2(0.27, 0.31), new Vector2(0.48, 0.21));
+		private Line2D _lineB2 = new Line2D(new Vector2(0.55, 0.78), new Vector2(0.71, 0.68));
+		private CalibrationAxes _calibrationAxes = CalibrationAxes.XY;
+		private InvertedAxes _invertedAxes;
 
 		public Vector2 Origin
 		{
@@ -29,42 +40,65 @@ namespace Perspective
 			}
 		}
 
-		public Line2D LineX1
+		public Line2D LineA1
 		{
-			get => _lineX1;
+			get => _lineA1;
 			set
 			{
-				_lineX1 = value;
+				_lineA1 = value;
 				RecalculateProjection();
 			}
 		}
 
-		public Line2D LineX2
+		public Line2D LineA2
 		{
-			get => _lineX2;
+			get => _lineA2;
 			set
 			{
-				_lineX2 = value;
+				_lineA2 = value;
 				RecalculateProjection();
 			}
 		}
 
-		public Line2D LineY1
+		public Line2D LineB1
 		{
-			get => _lineY1;
+			get => _lineB1;
 			set
 			{
-				_lineY1 = value;
+				_lineB1 = value;
 				RecalculateProjection();
 			}
 		}
 
-		public Line2D LineY2
+		public Line2D LineB2
 		{
-			get => _lineY2;
+			get => _lineB2;
 			set
 			{
-				_lineY2 = value;
+				_lineB2 = value;
+				RecalculateProjection();
+			}
+		}
+
+		public CalibrationAxes CalibrationAxes
+		{
+			get => _calibrationAxes;
+			set
+			{
+				if (_calibrationAxes != value)
+				{
+					_calibrationAxes = value;
+					RecalculateProjection();
+				}
+			}
+		}
+
+		public InvertedAxes InvertedAxes
+		{
+			get => _invertedAxes;
+			set
+			{
+				_invertedAxes = value;
 				RecalculateProjection();
 			}
 		}
@@ -76,10 +110,10 @@ namespace Perspective
 			Image = image;
 			ImagePath = imagePath;
 
-			LineX1 = ScaleLine(LineX1, image.Width, image.Height);
-			LineX2 = ScaleLine(LineX2, image.Width, image.Height);
-			LineY1 = ScaleLine(LineY1, image.Width, image.Height);
-			LineY2 = ScaleLine(LineY2, image.Width, image.Height);
+			LineA1 = ScaleLine(LineA1, image.Width, image.Height);
+			LineA2 = ScaleLine(LineA2, image.Width, image.Height);
+			LineB1 = ScaleLine(LineB1, image.Width, image.Height);
+			LineB2 = ScaleLine(LineB2, image.Width, image.Height);
 
 			Origin = new Vector2(image.Width / 2, image.Height / 2);
 
@@ -109,10 +143,10 @@ namespace Perspective
 			writer.Write(ImagePath);
 
 			_origin.Serialize(writer);
-			_lineX1.Serialize(writer);
-			_lineX2.Serialize(writer);
-			_lineY1.Serialize(writer);
-			_lineY2.Serialize(writer);
+			_lineA1.Serialize(writer);
+			_lineA2.Serialize(writer);
+			_lineB1.Serialize(writer);
+			_lineB2.Serialize(writer);
 		}
 
 		public void Deserialize(BinaryReader reader)
@@ -127,10 +161,10 @@ namespace Perspective
 			ImagePath = reader.ReadString();
 
 			_origin = ISafeSerializable<Vector2>.CreateDeserialize(reader);
-			_lineX1 = ISafeSerializable<Line2D>.CreateDeserialize(reader);
-			_lineX2 = ISafeSerializable<Line2D>.CreateDeserialize(reader);
-			_lineY1 = ISafeSerializable<Line2D>.CreateDeserialize(reader);
-			_lineY2 = ISafeSerializable<Line2D>.CreateDeserialize(reader);
+			_lineA1 = ISafeSerializable<Line2D>.CreateDeserialize(reader);
+			_lineA2 = ISafeSerializable<Line2D>.CreateDeserialize(reader);
+			_lineB1 = ISafeSerializable<Line2D>.CreateDeserialize(reader);
+			_lineB2 = ISafeSerializable<Line2D>.CreateDeserialize(reader);
 
 			RecalculateProjection();
 		}
@@ -144,12 +178,12 @@ namespace Perspective
 
 		public void RecalculateProjection()
 		{
-			Vector2 vanishingPointX = Intersections2D.GetLineLineIntersection(LineX1, LineX2).Intersection;
-			Vector2 vanishingPointY = Intersections2D.GetLineLineIntersection(LineY1, LineY2).Intersection;
+			Vector2 vanishingPointA = Intersections2D.GetLineLineIntersection(LineA1, LineA2).Intersection;
+			Vector2 vanishingPointB = Intersections2D.GetLineLineIntersection(LineB1, LineB2).Intersection;
 			Vector2 principalPoint = new Vector2(Image.Width / 2, Image.Height / 2);
 			double viewRatio = 1;
 
-			_camera.UpdateView(viewRatio, principalPoint, vanishingPointX, vanishingPointY, Origin);
+			_camera.UpdateView(viewRatio, principalPoint, vanishingPointA, vanishingPointB, Origin, CalibrationAxes, InvertedAxes);
 		}
 
 		public Vector3 ScreenToWorld(Vector2 point) => _camera.ScreenToWorld(point);
@@ -188,12 +222,12 @@ namespace Perspective
 
 		private Vector3 translate;
 
-		public void UpdateView(double viewRatio, Vector2 principalPoint, Vector2 firstVanishingPoint, Vector2 secondVanishingPoint, Vector2 origin)
+		public void UpdateView(double viewRatio, Vector2 principalPoint, Vector2 vanishingPointA, Vector2 vanishingPointB, Vector2 origin, CalibrationAxes axes, InvertedAxes inverted)
 		{
-			double scale = GetInstrinsicParametersScale(principalPoint, viewRatio, firstVanishingPoint, secondVanishingPoint);
+			double scale = GetInstrinsicParametersScale(principalPoint, viewRatio, vanishingPointA, vanishingPointB);
 			intrinsicMatrix = GetIntrinsicParametersMatrix(principalPoint, scale, viewRatio);
 			intrinsicMatrixInverse = GetInvertedIntrinsicParametersMatrix(principalPoint, scale, viewRatio);
-			rotationMatrix = GetRotationalMatrix(intrinsicMatrixInverse, firstVanishingPoint, secondVanishingPoint, principalPoint);
+			rotationMatrix = GetRotationalMatrix(intrinsicMatrixInverse, vanishingPointA, vanishingPointB, principalPoint, axes, inverted);
 			rotationMatrixInverse = rotationMatrix.Transposed();
 
 			translate = intrinsicMatrixInverse * new Vector3(origin.X, origin.Y, 1);
@@ -256,13 +290,57 @@ namespace Perspective
 			return intrinsicMatrixInv;
 		}
 
-		public static Matrix3x3 GetRotationalMatrix(Matrix3x3 invertedIntrinsicMatrix, Vector2 firstVanishingPoint, Vector2 secondVanishingPoint, Vector2 principalPoint)
+		public static Matrix3x3 GetRotationalMatrix(Matrix3x3 invertedIntrinsicMatrix, Vector2 vanishingPointA, Vector2 vanishingPointB, Vector2 principalPoint, CalibrationAxes axes, InvertedAxes inverted)
 		{
 			Matrix3x3 rotationMatrix = new Matrix3x3();
 
-			Vector3 firstCol = (invertedIntrinsicMatrix * new Vector3(firstVanishingPoint.X, firstVanishingPoint.Y, 1)).Normalized();
-			Vector3 secondCol = (invertedIntrinsicMatrix * new Vector3(secondVanishingPoint.X, secondVanishingPoint.Y, 1)).Normalized();
-			Vector3 thirdCol = Vector3.Cross(secondCol, firstCol);
+			Vector3 firstCol, secondCol, thirdCol;
+
+			Vector3 colA = (invertedIntrinsicMatrix * new Vector3(vanishingPointA.X, vanishingPointA.Y, 1)).Normalized();
+			Vector3 colB = (invertedIntrinsicMatrix * new Vector3(vanishingPointB.X, vanishingPointB.Y, 1)).Normalized();
+
+			switch (axes)
+			{
+				case CalibrationAxes.XY:
+					firstCol = colA;
+					secondCol = colB;
+					thirdCol = Vector3.Cross(firstCol, secondCol);
+					break;
+				case CalibrationAxes.YX:
+					firstCol = colB;
+					secondCol = colA;
+					thirdCol = Vector3.Cross(firstCol, secondCol);
+					break;
+				case CalibrationAxes.XZ:
+					firstCol = colA;
+					thirdCol = colB;
+					secondCol = Vector3.Cross(thirdCol, firstCol);
+					break;
+				case CalibrationAxes.ZX:
+					firstCol = colB;
+					thirdCol = colA;
+					secondCol = Vector3.Cross(thirdCol, firstCol);
+					break;
+				case CalibrationAxes.YZ:
+					secondCol = colA;
+					thirdCol = colB;
+					firstCol = Vector3.Cross(secondCol, thirdCol);
+					break;
+				case CalibrationAxes.ZY:
+					secondCol = colB;
+					thirdCol = colA;
+					firstCol = Vector3.Cross(secondCol, thirdCol);
+					break;
+				default:
+					throw new Exception("Unexpected switch case.");
+			}
+
+			if (inverted.X)
+				firstCol = -firstCol;
+			if (inverted.Y)
+				secondCol = -secondCol;
+			if (inverted.Z)
+				thirdCol = -thirdCol;
 
 			rotationMatrix.A00 = firstCol.X;
 			rotationMatrix.A10 = firstCol.Y;
