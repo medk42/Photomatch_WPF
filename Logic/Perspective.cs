@@ -10,11 +10,25 @@ namespace Perspective
 {
 	public enum CalibrationAxes { XY, YX, XZ, ZX, YZ, ZY };
 
-	public struct InvertedAxes
+	public struct InvertedAxes : ISafeSerializable<InvertedAxes>
 	{
 		public bool X;
 		public bool Y;
 		public bool Z;
+
+		public void Deserialize(BinaryReader reader)
+		{
+			X = reader.ReadBoolean();
+			Y = reader.ReadBoolean();
+			Z = reader.ReadBoolean();
+		}
+
+		public void Serialize(BinaryWriter writer)
+		{
+			writer.Write(X);
+			writer.Write(Y);
+			writer.Write(Z);
+		}
 	}
 
 	public class PerspectiveData : ISafeSerializable<PerspectiveData>
@@ -147,6 +161,9 @@ namespace Perspective
 			_lineA2.Serialize(writer);
 			_lineB1.Serialize(writer);
 			_lineB2.Serialize(writer);
+
+			writer.Write((int)_calibrationAxes);
+			_invertedAxes.Serialize(writer);
 		}
 
 		public void Deserialize(BinaryReader reader)
@@ -165,6 +182,9 @@ namespace Perspective
 			_lineA2 = ISafeSerializable<Line2D>.CreateDeserialize(reader);
 			_lineB1 = ISafeSerializable<Line2D>.CreateDeserialize(reader);
 			_lineB2 = ISafeSerializable<Line2D>.CreateDeserialize(reader);
+
+			_calibrationAxes = (CalibrationAxes)reader.ReadInt32();
+			_invertedAxes = ISafeSerializable<InvertedAxes>.CreateDeserialize(reader);
 
 			RecalculateProjection();
 		}

@@ -407,6 +407,8 @@ namespace GuiControls
 			}
 			catch (Exception ex)
 			{
+				this.Reset();
+
 				if (ex is UnauthorizedAccessException)
 					Logger.Log("Load Project", "Unauthorized access to file or path was directory.", LogType.Warning);
 				else if (ex is IOException)
