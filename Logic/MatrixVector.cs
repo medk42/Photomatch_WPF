@@ -16,6 +16,72 @@ namespace MatrixVector
 		public double A21 { get; set; }
 		public double A22 { get; set; }
 
+		public Vector3 A0_
+		{
+			get => new Vector3(A00, A01, A02);
+			set
+			{
+				A00 = value.X;
+				A01 = value.Y;
+				A02 = value.Z;
+			}
+		}
+
+		public Vector3 A1_
+		{
+			get => new Vector3(A10, A11, A12);
+			set
+			{
+				A10 = value.X;
+				A11 = value.Y;
+				A12 = value.Z;
+			}
+		}
+
+		public Vector3 A2_
+		{
+			get => new Vector3(A20, A21, A22);
+			set
+			{
+				A20 = value.X;
+				A21 = value.Y;
+				A22 = value.Z;
+			}
+		}
+
+		public Vector3 A_0
+		{
+			get => new Vector3(A00, A10, A20);
+			set
+			{
+				A00 = value.X;
+				A10 = value.Y;
+				A20 = value.Z;
+			}
+		}
+
+		public Vector3 A_1
+		{
+			get => new Vector3(A01, A11, A21);
+			set
+			{
+				A01 = value.X;
+				A11 = value.Y;
+				A21 = value.Z;
+			}
+		}
+
+		public Vector3 A_2
+		{
+			get => new Vector3(A02, A12, A22);
+			set
+			{
+				A02 = value.X;
+				A12 = value.Y;
+				A22 = value.Z;
+			}
+		}
+
 		public static Matrix3x3 CreateUnitMatrix()
 		{
 			return new Matrix3x3() { A00 = 1, A11 = 1, A22 = 1 };
@@ -68,6 +134,30 @@ namespace MatrixVector
 			result.A22 = A22;
 
 			return result;
+		}
+
+		public void AddToRow(int row, Vector3 vector)
+		{
+			switch(row)
+			{
+				case 0:
+					A00 += vector.X;
+					A01 += vector.Y;
+					A02 += vector.Z;
+					break;
+				case 1:
+					A10 += vector.X;
+					A11 += vector.Y;
+					A12 += vector.Z;
+					break;
+				case 2:
+					A20 += vector.X;
+					A21 += vector.Y;
+					A22 += vector.Z;
+					break;
+				default:
+					throw new Exception("Unknown switch case.");
+			}
 		}
 
 		public void Serialize(BinaryWriter writer)
@@ -142,6 +232,13 @@ namespace MatrixVector
 			return new Vector3() { X = vector.X / value, Y = vector.Y / value, Z = vector.Z / value };
 		}
 
+		public static Vector3 operator *(Vector3 vector, double value)
+		{
+			return new Vector3() { X = vector.X * value, Y = vector.Y * value, Z = vector.Z * value };
+		}
+
+		public static Vector3 operator *(double value, Vector3 vector) => vector * value;
+
 		public static Vector3 Cross(Vector3 first, Vector3 second)
 		{
 			return new Vector3(first.Y * second.Z - first.Z * second.Y, first.Z * second.X - first.X * second.Z, first.X * second.Y - first.Y * second.X);
@@ -159,6 +256,11 @@ namespace MatrixVector
 			X = reader.ReadDouble();
 			Y = reader.ReadDouble();
 			Z = reader.ReadDouble();
+		}
+
+		public override string ToString()
+		{
+			return $"({X}, {Y}, {Z})";
 		}
 	}
 

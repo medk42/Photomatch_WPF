@@ -1,25 +1,12 @@
 ﻿using Microsoft.Win32;
 using System;
-using System.Collections.Generic;
-using System.IO;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Input;
-using System.Windows.Interop;
 
 using Logging;
-using MatrixVector;
-
 using WpfLogging;
-using WpfInterfaces;
-using WpfGuiElements;
-using WpfExtensions;
-
 using GuiInterfaces;
 using GuiControls;
-using GuiEnums;
 using Photomatch_ProofOfConcept_WPF.WPF.ViewModel;
 using Perspective;
 

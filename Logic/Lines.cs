@@ -2,6 +2,7 @@
 using System;
 using Serializables;
 using System.IO;
+using Photomatch_ProofOfConcept_WPF.Logic;
 
 namespace Lines
 {
@@ -187,6 +188,107 @@ namespace Lines
 			}
 
 			return ray.Start;
+		}
+	}
+
+	public struct Ray3D : ISafeSerializable<Ray3D>
+	{
+		public Vector3 Start { get; set; }
+
+		private Vector3 _direction;
+		public Vector3 Direction
+		{
+			get => _direction;
+			set => _direction = value.Normalized();
+		}
+
+		public Ray3D(Vector3 Start, Vector3 Direction) : this()
+		{
+			this.Start = Start;
+			this.Direction = Direction;
+		}
+
+		public Ray3D WithStart(Vector3 NewStart) => new Ray3D(NewStart, this.Direction);
+		public Ray3D WithDirection(Vector3 NewDirection) => new Ray3D(this.Start, NewDirection);
+
+		public void Serialize(BinaryWriter writer)
+		{
+			Start.Serialize(writer);
+			Direction.Serialize(writer);
+		}
+
+		public void Deserialize(BinaryReader reader)
+		{
+			Start = ISafeSerializable<Vector3>.CreateDeserialize(reader);
+			Direction = ISafeSerializable<Vector3>.CreateDeserialize(reader);
+		}
+	}
+
+	public struct ClosestPoint3D
+	{
+		/// <summary>
+		/// The closest point between the two rays on first ray.
+		/// </summary>
+		public Vector3 RayAClosest { get; set; }
+
+		/// <summary>
+		/// The closest point between the two rays on second ray.
+		/// </summary>
+		public Vector3 RayBClosest { get; set; }
+
+		/// <summary>
+		/// Relative position of the closest point on the first ray (0 means start, 1 means at the end of the unit direction vector)
+		/// </summary>
+		public double RayARelative { get; set; }
+
+		/// <summary>
+		/// Relative position of the closest point on the second ray. (0 means start, 1 means at the end of the unit direction vector)
+		/// </summary>
+		public double RayBRelative { get; set; }
+
+		/// <summary>
+		/// Closest distance between two rays.
+		/// </summary>
+		public double Distance { get; set; }
+	}
+
+	public static class Intersections3D
+	{
+		/// <summary>
+		/// Get the closest point between two 3d rays.
+		/// </summary>
+		/// <param name="RayA">First ray.</param>
+		/// <param name="RayB">Second ray.</param>
+		/// <returns>
+		///	IntersectionPoint3D struct containing 5 values:
+		///		The closest point on first ray.
+		///		The closest point on second ray.
+		///		Relative position of the closest point on the first ray (0 means start, 1 means at the end of the unit direction vector).
+		///		Relative position of the closest point on the second ray (0 means start, 1 means at the end of the unit direction vector).
+		///		Distance between the two rays.
+		///	</returns>
+		public static ClosestPoint3D GetRayRayClosest(Ray3D RayA, Ray3D RayB)
+		{
+			/* L1 = RayA.Start + t1 * RayA.Direction
+			 * L2 = RayB.Start + t2 * RayB.Direction
+			 * L3 = RayA.Start + t1 * RayA.Direction + t3 * tangent
+			 * L3 = L2  =>  RayA.Start + t1 * RayA.Direction + t3 * tangent = RayB.Start + t2 * RayB.Direction
+			 * only t1, t2, t3 unknown, rest are known vectors with 3 components each => 3 equations, 3 unknowns
+			 * t1 * RayA.Direction - t2 * RayB.Direction + t3 * tangent = RayB.Start - RayA.Start
+			 */
+
+			Vector3 tangent = Vector3.Cross(RayB.Direction, RayA.Direction).Normalized();
+			Matrix3x3 leftHandSide = new Matrix3x3() { A_0 = RayA.Direction, A_1 = -RayB.Direction, A_2 = tangent };
+			Vector3 rightHandSide = RayB.Start - RayA.Start;
+			Vector3 solution = Solver.Solve(leftHandSide, rightHandSide);
+
+			return new ClosestPoint3D() { 
+				RayAClosest = RayA.Start + solution.X * RayA.Direction, 
+				RayBClosest = RayB.Start + solution.Y * RayB.Direction,
+				RayARelative = solution.X, 
+				RayBRelative = solution.Y, 
+				Distance = solution.Z 
+			};
 		}
 	}
 }
