@@ -18,6 +18,28 @@ namespace GuiControls
 {
 	public class ImageWindow
 	{
+		public class LineEventListener
+		{
+			private readonly ILine WindowLine;
+			private readonly PerspectiveData Perspective;
+
+			public LineEventListener(ILine windowLine, PerspectiveData perspective)
+			{
+				this.WindowLine = windowLine;
+				this.Perspective = perspective;
+			}
+
+			public void StartPositionChanged(Vector3 newPosition)
+			{
+				WindowLine.Start = Perspective.WorldToScreen(newPosition);
+			}
+
+			public void EndPositionChanged(Vector3 newPosition)
+			{
+				WindowLine.End = Perspective.WorldToScreen(newPosition);
+			}
+		}
+
 		private static readonly double PointGrabRadius = 8;
 		private static readonly double PointDrawRadius = 4;
 
@@ -30,12 +52,13 @@ namespace GuiControls
 
 		private ILine LineA1, LineA2, LineB1, LineB2;
 		private ILine LineX, LineY, LineZ;
-		private List<Tuple<ILine, Edge>> ModelLines = new List<Tuple<ILine, Edge>>();
+		private List<Tuple<ILine, Edge, LineEventListener>> ModelLines = new List<Tuple<ILine, Edge, LineEventListener>>();
 		private IEllipse ModelHoverEllipse;
 
 		private bool Initialized = false;
 
 		private Model Model;
+		private Vertex ModelDraggingVertex = null;
 
 		public ISafeSerializable<PerspectiveData> PerspectiveSafeSerializable
 		{
@@ -68,6 +91,7 @@ namespace GuiControls
 		public void MouseMove(Vector2 mouseCoord)
 		{
 			DraggablePoints.MouseMove(mouseCoord);
+			ModelMouseMove(mouseCoord);
 			HandleHoverEllipse(mouseCoord);
 		}
 
@@ -75,6 +99,7 @@ namespace GuiControls
 		{
 			DraggablePoints.MouseDown(mouseCoord, button);
 			ModelMouseDown(mouseCoord, button);
+			HandleHoverEllipse(mouseCoord);
 		}
 
 		public void MouseUp(Vector2 mouseCoord, MouseButton button)
@@ -96,6 +121,14 @@ namespace GuiControls
 			}
 		}
 
+		private void ModelMouseMove(Vector2 mouseCoord)
+		{
+			if (ModelDraggingVertex != null)
+			{
+				ModelDraggingVertex.Position = ModelDraggingVertex.Position.WithX(mouseCoord.X / 1000);
+			}
+		}
+
 		private void ModelMouseDown(Vector2 mouseCoord, MouseButton button)
 		{
 			Vertex foundPoint = null;
@@ -112,8 +145,8 @@ namespace GuiControls
 
 			if (foundPoint != null)
 			{
-				Vertex newPoint = Model.AddVertex(foundPoint.Position + new Vector3(0.05, 0.05, 0));
-				Model.AddEdge(foundPoint, newPoint);
+				ModelDraggingVertex = Model.AddVertex(foundPoint.Position);
+				Model.AddEdge(foundPoint, ModelDraggingVertex);
 			}
 		}
 
@@ -209,22 +242,23 @@ namespace GuiControls
 			UpdateCoordSystemLines();
 		}
 
+		private void EdgeAdderHelper(Edge edge)
+		{
+			Vector2 start = Perspective.WorldToScreen(edge.Start.Position);
+			Vector2 end = Perspective.WorldToScreen(edge.End.Position);
+			ILine windowLine = Window.CreateLine(start, end, 0, ApplicationColor.Model);
+			LineEventListener lineEventListener = new LineEventListener(windowLine, Perspective);
+			edge.StartPositionChangedEvent += lineEventListener.StartPositionChanged;
+			edge.EndPositionChangedEvent += lineEventListener.EndPositionChanged;
+			ModelLines.Add(new Tuple<ILine, Edge, LineEventListener>(windowLine, edge, lineEventListener));
+		}
+
 		private void CreateModelLines()
 		{
-			Model.AddEdgeEventHandler lineAddedHandler = (line) =>
-			{
-				Vector2 start = Perspective.WorldToScreen(line.Start.Position);
-				Vector2 end = Perspective.WorldToScreen(line.End.Position);
-				ILine windowLine = Window.CreateLine(start, end, 0, ApplicationColor.Model);
-				ModelLines.Add(new Tuple<ILine, Edge>(windowLine, line));
-			};
-
-			Model.AddEdgeEvent += lineAddedHandler;
+			Model.AddEdgeEvent += EdgeAdderHelper;
 
 			foreach (Edge line in Model.Edges)
-			{
-				lineAddedHandler(line);
-			}
+				EdgeAdderHelper(line);
 		}
 
 		private void UpdateCoordSystemLines()
@@ -265,6 +299,18 @@ namespace GuiControls
 
 		public void Dispose()
 		{
+			foreach (var lineTuple in ModelLines)
+			{
+				lineTuple.Item2.StartPositionChangedEvent -= lineTuple.Item3.StartPositionChanged;
+				lineTuple.Item2.EndPositionChangedEvent -= lineTuple.Item3.EndPositionChanged;
+			}
+
+			ModelLines.Clear();
+
+			Model.AddEdgeEvent -= EdgeAdderHelper;
+
+			Perspective = null;
+
 			Window.DisposeAll();
 		}
 

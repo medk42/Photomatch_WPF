@@ -212,6 +212,10 @@ namespace MatrixVector
 			return new Vector3() { X = this.X / mag, Y = this.Y / mag, Z = this.Z / mag };
 		}
 
+		public Vector3 WithX(double x) => new Vector3() { X = x, Y = Y, Z = Z };
+		public Vector3 WithY(double y) => new Vector3() { X = X, Y = y, Z = Z };
+		public Vector3 WithZ(double z) => new Vector3() { X = X, Y = Y, Z = z };
+
 		public static Vector3 operator +(Vector3 first, Vector3 second)
 		{
 			return new Vector3() { X = first.X + second.X, Y = first.Y + second.Y, Z = first.Z + second.Z };

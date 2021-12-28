@@ -5,15 +5,40 @@ using System.Text;
 
 namespace Photomatch_ProofOfConcept_WPF.Logic
 {
+	public delegate void PositionChangedEventHandler(Vector3 position);
+
 	public class Vertex
 	{
-		public Vector3 Position { get; set; }
+		public event PositionChangedEventHandler PositionChangedEvent;
+
+		private Vector3 Position_;
+		public Vector3 Position
+		{
+			get => Position_;
+			set
+			{
+				Position_ = value;
+				PositionChangedEvent?.Invoke(value);
+			}
+		}
 	}
 
 	public class Edge
 	{
-		public Vertex Start { get; set; }
-		public Vertex End { get; set; }
+		public event PositionChangedEventHandler StartPositionChangedEvent;
+		public event PositionChangedEventHandler EndPositionChangedEvent;
+
+		public Vertex Start { get; private set; }
+		public Vertex End { get; private set; }
+
+		public Edge(Vertex start, Vertex end)
+		{
+			this.Start = start;
+			this.End = end;
+
+			Start.PositionChangedEvent += (position) => StartPositionChangedEvent?.Invoke(position);
+			End.PositionChangedEvent += (position) => EndPositionChangedEvent?.Invoke(position);
+		}
 	}
 
 	public class Model
@@ -39,7 +64,7 @@ namespace Photomatch_ProofOfConcept_WPF.Logic
 
 		public Edge AddEdge(Vertex start, Vertex end)
 		{
-			Edge newLine = new Edge() { Start = start, End = end };
+			Edge newLine = new Edge(start, end);
 
 			Edges.Add(newLine);
 			AddEdgeEvent?.Invoke(newLine);

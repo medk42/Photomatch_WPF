@@ -142,7 +142,8 @@ namespace Photomatch_ProofOfConcept_WPF.WPF.ViewModel
 
         public void Close()
         {
-            this.IsClosed = true;
+			ImageWindow.Dispose();
+			this.IsClosed = true;
         }
 
 		public void SetImage(SixLabors.ImageSharp.Image image)
@@ -200,7 +201,7 @@ namespace Photomatch_ProofOfConcept_WPF.WPF.ViewModel
 			YAxisLinesGeometry.Children.Clear();
 			ZAxisLinesGeometry.Children.Clear();
 			ModelLinesGeometry.Children.Clear();
-			scalables.Clear();
+			scalables.Clear(); 
 			ImageSource = null;
 
 			IsClosed = true;
