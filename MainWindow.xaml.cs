@@ -38,6 +38,7 @@ namespace Photomatch_ProofOfConcept_WPF
 		private Actions ActionListener;
 		private ILogger Logger = null;
 		private MainViewModel MainViewModel;
+		private bool InvertedAxesCheckboxIgnore = false;
 
 		public MainWindow()
 		{
@@ -138,7 +139,7 @@ namespace Photomatch_ProofOfConcept_WPF
 					throw new Exception("Dock manager should only show " + nameof(ImageViewModel));
 
 				DisplayCalibrationAxes(imageViewModel.CurrentCalibrationAxes);
-				DisplayInvertedAxes(imageViewModel.CurrentInvertedAxes);
+				DisplayInvertedAxes(imageViewModel.CurrentCalibrationAxes, imageViewModel.CurrentInvertedAxes);
 			}
 			else
 			{
@@ -214,27 +215,76 @@ namespace Photomatch_ProofOfConcept_WPF
 			}
 		}
 
-		public void DisplayInvertedAxes(InvertedAxes invertedAxes)
+		public void DisplayInvertedAxes(CalibrationAxes calibrationAxes, InvertedAxes invertedAxes)
 		{
+			InvertedAxesCheckboxIgnore = true;
+
 			XInvertedCheckbox.IsChecked = invertedAxes.X;
 			YInvertedCheckbox.IsChecked = invertedAxes.Y;
 			ZInvertedCheckbox.IsChecked = invertedAxes.Z;
+			XInvertedCheckbox.IsEnabled = true;
+			YInvertedCheckbox.IsEnabled = true;
+			ZInvertedCheckbox.IsEnabled = true;
+
+			switch (calibrationAxes)
+			{
+				case CalibrationAxes.XY:
+				case CalibrationAxes.YX:
+					ZInvertedCheckbox.IsEnabled = false;
+					ZInvertedCheckbox.IsChecked = false;
+					break;
+				case CalibrationAxes.XZ:
+				case CalibrationAxes.ZX:
+					YInvertedCheckbox.IsEnabled = false;
+					YInvertedCheckbox.IsChecked = false;
+					break;
+				case CalibrationAxes.YZ:
+				case CalibrationAxes.ZY:
+					XInvertedCheckbox.IsEnabled = false;
+					XInvertedCheckbox.IsChecked = false;
+					break;
+				default:
+					InvertedAxesCheckboxIgnore = false;
+					throw new Exception("Unknown switch case.");
+			}
+
+			InvertedAxesCheckboxIgnore = false;
 		}
 
 		private void AnyInvertedCheckbox_Changed(object sender, RoutedEventArgs e)
 		{
-			if (MainDockMgr.ActiveContent != null)
+			if (MainDockMgr.ActiveContent != null && !InvertedAxesCheckboxIgnore)
 			{
 				ImageViewModel imageViewModel = MainDockMgr.ActiveContent as ImageViewModel;
 				if (imageViewModel == null)
 					throw new Exception("Dock manager should only show " + nameof(ImageViewModel));
 
-				imageViewModel.InvertedAxes_Changed(new InvertedAxes()
+				InvertedAxes invertedAxes = new InvertedAxes()
 				{
 					X = XInvertedCheckbox.IsChecked ?? false,
 					Y = YInvertedCheckbox.IsChecked ?? false,
 					Z = ZInvertedCheckbox.IsChecked ?? false,
-				});
+				};
+
+				switch (imageViewModel.CurrentCalibrationAxes)
+				{
+					case CalibrationAxes.XY:
+					case CalibrationAxes.YX:
+						invertedAxes = new InvertedAxes() { X = invertedAxes.X, Y = invertedAxes.Y, Z = imageViewModel.CurrentInvertedAxes.Z };
+						break;
+					case CalibrationAxes.XZ:
+					case CalibrationAxes.ZX:
+						invertedAxes = new InvertedAxes() { X = invertedAxes.X, Y = imageViewModel.CurrentInvertedAxes.Y, Z = invertedAxes.Z };
+						break;
+					case CalibrationAxes.YZ:
+					case CalibrationAxes.ZY:
+						invertedAxes = new InvertedAxes() { X = imageViewModel.CurrentInvertedAxes.X, Y = invertedAxes.Y, Z = invertedAxes.Z };
+						break;
+					default:
+						throw new Exception("Unknown switch case.");
+				}
+
+				imageViewModel.InvertedAxes_Changed(invertedAxes);
 			}
 		}
 	}

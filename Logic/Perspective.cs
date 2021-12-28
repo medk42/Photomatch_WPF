@@ -322,45 +322,38 @@ namespace Perspective
 			switch (axes)
 			{
 				case CalibrationAxes.XY:
-					firstCol = colA;
-					secondCol = colB;
+					firstCol = inverted.X ? -colA : colA;
+					secondCol = inverted.Y ? -colB : colB;
 					thirdCol = Vector3.Cross(firstCol, secondCol);
 					break;
 				case CalibrationAxes.YX:
-					firstCol = colB;
-					secondCol = colA;
+					firstCol = inverted.X ? -colB : colB;
+					secondCol = inverted.Y ? -colA : colA;
 					thirdCol = Vector3.Cross(firstCol, secondCol);
 					break;
 				case CalibrationAxes.XZ:
-					firstCol = colA;
-					thirdCol = colB;
+					firstCol = inverted.X ? -colA : colA;
+					thirdCol = inverted.Z ? -colB : colB;
 					secondCol = Vector3.Cross(thirdCol, firstCol);
 					break;
 				case CalibrationAxes.ZX:
-					firstCol = colB;
-					thirdCol = colA;
+					firstCol = inverted.X ? -colB : colB;
+					thirdCol = inverted.Z ? -colA : colA;
 					secondCol = Vector3.Cross(thirdCol, firstCol);
 					break;
 				case CalibrationAxes.YZ:
-					secondCol = colA;
-					thirdCol = colB;
+					secondCol = inverted.Y ? -colA : colA;
+					thirdCol = inverted.Z ? -colB : colB;
 					firstCol = Vector3.Cross(secondCol, thirdCol);
 					break;
 				case CalibrationAxes.ZY:
-					secondCol = colB;
-					thirdCol = colA;
+					secondCol = inverted.Y ? -colB : colB;
+					thirdCol = inverted.Z ? -colA : colA;
 					firstCol = Vector3.Cross(secondCol, thirdCol);
 					break;
 				default:
 					throw new Exception("Unexpected switch case.");
 			}
-
-			if (inverted.X)
-				firstCol = -firstCol;
-			if (inverted.Y)
-				secondCol = -secondCol;
-			if (inverted.Z)
-				thirdCol = -thirdCol;
 
 			rotationMatrix.A00 = firstCol.X;
 			rotationMatrix.A10 = firstCol.Y;

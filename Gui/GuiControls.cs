@@ -48,7 +48,7 @@ namespace GuiControls
 
 			Window.SetImage(perspective.Image);
 			Window.DisplayCalibrationAxes(Perspective.CalibrationAxes);
-			Window.DisplayInvertedAxes(Perspective.InvertedAxes);
+			Window.DisplayInvertedAxes(Perspective.CalibrationAxes, Perspective.InvertedAxes);
 
 			CreateCoordSystemLines();
 			CreatePerspectiveLines();
@@ -204,6 +204,7 @@ namespace GuiControls
 			{
 				Perspective.CalibrationAxes = calibrationAxes;
 				Window.DisplayCalibrationAxes(Perspective.CalibrationAxes);
+				Window.DisplayInvertedAxes(Perspective.CalibrationAxes, Perspective.InvertedAxes);
 				UpdateCoordSystemLines();
 
 				Tuple<ApplicationColor, ApplicationColor> colors = GetColorsFromCalibrationAxes(Perspective.CalibrationAxes);
@@ -219,7 +220,7 @@ namespace GuiControls
 			if (Initialized)
 			{
 				Perspective.InvertedAxes = invertedAxes;
-				Window.DisplayInvertedAxes(Perspective.InvertedAxes);
+				Window.DisplayInvertedAxes(Perspective.CalibrationAxes, Perspective.InvertedAxes);
 				UpdateCoordSystemLines();
 			}
 		}

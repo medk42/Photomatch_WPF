@@ -319,10 +319,10 @@ namespace Photomatch_ProofOfConcept_WPF.WPF.ViewModel
 			ImageWindow.CalibrationAxes_Changed(calibrationAxes);
 		}
 
-		public void DisplayInvertedAxes(InvertedAxes invertedAxes)
+		public void DisplayInvertedAxes(CalibrationAxes calibrationAxes, InvertedAxes invertedAxes)
 		{
 			CurrentInvertedAxes = invertedAxes;
-			MainWindow.DisplayInvertedAxes(invertedAxes);
+			MainWindow.DisplayInvertedAxes(calibrationAxes, invertedAxes);
 		}
 
 		public void InvertedAxes_Changed(InvertedAxes invertedAxes)

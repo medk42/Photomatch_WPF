@@ -34,7 +34,7 @@ namespace GuiInterfaces
 		ILine CreateLine(Vector2 start, Vector2 end, double endRadius, ApplicationColor color);
 		void DisposeAll();
 		void DisplayCalibrationAxes(CalibrationAxes calibrationAxes);
-		void DisplayInvertedAxes(InvertedAxes invertedAxes);
+		void DisplayInvertedAxes(CalibrationAxes calibrationAxes, InvertedAxes invertedAxes);
 	}
 
 	public interface Actions
