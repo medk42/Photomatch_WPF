@@ -26,7 +26,7 @@ namespace Photomatch_ProofOfConcept_WPF.Logic
 			if (leftHandSide.A11 == 0)
 			{
 				leftHandSide = new Matrix3x3() { A0_ = leftHandSide.A0_, A1_ = leftHandSide.A2_, A2_ = leftHandSide.A1_ };
-				rightHandSide = new Vector3() { X = rightHandSide.X, Y = rightHandSide.Z, Z = rightHandSide.X };
+				rightHandSide = new Vector3() { X = rightHandSide.X, Y = rightHandSide.Z, Z = rightHandSide.Y };
 			}
 
 			double sub0, sub1, sub2;

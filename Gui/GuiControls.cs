@@ -125,28 +125,54 @@ namespace GuiControls
 		{
 			if (ModelDraggingVertex != null)
 			{
-				ModelDraggingVertex.Position = ModelDraggingVertex.Position.WithX(mouseCoord.X / 1000);
+				Ray3D mouseRay = Perspective.ScreenToWorldRay(mouseCoord);
+				Ray3D xRay = new Ray3D(new Vector3(), new Vector3(1, 0, 0));
+				Ray3D yRay = new Ray3D(new Vector3(), new Vector3(0, 1, 0));
+				Ray3D zRay = new Ray3D(new Vector3(), new Vector3(0, 0, 1));
+
+				ClosestPoint3D closestPoint, closestPointTemp, X, Y, Z;
+				X = closestPoint = Intersections3D.GetRayRayClosest(mouseRay, xRay);
+
+				Y = closestPointTemp = Intersections3D.GetRayRayClosest(mouseRay, yRay);
+				if (closestPointTemp.Distance < closestPoint.Distance)
+					closestPoint = closestPointTemp;
+
+				Z = closestPointTemp = Intersections3D.GetRayRayClosest(mouseRay, zRay);
+				if (closestPointTemp.Distance < closestPoint.Distance)
+					closestPoint = closestPointTemp;
+
+				ModelDraggingVertex.Position = closestPoint.RayBClosest;
 			}
 		}
 
 		private void ModelMouseDown(Vector2 mouseCoord, MouseButton button)
 		{
-			Vertex foundPoint = null;
+			if (button != MouseButton.Left)
+				return;
 
-			foreach (Vertex point in Model.Vertices)
+			if (ModelDraggingVertex != null)
 			{
-				Vector2 pointPos = Perspective.WorldToScreen(point.Position);
-				if (Window.ScreenDistance(mouseCoord, pointPos) < PointGrabRadius)
-				{
-					foundPoint = point;
-					break;
-				}
+				ModelDraggingVertex = null;
 			}
-
-			if (foundPoint != null)
+			else
 			{
-				ModelDraggingVertex = Model.AddVertex(foundPoint.Position);
-				Model.AddEdge(foundPoint, ModelDraggingVertex);
+				Vertex foundPoint = null;
+
+				foreach (Vertex point in Model.Vertices)
+				{
+					Vector2 pointPos = Perspective.WorldToScreen(point.Position);
+					if (Window.ScreenDistance(mouseCoord, pointPos) < PointGrabRadius)
+					{
+						foundPoint = point;
+						break;
+					}
+				}
+
+				if (foundPoint != null)
+				{
+					ModelDraggingVertex = Model.AddVertex(foundPoint.Position);
+					Model.AddEdge(foundPoint, ModelDraggingVertex);
+				}
 			}
 		}
 

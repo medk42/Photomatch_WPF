@@ -234,8 +234,6 @@ namespace Photomatch_ProofOfConcept_WPF.WPF.ViewModel
 				return;
 
 			ImageWindow.MouseDown(point.AsVector2(), button.Value);
-
-			Logger.Log($"Mouse Event (\"{Title}\")", $"Mouse Down at {point.X}, {point.Y} by {e.ChangedButton}", LogType.Info);
 		}
 
 		public void MouseUp(object sender, MouseButtonEventArgs e)
@@ -253,8 +251,6 @@ namespace Photomatch_ProofOfConcept_WPF.WPF.ViewModel
 				return;
 
 			ImageWindow.MouseUp(point.AsVector2(), button.Value);
-
-			Logger.Log($"Mouse Event (\"{Title}\")", $"Mouse Up at {point.X}, {point.Y} by {e.ChangedButton}", LogType.Info);
 		}
 
 		public void MouseMove(object sender, MouseEventArgs e)
@@ -268,8 +264,6 @@ namespace Photomatch_ProofOfConcept_WPF.WPF.ViewModel
 				return;
 
 			ImageWindow.MouseMove(point.AsVector2());
-
-			Logger.Log($"Mouse Event (\"{Title}\")", $"Mouse Move at {point.X}, {point.Y}", LogType.Info);
 		}
 
 		public void MouseEnter(object sender, MouseEventArgs e) { }
@@ -285,8 +279,6 @@ namespace Photomatch_ProofOfConcept_WPF.WPF.ViewModel
 			ImageWindow.MouseUp(point.AsVector2(), GuiEnums.MouseButton.Left);
 			ImageWindow.MouseUp(point.AsVector2(), GuiEnums.MouseButton.Middle);
 			ImageWindow.MouseUp(point.AsVector2(), GuiEnums.MouseButton.Right);
-
-			Logger.Log($"Mouse Event (\"{Title}\")", $"Mouse Leave at {point.X}, {point.Y}", LogType.Info);
 		}
 
 		private void Viewbox_SizeChanged_(object args)
@@ -304,8 +296,6 @@ namespace Photomatch_ProofOfConcept_WPF.WPF.ViewModel
 			{
 				scalable.SetNewScale(ViewboxImageScale);
 			}
-
-			Logger.Log($"Viewbox Size Event (\"{Title}\")", $"Size change to {viewboxSize.Width}, {viewboxSize.Height}, Image {ImageSource.Width}, {ImageSource.Height}, Scale {viewboxSize.Height / ImageSource.Height}", LogType.Info);
 		}
 
 		private void Image_Loaded_(object obj)

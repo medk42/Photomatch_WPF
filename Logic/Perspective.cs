@@ -210,6 +210,8 @@ namespace Perspective
 
 		public Vector2 WorldToScreen(Vector3 point) => _camera.WorldToScreen(point);
 
+		public Ray3D ScreenToWorldRay(Vector2 screenPoint) => _camera.ScreenToWorldRay(screenPoint);
+
 		public Vector2 GetXDirAt(Vector2 screenPoint)
 		{
 			Vector2 screenPointMoved = _camera.WorldToScreen(_camera.ScreenToWorld(screenPoint) + new Vector3(1, 0, 0));
@@ -264,6 +266,13 @@ namespace Perspective
 		public Vector3 ScreenToWorld(Vector2 screenPoint)
 		{
 			return rotationMatrixInverse * (intrinsicMatrixInverse * new Vector3(screenPoint.X, screenPoint.Y, 1) - translate);
+		}
+
+		public Ray3D ScreenToWorldRay(Vector2 screenPoint)
+		{
+			Vector3 origin = rotationMatrixInverse * (intrinsicMatrixInverse * new Vector3(screenPoint.X, screenPoint.Y, 1) - translate);
+			Vector3 behindOrigin = rotationMatrixInverse * (intrinsicMatrixInverse * new Vector3(screenPoint.X, screenPoint.Y, 1) * 2 - translate);
+			return new Ray3D(origin, behindOrigin - origin);
 		}
 
 		public static double GetInstrinsicParametersScale(Vector2 principalPoint, double viewRatio, Vector2 firstVanishingPoint, Vector2 secondVanishingPoint)

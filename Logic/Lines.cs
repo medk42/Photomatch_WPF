@@ -287,7 +287,7 @@ namespace Lines
 				RayBClosest = RayB.Start + solution.Y * RayB.Direction,
 				RayARelative = solution.X, 
 				RayBRelative = solution.Y, 
-				Distance = solution.Z 
+				Distance = Math.Abs(solution.Z)
 			};
 		}
 	}
