@@ -30,7 +30,7 @@ namespace GuiControls
 
 		private ILine LineA1, LineA2, LineB1, LineB2;
 		private ILine LineX, LineY, LineZ;
-		private List<Tuple<ILine, Line>> ModelLines = new List<Tuple<ILine, Line>>();
+		private List<Tuple<ILine, Edge>> ModelLines = new List<Tuple<ILine, Edge>>();
 		private IEllipse ModelHoverEllipse;
 
 		private bool Initialized = false;
@@ -85,7 +85,7 @@ namespace GuiControls
 		private void HandleHoverEllipse(Vector2 mouseCoord)
 		{
 			ModelHoverEllipse.Visible = false;
-			foreach (var point in Model.Points)
+			foreach (Vertex point in Model.Vertices)
 			{
 				Vector2 pointPos = Perspective.WorldToScreen(point.Position);
 				if (Window.ScreenDistance(mouseCoord, pointPos) < PointGrabRadius)
@@ -98,9 +98,9 @@ namespace GuiControls
 
 		private void ModelMouseDown(Vector2 mouseCoord, MouseButton button)
 		{
-			Photomatch_ProofOfConcept_WPF.Logic.Point foundPoint = null;
+			Vertex foundPoint = null;
 
-			foreach (var point in Model.Points)
+			foreach (Vertex point in Model.Vertices)
 			{
 				Vector2 pointPos = Perspective.WorldToScreen(point.Position);
 				if (Window.ScreenDistance(mouseCoord, pointPos) < PointGrabRadius)
@@ -112,8 +112,8 @@ namespace GuiControls
 
 			if (foundPoint != null)
 			{
-				var newPoint = Model.AddPoint(foundPoint.Position + new Vector3(0.05, 0.05, 0));
-				Model.AddLine(foundPoint, newPoint);
+				Vertex newPoint = Model.AddVertex(foundPoint.Position + new Vector3(0.05, 0.05, 0));
+				Model.AddEdge(foundPoint, newPoint);
 			}
 		}
 
@@ -211,17 +211,17 @@ namespace GuiControls
 
 		private void CreateModelLines()
 		{
-			Model.AddLineEventHandler lineAddedHandler = (line) =>
+			Model.AddEdgeEventHandler lineAddedHandler = (line) =>
 			{
 				Vector2 start = Perspective.WorldToScreen(line.Start.Position);
 				Vector2 end = Perspective.WorldToScreen(line.End.Position);
 				ILine windowLine = Window.CreateLine(start, end, 0, ApplicationColor.Model);
-				ModelLines.Add(new Tuple<ILine, Line>(windowLine, line));
+				ModelLines.Add(new Tuple<ILine, Edge>(windowLine, line));
 			};
 
-			Model.AddLineEvent += lineAddedHandler;
+			Model.AddEdgeEvent += lineAddedHandler;
 
-			foreach (Line line in Model.Lines)
+			foreach (Edge line in Model.Edges)
 			{
 				lineAddedHandler(line);
 			}
@@ -316,17 +316,17 @@ namespace GuiControls
 			this.State = ProjectState.None;
 			this.ProjectPath = null;
 			this.Model = new Model();
-			var start = this.Model.AddPoint(new Vector3());
+			Vertex start = this.Model.AddVertex(new Vector3());
 
-			var x = this.Model.AddPoint(new Vector3(0.22, 0, 0));
-			var y = this.Model.AddPoint(new Vector3(0, 0.22, 0));
-			var z = this.Model.AddPoint(new Vector3(0, 0, 0.22));
-			this.Model.AddLine(start, x);
-			this.Model.AddLine(start, y);
-			this.Model.AddLine(start, z);
-			this.Model.AddLine(x, y);
-			this.Model.AddLine(x, z);
-			this.Model.AddLine(y, z);
+			Vertex x = this.Model.AddVertex(new Vector3(0.22, 0, 0));
+			Vertex y = this.Model.AddVertex(new Vector3(0, 0.22, 0));
+			Vertex z = this.Model.AddVertex(new Vector3(0, 0, 0.22));
+			this.Model.AddEdge(start, x);
+			this.Model.AddEdge(start, y);
+			this.Model.AddEdge(start, z);
+			this.Model.AddEdge(x, y);
+			this.Model.AddEdge(x, z);
+			this.Model.AddEdge(y, z);
 
 			Gui.DisplayProjectName(NewProjectName);
 		}

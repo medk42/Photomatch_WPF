@@ -5,44 +5,44 @@ using System.Text;
 
 namespace Photomatch_ProofOfConcept_WPF.Logic
 {
-	public class Point
+	public class Vertex
 	{
 		public Vector3 Position { get; set; }
 	}
 
-	public class Line
+	public class Edge
 	{
-		public Point Start { get; set; }
-		public Point End { get; set; }
+		public Vertex Start { get; set; }
+		public Vertex End { get; set; }
 	}
 
 	public class Model
 	{
-		public delegate void AddLineEventHandler(Line line);
-		public event AddLineEventHandler AddLineEvent;
+		public delegate void AddEdgeEventHandler(Edge line);
+		public event AddEdgeEventHandler AddEdgeEvent;
 
-		public delegate void AddPointEventHandler(Point line);
-		public event AddPointEventHandler AddPointEvent;
+		public delegate void AddVertexEventHandler(Vertex line);
+		public event AddVertexEventHandler AddVertexEvent;
 
-		public List<Point> Points { get; } = new List<Point>();
-		public List<Line> Lines { get; } = new List<Line>();
+		public List<Vertex> Vertices { get; } = new List<Vertex>();
+		public List<Edge> Edges { get; } = new List<Edge>();
 
-		public Point AddPoint(Vector3 position)
+		public Vertex AddVertex(Vector3 position)
 		{
-			Point newPoint = new Point() { Position = position };
+			Vertex newPoint = new Vertex() { Position = position };
 
-			Points.Add(newPoint);
-			AddPointEvent?.Invoke(newPoint);
+			Vertices.Add(newPoint);
+			AddVertexEvent?.Invoke(newPoint);
 
 			return newPoint;
 		}
 
-		public Line AddLine(Point start, Point end)
+		public Edge AddEdge(Vertex start, Vertex end)
 		{
-			Line newLine = new Line() { Start = start, End = end };
+			Edge newLine = new Edge() { Start = start, End = end };
 
-			Lines.Add(newLine);
-			AddLineEvent?.Invoke(newLine);
+			Edges.Add(newLine);
+			AddEdgeEvent?.Invoke(newLine);
 
 			return newLine;
 		}
