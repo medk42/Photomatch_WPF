@@ -15,7 +15,14 @@ namespace GuiInterfaces
 	{
 		Vector2 Start { get; set; }
 		Vector2 End { get; set; }
-		void SetColor(ApplicationColor color);
+ 		ApplicationColor Color { get; set; }
+	}
+
+	public interface IEllipse
+	{
+		Vector2 Position { get; set; }
+		ApplicationColor Color { get; set; }
+		bool Visible { get; set; }
 	}
 
 	public interface MasterGUI : ILogger
@@ -32,6 +39,7 @@ namespace GuiInterfaces
 		void SetImage(Image image);
 		double ScreenDistance(Vector2 pointA, Vector2 pointB);
 		ILine CreateLine(Vector2 start, Vector2 end, double endRadius, ApplicationColor color);
+		IEllipse CreateEllipse(Vector2 position, double radius, ApplicationColor color);
 		void DisposeAll();
 		void DisplayCalibrationAxes(CalibrationAxes calibrationAxes);
 		void DisplayInvertedAxes(CalibrationAxes calibrationAxes, InvertedAxes invertedAxes);

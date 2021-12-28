@@ -184,6 +184,16 @@ namespace Photomatch_ProofOfConcept_WPF.WPF.ViewModel
 			return wpfLine;
 		}
 
+		public IEllipse CreateEllipse(Vector2 position, double radius, ApplicationColor color)
+		{
+			var wpfEllipse = new WpfEllipse(position.AsPoint(), radius, this, color);
+
+			wpfEllipse.SetNewScale(ViewboxImageScale);
+			scalables.Add(wpfEllipse);				
+
+			return wpfEllipse;
+		}
+
 		public void DisposeAll()
 		{
 			XAxisLinesGeometry.Children.Clear();

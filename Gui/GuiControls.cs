@@ -12,6 +12,7 @@ using MatrixVector;
 using GuiEnums;
 using Lines;
 using Serializables;
+using Photomatch_ProofOfConcept_WPF.Logic;
 
 namespace GuiControls
 {
@@ -29,22 +30,29 @@ namespace GuiControls
 
 		private ILine LineA1, LineA2, LineB1, LineB2;
 		private ILine LineX, LineY, LineZ;
+		private List<Tuple<ILine, Line>> ModelLines = new List<Tuple<ILine, Line>>();
+		private IEllipse ModelHoverEllipse;
 
 		private bool Initialized = false;
+
+		private Model Model;
 
 		public ISafeSerializable<PerspectiveData> PerspectiveSafeSerializable
 		{
 			get => Perspective;
 		}
 
-		public ImageWindow(PerspectiveData perspective, MasterGUI gui, ILogger logger)
+		public ImageWindow(PerspectiveData perspective, MasterGUI gui, ILogger logger, Model model)
 		{
 			this.Gui = gui;
 			this.Logger = logger;
 			this.Window = Gui.CreateImageWindow(this, Path.GetFileName(perspective.ImagePath));
+			this.Model = model;
 
 			this.Perspective = perspective;
 			this.DraggablePoints = new DraggablePoints(Window, PointGrabRadius);
+			this.ModelHoverEllipse = Window.CreateEllipse(new Vector2(), PointDrawRadius, ApplicationColor.Model);
+			this.ModelHoverEllipse.Visible = false;
 
 			Window.SetImage(perspective.Image);
 			Window.DisplayCalibrationAxes(Perspective.CalibrationAxes);
@@ -52,6 +60,7 @@ namespace GuiControls
 
 			CreateCoordSystemLines();
 			CreatePerspectiveLines();
+			CreateModelLines();
 
 			Initialized = true;
 		}
@@ -59,16 +68,53 @@ namespace GuiControls
 		public void MouseMove(Vector2 mouseCoord)
 		{
 			DraggablePoints.MouseMove(mouseCoord);
+			HandleHoverEllipse(mouseCoord);
 		}
 
 		public void MouseDown(Vector2 mouseCoord, MouseButton button)
 		{
 			DraggablePoints.MouseDown(mouseCoord, button);
+			ModelMouseDown(mouseCoord, button);
 		}
 
 		public void MouseUp(Vector2 mouseCoord, MouseButton button)
 		{
 			DraggablePoints.MouseUp(mouseCoord, button);
+		}
+
+		private void HandleHoverEllipse(Vector2 mouseCoord)
+		{
+			ModelHoverEllipse.Visible = false;
+			foreach (var point in Model.Points)
+			{
+				Vector2 pointPos = Perspective.WorldToScreen(point.Position);
+				if (Window.ScreenDistance(mouseCoord, pointPos) < PointGrabRadius)
+				{
+					ModelHoverEllipse.Position = pointPos;
+					ModelHoverEllipse.Visible = true;
+				}
+			}
+		}
+
+		private void ModelMouseDown(Vector2 mouseCoord, MouseButton button)
+		{
+			Photomatch_ProofOfConcept_WPF.Logic.Point foundPoint = null;
+
+			foreach (var point in Model.Points)
+			{
+				Vector2 pointPos = Perspective.WorldToScreen(point.Position);
+				if (Window.ScreenDistance(mouseCoord, pointPos) < PointGrabRadius)
+				{
+					foundPoint = point;
+					break;
+				}
+			}
+
+			if (foundPoint != null)
+			{
+				var newPoint = Model.AddPoint(foundPoint.Position + new Vector3(0.05, 0.05, 0));
+				Model.AddLine(foundPoint, newPoint);
+			}
 		}
 
 		private void CreatePerspectiveLines()
@@ -163,6 +209,24 @@ namespace GuiControls
 			UpdateCoordSystemLines();
 		}
 
+		private void CreateModelLines()
+		{
+			Model.AddLineEventHandler lineAddedHandler = (line) =>
+			{
+				Vector2 start = Perspective.WorldToScreen(line.Start.Position);
+				Vector2 end = Perspective.WorldToScreen(line.End.Position);
+				ILine windowLine = Window.CreateLine(start, end, 0, ApplicationColor.Model);
+				ModelLines.Add(new Tuple<ILine, Line>(windowLine, line));
+			};
+
+			Model.AddLineEvent += lineAddedHandler;
+
+			foreach (Line line in Model.Lines)
+			{
+				lineAddedHandler(line);
+			}
+		}
+
 		private void UpdateCoordSystemLines()
 		{
 			Vector2 dirX = Perspective.GetXDirAt(Perspective.Origin);
@@ -191,6 +255,12 @@ namespace GuiControls
 				LineY.End = LineY.Start + new Vector2(0, Perspective.Image.Height * 0.1);
 				LineZ.End = LineZ.Start;
 			}
+
+			foreach (var lineTuple in ModelLines)
+			{
+				lineTuple.Item1.Start = Perspective.WorldToScreen(lineTuple.Item2.Start.Position);
+				lineTuple.Item1.End = Perspective.WorldToScreen(lineTuple.Item2.End.Position);
+			}
 		}
 
 		public void Dispose()
@@ -208,10 +278,10 @@ namespace GuiControls
 				UpdateCoordSystemLines();
 
 				Tuple<ApplicationColor, ApplicationColor> colors = GetColorsFromCalibrationAxes(Perspective.CalibrationAxes);
-				LineA1.SetColor(colors.Item1);
-				LineA2.SetColor(colors.Item1);
-				LineB1.SetColor(colors.Item2);
-				LineB2.SetColor(colors.Item2);
+				LineA1.Color = colors.Item1;
+				LineA2.Color = colors.Item1;
+				LineB1.Color = colors.Item2;
+				LineB2.Color = colors.Item2;
 			}	
 		}
 
@@ -236,6 +306,7 @@ namespace GuiControls
 		private List<ImageWindow> Windows;
 		private ProjectState State;
 		private string ProjectPath;
+		private Model Model;
 
 		public MasterControl(MasterGUI gui)
 		{
@@ -244,6 +315,18 @@ namespace GuiControls
 			this.Windows = new List<ImageWindow>();
 			this.State = ProjectState.None;
 			this.ProjectPath = null;
+			this.Model = new Model();
+			var start = this.Model.AddPoint(new Vector3());
+
+			var x = this.Model.AddPoint(new Vector3(0.22, 0, 0));
+			var y = this.Model.AddPoint(new Vector3(0, 0.22, 0));
+			var z = this.Model.AddPoint(new Vector3(0, 0, 0.22));
+			this.Model.AddLine(start, x);
+			this.Model.AddLine(start, y);
+			this.Model.AddLine(start, z);
+			this.Model.AddLine(x, y);
+			this.Model.AddLine(x, z);
+			this.Model.AddLine(y, z);
 
 			Gui.DisplayProjectName(NewProjectName);
 		}
@@ -275,7 +358,7 @@ namespace GuiControls
 			if (image != null)
 			{
 				Logger.Log("Load Image", "File loaded successfully.", LogType.Info);
-				Windows.Add(new ImageWindow(new PerspectiveData(image, filePath), Gui, Logger));
+				Windows.Add(new ImageWindow(new PerspectiveData(image, filePath), Gui, Logger, Model));
 
 				if (State == ProjectState.None)
 					State = ProjectState.NewProject;
@@ -395,7 +478,7 @@ namespace GuiControls
 					for (int i = 0; i < windowCount; i++)
 					{
 						PerspectiveData perspective = ISafeSerializable<PerspectiveData>.CreateDeserialize(reader);
-						Windows.Add(new ImageWindow(perspective, Gui, Logger));
+						Windows.Add(new ImageWindow(perspective, Gui, Logger, Model));
 					}
 				}
 

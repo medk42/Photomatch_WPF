@@ -13,7 +13,35 @@ using Photomatch_ProofOfConcept_WPF.WPF.ViewModel;
 
 namespace WpfGuiElements
 {
-	public class WpfLine : ILine, IScalable
+	public class WpfGuiElement
+	{
+		protected GeometryGroup GetGeometry(ApplicationColor color, ImageViewModel imageViewModel)
+		{
+			GeometryGroup geometry;
+
+			switch (color)
+			{
+				case ApplicationColor.XAxis:
+					geometry = imageViewModel.XAxisLinesGeometry;
+					break;
+				case ApplicationColor.YAxis:
+					geometry = imageViewModel.YAxisLinesGeometry;
+					break;
+				case ApplicationColor.ZAxis:
+					geometry = imageViewModel.ZAxisLinesGeometry;
+					break;
+				case ApplicationColor.Model:
+					geometry = imageViewModel.ModelLinesGeometry;
+					break;
+				default:
+					throw new ArgumentException("Unknown application color.");
+			}
+
+			return geometry;
+		}
+	}
+
+	public class WpfLine : WpfGuiElement, ILine, IScalable
 	{
 		public LineGeometry Line { get; }
 		public EllipseGeometry StartEllipse { get; }
@@ -21,31 +49,6 @@ namespace WpfGuiElements
 
 		private double EndRadius;
 		private ImageViewModel ImageViewModel;
-		private ApplicationColor Color;
-
-		public WpfLine(Point Start, Point End, double endRadius, ImageViewModel imageViewModel, ApplicationColor color)
-		{
-			Line = new LineGeometry();
-			Line.StartPoint = Start;
-			Line.EndPoint = End;
-
-			EndRadius = endRadius;
-			Color = color;
-			ImageViewModel = imageViewModel;
-
-			if (endRadius != 0)
-			{
-				StartEllipse = new EllipseGeometry(Start, endRadius, endRadius);
-				EndEllipse = new EllipseGeometry(End, endRadius, endRadius);
-			}
-			else
-			{
-				StartEllipse = null;
-				EndEllipse = null;
-			}
-
-			AddNewColor(Color);
-		}
 
 		public Vector2 Start
 		{
@@ -71,6 +74,45 @@ namespace WpfGuiElements
 			}
 		}
 
+		private ApplicationColor Color_;
+		public ApplicationColor Color
+		{
+			get => Color_;
+			set
+			{
+				if (Color_ != value)
+				{
+					RemoveOldColor(Color_);
+					AddNewColor(value);
+					Color_ = value;
+				}
+			}
+		}
+
+		public WpfLine(Point Start, Point End, double endRadius, ImageViewModel imageViewModel, ApplicationColor color)
+		{
+			Line = new LineGeometry();
+			Line.StartPoint = Start;
+			Line.EndPoint = End;
+
+			EndRadius = endRadius;
+			ImageViewModel = imageViewModel;
+			Color_ = color;
+
+			if (endRadius != 0)
+			{
+				StartEllipse = new EllipseGeometry(Start, endRadius, endRadius);
+				EndEllipse = new EllipseGeometry(End, endRadius, endRadius);
+			}
+			else
+			{
+				StartEllipse = null;
+				EndEllipse = null;
+			}
+
+			AddNewColor(Color);
+		}
+
 		public void SetNewScale(double scale)
 		{
 			if (StartEllipse != null)
@@ -85,19 +127,9 @@ namespace WpfGuiElements
 			}
 		}
 
-		public void SetColor(ApplicationColor color)
-		{
-			if (Color != color)
-			{
-				RemoveOldColor(Color);
-				AddNewColor(color);
-				Color = color;
-			}
-		}
-
 		private void RemoveOldColor(ApplicationColor color)
 		{
-			GeometryGroup geometry = GetGeometry(color);
+			GeometryGroup geometry = GetGeometry(color, ImageViewModel);
 			geometry.Children.Remove(Line);
 			if (StartEllipse != null && EndEllipse != null)
 			{
@@ -108,7 +140,7 @@ namespace WpfGuiElements
 
 		private void AddNewColor(ApplicationColor color)
 		{
-			GeometryGroup geometry = GetGeometry(color);
+			GeometryGroup geometry = GetGeometry(color, ImageViewModel);
 
 			geometry.Children.Add(Line);
 			if (StartEllipse != null && EndEllipse != null)
@@ -117,30 +149,91 @@ namespace WpfGuiElements
 				geometry.Children.Add(EndEllipse);
 			}
 		}
+	}
 
-		private GeometryGroup GetGeometry(ApplicationColor color)
+	public class WpfEllipse : WpfGuiElement, IEllipse, IScalable
+	{
+		public EllipseGeometry Ellipse { get; }
+
+		private double Radius;
+		private ImageViewModel ImageViewModel;
+
+		public Vector2 Position
 		{
-			GeometryGroup geometry;
-
-			switch (color)
+			get => Ellipse.Center.AsVector2();
+			set
 			{
-				case ApplicationColor.XAxis:
-					geometry = ImageViewModel.XAxisLinesGeometry;
-					break;
-				case ApplicationColor.YAxis:
-					geometry = ImageViewModel.YAxisLinesGeometry;
-					break;
-				case ApplicationColor.ZAxis:
-					geometry = ImageViewModel.ZAxisLinesGeometry;
-					break;
-				case ApplicationColor.Model:
-					geometry = ImageViewModel.ModelLinesGeometry;
-					break;
-				default:
-					throw new ArgumentException("Unknown application color.");
+				var point = value.AsPoint();
+				Ellipse.Center = point;
 			}
+		}
 
-			return geometry;
+		private bool Visible_ = true;
+		public bool Visible
+		{
+			get => Visible_;
+			set
+			{
+				if (Visible_ != value)
+				{
+					if (Visible_)
+					{
+						RemoveOldColor(Color);
+					}
+					else
+					{
+						AddNewColor(Color);
+					}
+
+					Visible_ = value;
+				}
+			}
+		}
+
+		private ApplicationColor Color_;
+		public ApplicationColor Color
+		{
+			get => Color_;
+			set
+			{
+				if (Color_ != value)
+				{
+					if (Visible)
+					{
+						RemoveOldColor(Color_);
+						AddNewColor(value);
+					}
+					Color_ = value;
+				}
+			}
+		}
+
+		public WpfEllipse(Point position, double radius, ImageViewModel imageViewModel, ApplicationColor color)
+		{
+			Radius = radius;
+			ImageViewModel = imageViewModel;
+			Color_ = color;
+
+			Ellipse = new EllipseGeometry(position, Radius, Radius);
+			AddNewColor(Color);
+		}
+
+		public void SetNewScale(double scale)
+		{
+			Ellipse.RadiusX = Radius / scale;
+			Ellipse.RadiusY = Radius / scale;
+		}
+
+		private void RemoveOldColor(ApplicationColor color)
+		{
+			GeometryGroup geometry = GetGeometry(color, ImageViewModel);
+			geometry.Children.Remove(Ellipse);
+		}
+
+		private void AddNewColor(ApplicationColor color)
+		{
+			GeometryGroup geometry = GetGeometry(color, ImageViewModel);
+			geometry.Children.Add(Ellipse);
 		}
 	}
 }
