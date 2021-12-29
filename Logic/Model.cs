@@ -8,10 +8,13 @@ using System.Text;
 namespace Photomatch_ProofOfConcept_WPF.Logic
 {
 	public delegate void PositionChangedEventHandler(Vector3 position);
+	public delegate void VertexRemovedEventHandler(Vertex vertex);
+	public delegate void EdgeRemovedEventHandler(Edge edge);
 
 	public class Vertex
 	{
 		public event PositionChangedEventHandler PositionChangedEvent;
+		public event VertexRemovedEventHandler VertexRemovedEvent;
 
 		private Vector3 Position_;
 		public Vector3 Position
@@ -23,12 +26,18 @@ namespace Photomatch_ProofOfConcept_WPF.Logic
 				PositionChangedEvent?.Invoke(value);
 			}
 		}
+
+		public void Remove()
+		{
+			VertexRemovedEvent?.Invoke(this);
+		}
 	}
 
 	public class Edge
 	{
 		public event PositionChangedEventHandler StartPositionChangedEvent;
 		public event PositionChangedEventHandler EndPositionChangedEvent;
+		public event EdgeRemovedEventHandler EdgeRemovedEvent;
 
 		public Vertex Start { get; private set; }
 		public Vertex End { get; private set; }
@@ -40,6 +49,14 @@ namespace Photomatch_ProofOfConcept_WPF.Logic
 
 			Start.PositionChangedEvent += (position) => StartPositionChangedEvent?.Invoke(position);
 			End.PositionChangedEvent += (position) => EndPositionChangedEvent?.Invoke(position);
+
+			Start.VertexRemovedEvent += (vertex) => Remove();
+			End.VertexRemovedEvent += (vetex) => Remove();
+		}
+
+		public void Remove()
+		{
+			EdgeRemovedEvent?.Invoke(this);
 		}
 	}
 
@@ -57,6 +74,7 @@ namespace Photomatch_ProofOfConcept_WPF.Logic
 		public Vertex AddVertex(Vector3 position)
 		{
 			Vertex newPoint = new Vertex() { Position = position };
+			newPoint.VertexRemovedEvent += RemoveVertex;
 
 			Vertices.Add(newPoint);
 			AddVertexEvent?.Invoke(newPoint);
@@ -67,11 +85,24 @@ namespace Photomatch_ProofOfConcept_WPF.Logic
 		public Edge AddEdge(Vertex start, Vertex end)
 		{
 			Edge newLine = new Edge(start, end);
+			newLine.EdgeRemovedEvent += RemoveEdge;
 
 			Edges.Add(newLine);
 			AddEdgeEvent?.Invoke(newLine);
 
 			return newLine;
+		}
+
+		private void RemoveVertex(Vertex v)
+		{
+			v.VertexRemovedEvent -= RemoveVertex;
+			Vertices.Remove(v);
+		}
+
+		private void RemoveEdge(Edge e)
+		{
+			e.EdgeRemovedEvent -= RemoveEdge;
+			Edges.Remove(e);
 		}
 
 		public void Serialize(BinaryWriter writer)

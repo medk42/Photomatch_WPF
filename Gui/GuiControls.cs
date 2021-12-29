@@ -16,12 +16,12 @@ using Photomatch_ProofOfConcept_WPF.Logic;
 
 namespace GuiControls
 {
-	class LineEventListener
+	class EdgeEventListener
 	{
 		private readonly ILine WindowLine;
 		private readonly PerspectiveData Perspective;
 
-		public LineEventListener(ILine windowLine, PerspectiveData perspective)
+		public EdgeEventListener(ILine windowLine, PerspectiveData perspective)
 		{
 			this.WindowLine = windowLine;
 			this.Perspective = perspective;
@@ -289,12 +289,12 @@ namespace GuiControls
 
 		private Model Model;
 
-		private List<Tuple<ILine, Edge, LineEventListener>> ModelLines = new List<Tuple<ILine, Edge, LineEventListener>>();
+		private List<Tuple<ILine, Edge, EdgeEventListener>> ModelLines = new List<Tuple<ILine, Edge, EdgeEventListener>>();
 		private IEllipse ModelHoverEllipse;
 
 		private Vertex ModelDraggingVertex = null;
 		private Ray2D ModelDraggingXAxis, ModelDraggingYAxis, ModelDraggingZAxis;
-		private Vector3 ModelDraggingLineStart;
+		private Vertex ModelDraggingLineStart;
 		private ILine ModelDraggingLine;
 
 		private PerspectiveData Perspective;
@@ -368,12 +368,12 @@ namespace GuiControls
 						{
 							if (projX.Distance < projZ.Distance)
 							{
-								ModelDraggingVertex.Position = Intersections3D.GetRayRayClosest(Perspective.ScreenToWorldRay(projX.Projection), new Ray3D(ModelDraggingLineStart, new Vector3(1, 0, 0))).RayBClosest;
+								ModelDraggingVertex.Position = Intersections3D.GetRayRayClosest(Perspective.ScreenToWorldRay(projX.Projection), new Ray3D(ModelDraggingLineStart.Position, new Vector3(1, 0, 0))).RayBClosest;
 								ModelDraggingLine.Color = ApplicationColor.XAxis;
 							}
 							else
 							{
-								ModelDraggingVertex.Position = Intersections3D.GetRayRayClosest(Perspective.ScreenToWorldRay(projZ.Projection), new Ray3D(ModelDraggingLineStart, new Vector3(0, 0, 1))).RayBClosest;
+								ModelDraggingVertex.Position = Intersections3D.GetRayRayClosest(Perspective.ScreenToWorldRay(projZ.Projection), new Ray3D(ModelDraggingLineStart.Position, new Vector3(0, 0, 1))).RayBClosest;
 								ModelDraggingLine.Color = ApplicationColor.ZAxis;
 							}
 						}
@@ -381,12 +381,12 @@ namespace GuiControls
 						{
 							if (projY.Distance < projZ.Distance)
 							{
-								ModelDraggingVertex.Position = Intersections3D.GetRayRayClosest(Perspective.ScreenToWorldRay(projY.Projection), new Ray3D(ModelDraggingLineStart, new Vector3(0, 1, 0))).RayBClosest;
+								ModelDraggingVertex.Position = Intersections3D.GetRayRayClosest(Perspective.ScreenToWorldRay(projY.Projection), new Ray3D(ModelDraggingLineStart.Position, new Vector3(0, 1, 0))).RayBClosest;
 								ModelDraggingLine.Color = ApplicationColor.YAxis;
 							}
 							else
 							{
-								ModelDraggingVertex.Position = Intersections3D.GetRayRayClosest(Perspective.ScreenToWorldRay(projZ.Projection), new Ray3D(ModelDraggingLineStart, new Vector3(0, 0, 1))).RayBClosest;
+								ModelDraggingVertex.Position = Intersections3D.GetRayRayClosest(Perspective.ScreenToWorldRay(projZ.Projection), new Ray3D(ModelDraggingLineStart.Position, new Vector3(0, 0, 1))).RayBClosest;
 								ModelDraggingLine.Color = ApplicationColor.ZAxis;
 							}
 						}
@@ -402,25 +402,31 @@ namespace GuiControls
 				if (button != MouseButton.Left)
 					return;
 
+				Vertex foundPoint = null;
+
+				foreach (Vertex point in Model.Vertices)
+				{
+					Vector2 pointPos = Perspective.WorldToScreen(point.Position);
+					if (Window.ScreenDistance(mouseCoord, pointPos) < PointGrabRadius)
+					{
+						foundPoint = point;
+						break;
+					}
+				}
+
 				if (ModelDraggingVertex != null)
 				{
+					if (foundPoint != null)
+					{
+						ModelDraggingVertex.Remove();
+						Model.AddEdge(ModelDraggingLineStart, foundPoint);
+					}
+
 					ModelDraggingVertex = null;
 					ModelDraggingLine.Color = ApplicationColor.Model;
 				}
 				else
 				{
-					Vertex foundPoint = null;
-
-					foreach (Vertex point in Model.Vertices)
-					{
-						Vector2 pointPos = Perspective.WorldToScreen(point.Position);
-						if (Window.ScreenDistance(mouseCoord, pointPos) < PointGrabRadius)
-						{
-							foundPoint = point;
-							break;
-						}
-					}
-
 					if (foundPoint != null)
 					{
 						Vector2 screenPos = Perspective.WorldToScreen(foundPoint.Position);
@@ -429,7 +435,7 @@ namespace GuiControls
 						ModelDraggingXAxis = new Ray2D(screenPos, Perspective.GetXDirAt(screenPos));
 						ModelDraggingYAxis = new Ray2D(screenPos, Perspective.GetYDirAt(screenPos));
 						ModelDraggingZAxis = new Ray2D(screenPos, Perspective.GetZDirAt(screenPos));
-						ModelDraggingLineStart = foundPoint.Position;
+						ModelDraggingLineStart = foundPoint;
 
 						Model.AddEdge(foundPoint, ModelDraggingVertex);
 					}
@@ -439,15 +445,28 @@ namespace GuiControls
 
 		public void MouseUp(Vector2 mouseCoord, MouseButton button) { }
 
+		private void EdgeRemoved(Edge edge)
+		{
+			edge.EdgeRemovedEvent -= EdgeRemoved;
+			var tuple = ModelLines.Find((edgeTuple) => edgeTuple.Item2 == edge);
+
+			edge.StartPositionChangedEvent -= tuple.Item3.StartPositionChanged;
+			edge.EndPositionChangedEvent -= tuple.Item3.EndPositionChanged;
+
+			tuple.Item1.Dispose();
+			ModelLines.Remove(tuple);
+		}
+
 		private void EdgeAdderHelper(Edge edge)
 		{
 			Vector2 start = Perspective.WorldToScreen(edge.Start.Position);
 			Vector2 end = Perspective.WorldToScreen(edge.End.Position);
 			ILine windowLine = Window.CreateLine(start, end, 0, ApplicationColor.Model);
-			LineEventListener lineEventListener = new LineEventListener(windowLine, Perspective);
-			edge.StartPositionChangedEvent += lineEventListener.StartPositionChanged;
-			edge.EndPositionChangedEvent += lineEventListener.EndPositionChanged;
-			ModelLines.Add(new Tuple<ILine, Edge, LineEventListener>(windowLine, edge, lineEventListener));
+			EdgeEventListener edgeEventListener = new EdgeEventListener(windowLine, Perspective);
+			edge.StartPositionChangedEvent += edgeEventListener.StartPositionChanged;
+			edge.EndPositionChangedEvent += edgeEventListener.EndPositionChanged;
+			edge.EdgeRemovedEvent += EdgeRemoved;
+			ModelLines.Add(new Tuple<ILine, Edge, EdgeEventListener>(windowLine, edge, edgeEventListener));
 			ModelDraggingLine = windowLine;
 		}
 
@@ -480,6 +499,7 @@ namespace GuiControls
 			{
 				lineTuple.Item2.StartPositionChangedEvent -= lineTuple.Item3.StartPositionChanged;
 				lineTuple.Item2.EndPositionChangedEvent -= lineTuple.Item3.EndPositionChanged;
+				lineTuple.Item2.EdgeRemovedEvent -= EdgeRemoved;
 			}
 
 			ModelLines.Clear();

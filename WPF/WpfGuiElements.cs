@@ -43,9 +43,9 @@ namespace WpfGuiElements
 
 	public class WpfLine : WpfGuiElement, ILine, IScalable
 	{
-		public LineGeometry Line { get; }
-		public EllipseGeometry StartEllipse { get; }
-		public EllipseGeometry EndEllipse { get; }
+		public LineGeometry Line { get; private set; }
+		public EllipseGeometry StartEllipse { get; private set; }
+		public EllipseGeometry EndEllipse { get; private set; }
 
 		private double EndRadius;
 		private ImageViewModel ImageViewModel;
@@ -56,7 +56,8 @@ namespace WpfGuiElements
 			set
 			{
 				var point = value.AsPoint();
-				Line.StartPoint = point;
+				if (Line != null)
+					Line.StartPoint = point;
 				if (StartEllipse != null)
 					StartEllipse.Center = point;
 			}
@@ -68,7 +69,8 @@ namespace WpfGuiElements
 			set
 			{
 				var point = value.AsPoint();
-				Line.EndPoint = point;
+				if (Line != null)
+					Line.EndPoint = point;
 				if (EndEllipse != null)
 					EndEllipse.Center = point;
 			}
@@ -155,7 +157,8 @@ namespace WpfGuiElements
 		private void RemoveOldColor(ApplicationColor color)
 		{
 			GeometryGroup geometry = GetGeometry(color, ImageViewModel);
-			geometry.Children.Remove(Line);
+			if (Line != null)
+				geometry.Children.Remove(Line);
 			if (StartEllipse != null && EndEllipse != null)
 			{
 				geometry.Children.Remove(StartEllipse);
@@ -167,12 +170,21 @@ namespace WpfGuiElements
 		{
 			GeometryGroup geometry = GetGeometry(color, ImageViewModel);
 
-			geometry.Children.Add(Line);
+			if (Line != null)
+				geometry.Children.Add(Line);
 			if (StartEllipse != null && EndEllipse != null)
 			{
 				geometry.Children.Add(StartEllipse);
 				geometry.Children.Add(EndEllipse);
 			}
+		}
+
+		public void Dispose()
+		{
+			RemoveOldColor(Color);
+			Line = null;
+			StartEllipse = null;
+			EndEllipse = null;
 		}
 	}
 

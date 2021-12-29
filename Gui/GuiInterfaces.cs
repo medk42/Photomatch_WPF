@@ -17,6 +17,8 @@ namespace GuiInterfaces
 		Vector2 End { get; set; }
  		ApplicationColor Color { get; set; }
 		bool Visible { get; set; }
+
+		void Dispose();
 	}
 
 	public interface IEllipse
