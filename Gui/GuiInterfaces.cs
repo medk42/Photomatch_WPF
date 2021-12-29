@@ -33,6 +33,8 @@ namespace GuiInterfaces
 		string GetLoadProjectFilePath();
 		IWindow CreateImageWindow(ImageWindow imageWindow, string title);
 		void DisplayProjectName(string projectName);
+		void ShowCameraCalibrationTools(bool show);
+		void DisplayDesignState(DesignState designState);
 	}
 
 	public interface IWindow
@@ -44,7 +46,6 @@ namespace GuiInterfaces
 		void DisposeAll();
 		void DisplayCalibrationAxes(CalibrationAxes calibrationAxes);
 		void DisplayInvertedAxes(CalibrationAxes calibrationAxes, InvertedAxes invertedAxes);
-		void ShowCameraCalibrationTools(bool show);
 	}
 
 	public interface Actions

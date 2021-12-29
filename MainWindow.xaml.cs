@@ -250,6 +250,21 @@ namespace Photomatch_ProofOfConcept_WPF
 				CameraCalibrationTools.Visibility = Visibility.Collapsed;
 		}
 
+		public void DisplayDesignState(DesignState designState)
+		{
+			switch (designState)
+			{
+				case DesignState.CameraCalibration:
+					CameraRadioButton.IsChecked = true;
+					break;
+				case DesignState.ModelCreation:
+					ModelRadioButton.IsChecked = true;
+					break;
+				default:
+					throw new Exception("Unknown switch case.");
+			}
+		}
+
 		private void AnyInvertedCheckbox_Changed(object sender, RoutedEventArgs e)
 		{
 			if (MainDockMgr.ActiveContent != null && !InvertedAxesCheckboxIgnore)

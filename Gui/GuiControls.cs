@@ -63,14 +63,16 @@ namespace GuiControls
 
 		private PerspectiveData Perspective;
 		private IWindow Window;
+		private MasterGUI Gui;
 
 		private double PointGrabRadius;
 		private double PointDrawRadius;
 
-		public CameraCalibrationHandler(PerspectiveData perspective, IWindow window, double pointGrabRadius, double pointDrawRadius)
+		public CameraCalibrationHandler(PerspectiveData perspective, IWindow window,  MasterGUI gui, double pointGrabRadius, double pointDrawRadius)
 		{
 			this.Perspective = perspective;
 			this.Window = window;
+			this.Gui = gui;
 			this.PointGrabRadius = pointGrabRadius;
 			this.PointDrawRadius = pointDrawRadius;
 
@@ -237,7 +239,7 @@ namespace GuiControls
 			LineY.Visible = active;
 			LineZ.Visible = active;
 
-			Window.ShowCameraCalibrationTools(active);
+			Gui.ShowCameraCalibrationTools(active);
 		}
 
 		public void Dispose()
@@ -339,34 +341,54 @@ namespace GuiControls
 
 				if (ModelDraggingVertex != null)
 				{
-					Vector2Proj projX = Intersections2D.ProjectVectorToRay(mouseCoord, ModelDraggingXAxis);
-					Vector2Proj projY = Intersections2D.ProjectVectorToRay(mouseCoord, ModelDraggingYAxis);
-					Vector2Proj projZ = Intersections2D.ProjectVectorToRay(mouseCoord, ModelDraggingZAxis);
+					Vertex foundPoint = null;
 
-					if (projX.Distance < projY.Distance)
+					foreach (Vertex point in Model.Vertices)
 					{
-						if (projX.Distance < projZ.Distance)
+						Vector2 pointPos = Perspective.WorldToScreen(point.Position);
+						if (Window.ScreenDistance(mouseCoord, pointPos) < PointGrabRadius)
 						{
-							ModelDraggingVertex.Position = Intersections3D.GetRayRayClosest(Perspective.ScreenToWorldRay(projX.Projection), new Ray3D(ModelDraggingLineStart, new Vector3(1, 0, 0))).RayBClosest;
-							ModelDraggingLine.Color = ApplicationColor.XAxis;
+							foundPoint = point;
+							break;
 						}
-						else
-						{
-							ModelDraggingVertex.Position = Intersections3D.GetRayRayClosest(Perspective.ScreenToWorldRay(projZ.Projection), new Ray3D(ModelDraggingLineStart, new Vector3(0, 0, 1))).RayBClosest;
-							ModelDraggingLine.Color = ApplicationColor.ZAxis;
-						}
+					}
+
+					if (foundPoint != null)
+					{
+						ModelDraggingVertex.Position = foundPoint.Position;
+						ModelDraggingLine.Color = ApplicationColor.Model;
 					}
 					else
 					{
-						if (projY.Distance < projZ.Distance)
+						Vector2Proj projX = Intersections2D.ProjectVectorToRay(mouseCoord, ModelDraggingXAxis);
+						Vector2Proj projY = Intersections2D.ProjectVectorToRay(mouseCoord, ModelDraggingYAxis);
+						Vector2Proj projZ = Intersections2D.ProjectVectorToRay(mouseCoord, ModelDraggingZAxis);
+
+						if (projX.Distance < projY.Distance)
 						{
-							ModelDraggingVertex.Position = Intersections3D.GetRayRayClosest(Perspective.ScreenToWorldRay(projY.Projection), new Ray3D(ModelDraggingLineStart, new Vector3(0, 1, 0))).RayBClosest;
-							ModelDraggingLine.Color = ApplicationColor.YAxis;
+							if (projX.Distance < projZ.Distance)
+							{
+								ModelDraggingVertex.Position = Intersections3D.GetRayRayClosest(Perspective.ScreenToWorldRay(projX.Projection), new Ray3D(ModelDraggingLineStart, new Vector3(1, 0, 0))).RayBClosest;
+								ModelDraggingLine.Color = ApplicationColor.XAxis;
+							}
+							else
+							{
+								ModelDraggingVertex.Position = Intersections3D.GetRayRayClosest(Perspective.ScreenToWorldRay(projZ.Projection), new Ray3D(ModelDraggingLineStart, new Vector3(0, 0, 1))).RayBClosest;
+								ModelDraggingLine.Color = ApplicationColor.ZAxis;
+							}
 						}
 						else
 						{
-							ModelDraggingVertex.Position = Intersections3D.GetRayRayClosest(Perspective.ScreenToWorldRay(projZ.Projection), new Ray3D(ModelDraggingLineStart, new Vector3(0, 0, 1))).RayBClosest;
-							ModelDraggingLine.Color = ApplicationColor.ZAxis;
+							if (projY.Distance < projZ.Distance)
+							{
+								ModelDraggingVertex.Position = Intersections3D.GetRayRayClosest(Perspective.ScreenToWorldRay(projY.Projection), new Ray3D(ModelDraggingLineStart, new Vector3(0, 1, 0))).RayBClosest;
+								ModelDraggingLine.Color = ApplicationColor.YAxis;
+							}
+							else
+							{
+								ModelDraggingVertex.Position = Intersections3D.GetRayRayClosest(Perspective.ScreenToWorldRay(projZ.Projection), new Ray3D(ModelDraggingLineStart, new Vector3(0, 0, 1))).RayBClosest;
+								ModelDraggingLine.Color = ApplicationColor.ZAxis;
+							}
 						}
 					}
 				}
@@ -497,7 +519,7 @@ namespace GuiControls
 			this.Window.SetImage(perspective.Image);
 
 			this.ModelCreationHandler = new ModelCreationHandler(model, Perspective, Window, PointGrabRadius, PointDrawRadius);
-			this.CameraCalibrationHandler = new CameraCalibrationHandler(Perspective, Window, PointGrabRadius, PointDrawRadius);
+			this.CameraCalibrationHandler = new CameraCalibrationHandler(Perspective, Window, Gui, PointGrabRadius, PointDrawRadius);
 
 			this.CameraCalibrationHandler.CoordSystemUpdateEvent += ModelCreationHandler.UpdateDisplayedLines;
 
@@ -628,6 +650,8 @@ namespace GuiControls
 
 				if (State == ProjectState.None)
 					State = ProjectState.NewProject;
+
+				Gui.DisplayDesignState(DesignState);
 			}
 		}
 
@@ -692,6 +716,7 @@ namespace GuiControls
 
 					writer.Write(ProjectFileChecksum);
 					Model.Serialize(writer);
+					writer.Write((int)DesignState);
 					writer.Write(Windows.Count);
 					foreach (ImageWindow window in Windows)
 					{
@@ -742,6 +767,9 @@ namespace GuiControls
 					}
 
 					Model = ISafeSerializable<Model>.CreateDeserialize(reader);
+
+					DesignState = (DesignState)reader.ReadInt32();
+					Gui.DisplayDesignState(DesignState);
 
 					int windowCount = reader.ReadInt32();
 					for (int i = 0; i < windowCount; i++)
@@ -800,6 +828,9 @@ namespace GuiControls
 			Model.AddVertex(new Vector3());
 
 			Gui.DisplayProjectName(NewProjectName);
+
+			DesignState = DesignState.CameraCalibration;
+			Gui.DisplayDesignState(DesignState);
 		}
 	}
 }

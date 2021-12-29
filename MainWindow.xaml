@@ -32,7 +32,7 @@
 
         <ToolBarTray DockPanel.Dock="Top">
             <ToolBar>
-                <RadioButton Name="CameraRadioButton" Checked="CameraRadioButton_Checked" Content="Camera" IsChecked="True"/>
+                <RadioButton Name="CameraRadioButton" Checked="CameraRadioButton_Checked" Content="Camera"/>
                 <RadioButton Name="ModelRadioButton" Checked="ModelRadioButton_Checked" Content="Model"/>
             </ToolBar>
             <ToolBar Name="CameraCalibrationTools">

@@ -330,10 +330,5 @@ namespace Photomatch_ProofOfConcept_WPF.WPF.ViewModel
 		{
 			ImageWindow.InvertedAxes_Changed(invertedAxes);
 		}
-
-		public void ShowCameraCalibrationTools(bool show)
-		{
-			MainWindow.ShowCameraCalibrationTools(show);
-		}
 	}
 }
