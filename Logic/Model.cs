@@ -1,6 +1,8 @@
 ﻿using MatrixVector;
+using Serializables;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Text;
 
 namespace Photomatch_ProofOfConcept_WPF.Logic
@@ -41,7 +43,7 @@ namespace Photomatch_ProofOfConcept_WPF.Logic
 		}
 	}
 
-	public class Model
+	public class Model : ISafeSerializable<Model>
 	{
 		public delegate void AddEdgeEventHandler(Edge line);
 		public event AddEdgeEventHandler AddEdgeEvent;
@@ -70,6 +72,41 @@ namespace Photomatch_ProofOfConcept_WPF.Logic
 			AddEdgeEvent?.Invoke(newLine);
 
 			return newLine;
+		}
+
+		public void Serialize(BinaryWriter writer)
+		{
+			writer.Write(Vertices.Count);
+			foreach (Vertex v in Vertices)
+				v.Position.Serialize(writer);
+
+			writer.Write(Edges.Count);
+			foreach (Edge e in Edges)
+			{
+				writer.Write(Vertices.IndexOf(e.Start));
+				writer.Write(Vertices.IndexOf(e.End));
+			}
+		}
+
+		public void Deserialize(BinaryReader reader)
+		{
+			int vertexCount = reader.ReadInt32();
+			for (int i = 0; i < vertexCount; i++)
+				AddVertex(ISafeSerializable<Vector3>.CreateDeserialize(reader));
+
+			int edgeCount = reader.ReadInt32();
+			for (int i = 0; i < edgeCount; i++)
+			{
+				int startIndex = reader.ReadInt32();
+				int endIndex = reader.ReadInt32();
+				AddEdge(Vertices[startIndex], Vertices[endIndex]);
+			}
+		}
+
+		public void Dispose()
+		{
+			Vertices.Clear();
+			Edges.Clear();
 		}
 	}
 }

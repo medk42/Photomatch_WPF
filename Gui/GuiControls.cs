@@ -413,7 +413,7 @@ namespace GuiControls
 			this.State = ProjectState.None;
 			this.ProjectPath = null;
 			this.Model = new Model();
-			Vertex start = this.Model.AddVertex(new Vector3());
+			this.Model.AddVertex(new Vector3());
 
 			Gui.DisplayProjectName(NewProjectName);
 		}
@@ -514,6 +514,7 @@ namespace GuiControls
 					var writer = new BinaryWriter(fileStream);
 
 					writer.Write(ProjectFileChecksum);
+					Model.Serialize(writer);
 					writer.Write(Windows.Count);
 					foreach (ImageWindow window in Windows)
 					{
@@ -563,6 +564,8 @@ namespace GuiControls
 						return;
 					}
 
+					Model = ISafeSerializable<Model>.CreateDeserialize(reader);
+
 					int windowCount = reader.ReadInt32();
 					for (int i = 0; i < windowCount; i++)
 					{
@@ -584,7 +587,7 @@ namespace GuiControls
 
 				if (ex is UnauthorizedAccessException)
 					Logger.Log("Load Project", "Unauthorized access to file or path was directory.", LogType.Warning);
-				else if (ex is IOException)
+				else if (ex is IOException || ex is ArgumentOutOfRangeException)
 					Logger.Log("Load Project", "Invalid file.", LogType.Warning);
 				else if (ex is ArgumentException || ex is DirectoryNotFoundException || ex is NotSupportedException)
 					Logger.Log("Load Project", "Path is invalid.", LogType.Warning);
@@ -605,6 +608,8 @@ namespace GuiControls
 			Windows.Clear();
 			State = ProjectState.None;
 			ProjectPath = null;
+			Model.Dispose();
+			Model.AddVertex(new Vector3());
 
 			Gui.DisplayProjectName(NewProjectName);
 		}
