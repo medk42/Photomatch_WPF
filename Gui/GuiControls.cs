@@ -353,7 +353,7 @@ namespace GuiControls
 						}
 					}
 
-					if (foundPoint != null)
+					if (foundPoint != null && foundPoint != ModelDraggingVertex)
 					{
 						ModelDraggingVertex.Position = foundPoint.Position;
 						ModelDraggingLine.Color = ApplicationColor.Model;
