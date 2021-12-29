@@ -102,6 +102,24 @@ namespace Lines
 		}
 	}
 
+	public struct Vector2Proj
+	{
+		/// <summary>
+		/// The projected point.
+		/// </summary>
+		public Vector2 Projection { get; set; }
+
+		/// <summary>
+		/// Distance of the projected point from the original point.
+		/// </summary>
+		public double Distance { get; set; }
+
+		/// <summary>
+		/// Relative position of the projected point on the ray.
+		/// </summary>
+		public double RayRelative { get; set; }
+	}
+
 	public static class Intersections2D
 	{
 		/// <summary>
@@ -188,6 +206,16 @@ namespace Lines
 			}
 
 			return ray.Start;
+		}
+
+		/// <summary>
+		/// Get a projection of a point onto ray as a Vector2 on the ray.
+		/// </summary>
+		public static Vector2Proj ProjectVectorToRay(Vector2 vector, Ray2D ray)
+		{
+			double t = Vector2.Dot(vector - ray.Start, ray.Direction);
+			Vector2 projected = ray.Start + t * ray.Direction;
+			return new Vector2Proj() { Projection = projected, RayRelative = t, Distance = (projected - vector).Magnitude };
 		}
 	}
 
