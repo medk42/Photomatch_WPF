@@ -108,6 +108,7 @@ namespace Photomatch_ProofOfConcept_WPF
 		}
 
 		private void LoadImage_Click(object sender, RoutedEventArgs e) => ActionListener.LoadImage_Pressed();
+		private void NewProject_Click(object sender, RoutedEventArgs e) => ActionListener.NewProject_Pressed();
 		private void SaveProject_Click(object sender, RoutedEventArgs e) => ActionListener.SaveProject_Pressed();
 		private void SaveProjectAs_Click(object sender, RoutedEventArgs e) => ActionListener.SaveProjectAs_Pressed();
 		private void LoadProject_Click(object sender, RoutedEventArgs e) => ActionListener.LoadProject_Pressed();

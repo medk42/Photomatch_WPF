@@ -415,18 +415,10 @@ namespace GuiControls
 			this.Model = new Model();
 			Vertex start = this.Model.AddVertex(new Vector3());
 
-			Vertex x = this.Model.AddVertex(new Vector3(0.22, 0, 0));
-			Vertex y = this.Model.AddVertex(new Vector3(0, 0.22, 0));
-			Vertex z = this.Model.AddVertex(new Vector3(0, 0, 0.22));
-			this.Model.AddEdge(start, x);
-			this.Model.AddEdge(start, y);
-			this.Model.AddEdge(start, z);
-			this.Model.AddEdge(x, y);
-			this.Model.AddEdge(x, z);
-			this.Model.AddEdge(y, z);
-
 			Gui.DisplayProjectName(NewProjectName);
 		}
+
+		public void NewProject_Pressed() => Reset();
 
 		public void LoadImage_Pressed()
 		{

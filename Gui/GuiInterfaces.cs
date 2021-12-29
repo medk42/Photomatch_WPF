@@ -48,6 +48,7 @@ namespace GuiInterfaces
 	public interface Actions
 	{
 		void LoadImage_Pressed();
+		void NewProject_Pressed();
 		void SaveProject_Pressed();
 		void SaveProjectAs_Pressed();
 		void LoadProject_Pressed();
