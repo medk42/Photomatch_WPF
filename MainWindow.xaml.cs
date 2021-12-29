@@ -9,6 +9,7 @@ using GuiInterfaces;
 using GuiControls;
 using Photomatch_ProofOfConcept_WPF.WPF.ViewModel;
 using Perspective;
+using GuiEnums;
 
 namespace Photomatch_ProofOfConcept_WPF
 {
@@ -107,11 +108,13 @@ namespace Photomatch_ProofOfConcept_WPF
 			MyMainWindow.Title = $"{MainTitle} - {projectName}";
 		}
 
-		private void LoadImage_Click(object sender, RoutedEventArgs e) => ActionListener.LoadImage_Pressed();
-		private void NewProject_Click(object sender, RoutedEventArgs e) => ActionListener.NewProject_Pressed();
-		private void SaveProject_Click(object sender, RoutedEventArgs e) => ActionListener.SaveProject_Pressed();
-		private void SaveProjectAs_Click(object sender, RoutedEventArgs e) => ActionListener.SaveProjectAs_Pressed();
-		private void LoadProject_Click(object sender, RoutedEventArgs e) => ActionListener.LoadProject_Pressed();
+		private void LoadImage_Click(object sender, RoutedEventArgs e) => ActionListener?.LoadImage_Pressed();
+		private void NewProject_Click(object sender, RoutedEventArgs e) => ActionListener?.NewProject_Pressed();
+		private void SaveProject_Click(object sender, RoutedEventArgs e) => ActionListener?.SaveProject_Pressed();
+		private void SaveProjectAs_Click(object sender, RoutedEventArgs e) => ActionListener?.SaveProjectAs_Pressed();
+		private void LoadProject_Click(object sender, RoutedEventArgs e) => ActionListener?.LoadProject_Pressed();
+		private void CameraRadioButton_Checked(object sender, RoutedEventArgs e) => ActionListener?.DesignState_Changed(DesignState.CameraCalibration);
+		private void ModelRadioButton_Checked(object sender, RoutedEventArgs e) => ActionListener?.DesignState_Changed(DesignState.ModelCreation);
 
 		private void MainDockMgr_ActiveContentChanged(object sender, EventArgs e)
 		{

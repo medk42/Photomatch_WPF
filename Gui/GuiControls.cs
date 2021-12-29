@@ -16,188 +16,90 @@ using Photomatch_ProofOfConcept_WPF.Logic;
 
 namespace GuiControls
 {
-	public class ImageWindow
+	class LineEventListener
 	{
-		public class LineEventListener
+		private readonly ILine WindowLine;
+		private readonly PerspectiveData Perspective;
+
+		public LineEventListener(ILine windowLine, PerspectiveData perspective)
 		{
-			private readonly ILine WindowLine;
-			private readonly PerspectiveData Perspective;
-
-			public LineEventListener(ILine windowLine, PerspectiveData perspective)
-			{
-				this.WindowLine = windowLine;
-				this.Perspective = perspective;
-			}
-
-			public void StartPositionChanged(Vector3 newPosition)
-			{
-				WindowLine.Start = Perspective.WorldToScreen(newPosition);
-			}
-
-			public void EndPositionChanged(Vector3 newPosition)
-			{
-				WindowLine.End = Perspective.WorldToScreen(newPosition);
-			}
+			this.WindowLine = windowLine;
+			this.Perspective = perspective;
 		}
 
-		private static readonly double PointGrabRadius = 8;
-		private static readonly double PointDrawRadius = 4;
+		public void StartPositionChanged(Vector3 newPosition)
+		{
+			WindowLine.Start = Perspective.WorldToScreen(newPosition);
+		}
 
-		private MasterGUI Gui;
-		private ILogger Logger;
-		private IWindow Window { get; }
+		public void EndPositionChanged(Vector3 newPosition)
+		{
+			WindowLine.End = Perspective.WorldToScreen(newPosition);
+		}
+	}
 
-		private PerspectiveData Perspective;
-		private DraggablePoints DraggablePoints;
+	class CameraCalibrationHandler
+	{
+		public delegate void CoordSystemUpdateEventHandler();
+		public CoordSystemUpdateEventHandler CoordSystemUpdateEvent;
+
+		private bool Active_;
+		public bool Active
+		{
+			get => Active_;
+			set
+			{
+				if (value != Active_)
+				{
+					Active_ = value;
+					SetActive(Active_);
+				}
+			}
+		}
 
 		private ILine LineA1, LineA2, LineB1, LineB2;
 		private ILine LineX, LineY, LineZ;
-		private List<Tuple<ILine, Edge, LineEventListener>> ModelLines = new List<Tuple<ILine, Edge, LineEventListener>>();
-		private IEllipse ModelHoverEllipse;
+		private DraggablePoints DraggablePoints;
 
-		private bool Initialized = false;
+		private PerspectiveData Perspective;
+		private IWindow Window;
 
-		private Model Model;
-		private Vertex ModelDraggingVertex = null;
-		private Ray2D ModelDraggingXAxis, ModelDraggingYAxis, ModelDraggingZAxis;
-		private Vector3 ModelDraggingLineStart;
-		private ILine ModelDraggingLine;
+		private double PointGrabRadius;
+		private double PointDrawRadius;
 
-		public ISafeSerializable<PerspectiveData> PerspectiveSafeSerializable
+		public CameraCalibrationHandler(PerspectiveData perspective, IWindow window, double pointGrabRadius, double pointDrawRadius)
 		{
-			get => Perspective;
-		}
-
-		public ImageWindow(PerspectiveData perspective, MasterGUI gui, ILogger logger, Model model)
-		{
-			this.Gui = gui;
-			this.Logger = logger;
-			this.Window = Gui.CreateImageWindow(this, Path.GetFileName(perspective.ImagePath));
-			this.Model = model;
-
 			this.Perspective = perspective;
-			this.DraggablePoints = new DraggablePoints(Window, PointGrabRadius);
-			this.ModelHoverEllipse = Window.CreateEllipse(new Vector2(), PointDrawRadius, ApplicationColor.Model);
-			this.ModelHoverEllipse.Visible = false;
+			this.Window = window;
+			this.PointGrabRadius = pointGrabRadius;
+			this.PointDrawRadius = pointDrawRadius;
 
-			Window.SetImage(perspective.Image);
+			this.DraggablePoints = new DraggablePoints(Window, PointGrabRadius);
 			Window.DisplayCalibrationAxes(Perspective.CalibrationAxes);
 			Window.DisplayInvertedAxes(Perspective.CalibrationAxes, Perspective.InvertedAxes);
-
 			CreateCoordSystemLines();
 			CreatePerspectiveLines();
-			CreateModelLines();
 
-			Initialized = true;
+			this.Active = false;
+			SetActive(Active);
 		}
 
 		public void MouseMove(Vector2 mouseCoord)
 		{
-			DraggablePoints.MouseMove(mouseCoord);
-			ModelMouseMove(mouseCoord);
-			HandleHoverEllipse(mouseCoord);
+			if (Active)
+				DraggablePoints.MouseMove(mouseCoord);
 		}
 
 		public void MouseDown(Vector2 mouseCoord, MouseButton button)
 		{
-			DraggablePoints.MouseDown(mouseCoord, button);
-			ModelMouseDown(mouseCoord, button);
-			HandleHoverEllipse(mouseCoord);
+			if (Active)
+				DraggablePoints.MouseDown(mouseCoord, button);
 		}
 
 		public void MouseUp(Vector2 mouseCoord, MouseButton button)
 		{
-			DraggablePoints.MouseUp(mouseCoord, button);
-		}
-
-		private void HandleHoverEllipse(Vector2 mouseCoord)
-		{
-			ModelHoverEllipse.Visible = false;
-			foreach (Vertex point in Model.Vertices)
-			{
-				Vector2 pointPos = Perspective.WorldToScreen(point.Position);
-				if (Window.ScreenDistance(mouseCoord, pointPos) < PointGrabRadius)
-				{
-					ModelHoverEllipse.Position = pointPos;
-					ModelHoverEllipse.Visible = true;
-				}
-			}
-		}
-
-		private void ModelMouseMove(Vector2 mouseCoord)
-		{
-			if (ModelDraggingVertex != null)
-			{
-				Vector2Proj projX = Intersections2D.ProjectVectorToRay(mouseCoord, ModelDraggingXAxis);
-				Vector2Proj projY = Intersections2D.ProjectVectorToRay(mouseCoord, ModelDraggingYAxis);
-				Vector2Proj projZ = Intersections2D.ProjectVectorToRay(mouseCoord, ModelDraggingZAxis);
-
-				if (projX.Distance < projY.Distance)
-				{
-					if (projX.Distance < projZ.Distance)
-					{
-						ModelDraggingVertex.Position = Intersections3D.GetRayRayClosest(Perspective.ScreenToWorldRay(projX.Projection), new Ray3D(ModelDraggingLineStart, new Vector3(1, 0, 0))).RayBClosest;
-						ModelDraggingLine.Color = ApplicationColor.XAxis;
-					}
-					else
-					{
-						ModelDraggingVertex.Position = Intersections3D.GetRayRayClosest(Perspective.ScreenToWorldRay(projZ.Projection), new Ray3D(ModelDraggingLineStart, new Vector3(0, 0, 1))).RayBClosest;
-						ModelDraggingLine.Color = ApplicationColor.ZAxis;
-					}
-				}
-				else
-				{
-					if (projY.Distance < projZ.Distance)
-					{
-						ModelDraggingVertex.Position = Intersections3D.GetRayRayClosest(Perspective.ScreenToWorldRay(projY.Projection), new Ray3D(ModelDraggingLineStart, new Vector3(0, 1, 0))).RayBClosest;
-						ModelDraggingLine.Color = ApplicationColor.YAxis;
-					}
-					else
-					{
-						ModelDraggingVertex.Position = Intersections3D.GetRayRayClosest(Perspective.ScreenToWorldRay(projZ.Projection), new Ray3D(ModelDraggingLineStart, new Vector3(0, 0, 1))).RayBClosest;
-						ModelDraggingLine.Color = ApplicationColor.ZAxis;
-					}
-				}
-			}
-		}
-
-		private void ModelMouseDown(Vector2 mouseCoord, MouseButton button)
-		{
-			if (button != MouseButton.Left)
-				return;
-
-			if (ModelDraggingVertex != null)
-			{
-				ModelDraggingVertex = null;
-				ModelDraggingLine.Color = ApplicationColor.Model;
-			}
-			else
-			{
-				Vertex foundPoint = null;
-
-				foreach (Vertex point in Model.Vertices)
-				{
-					Vector2 pointPos = Perspective.WorldToScreen(point.Position);
-					if (Window.ScreenDistance(mouseCoord, pointPos) < PointGrabRadius)
-					{
-						foundPoint = point;
-						break;
-					}
-				}
-
-				if (foundPoint != null)
-				{
-					Vector2 screenPos = Perspective.WorldToScreen(foundPoint.Position);
-
-					ModelDraggingVertex = Model.AddVertex(foundPoint.Position);
-					ModelDraggingXAxis = new Ray2D(screenPos, Perspective.GetXDirAt(screenPos));
-					ModelDraggingYAxis = new Ray2D(screenPos, Perspective.GetYDirAt(screenPos));
-					ModelDraggingZAxis = new Ray2D(screenPos, Perspective.GetZDirAt(screenPos));
-					ModelDraggingLineStart = foundPoint.Position;
-
-					Model.AddEdge(foundPoint, ModelDraggingVertex);
-				}
-			}
+			if (Active)
+				DraggablePoints.MouseUp(mouseCoord, button);
 		}
 
 		private void CreatePerspectiveLines()
@@ -292,26 +194,6 @@ namespace GuiControls
 			UpdateCoordSystemLines();
 		}
 
-		private void EdgeAdderHelper(Edge edge)
-		{
-			Vector2 start = Perspective.WorldToScreen(edge.Start.Position);
-			Vector2 end = Perspective.WorldToScreen(edge.End.Position);
-			ILine windowLine = Window.CreateLine(start, end, 0, ApplicationColor.Model);
-			LineEventListener lineEventListener = new LineEventListener(windowLine, Perspective);
-			edge.StartPositionChangedEvent += lineEventListener.StartPositionChanged;
-			edge.EndPositionChangedEvent += lineEventListener.EndPositionChanged;
-			ModelLines.Add(new Tuple<ILine, Edge, LineEventListener>(windowLine, edge, lineEventListener));
-			ModelDraggingLine = windowLine;
-		}
-
-		private void CreateModelLines()
-		{
-			Model.AddEdgeEvent += EdgeAdderHelper;
-
-			foreach (Edge line in Model.Edges)
-				EdgeAdderHelper(line);
-		}
-
 		private void UpdateCoordSystemLines()
 		{
 			Vector2 dirX = Perspective.GetXDirAt(Perspective.Origin);
@@ -341,6 +223,226 @@ namespace GuiControls
 				LineZ.End = LineZ.Start;
 			}
 
+			CoordSystemUpdateEvent?.Invoke();
+		}
+
+		private void SetActive(bool active)
+		{
+			LineA1.Visible = active;
+			LineA2.Visible = active;
+			LineB1.Visible = active;
+			LineB2.Visible = active;
+
+			LineX.Visible = active;
+			LineY.Visible = active;
+			LineZ.Visible = active;
+		}
+
+		public void Dispose()
+		{
+			Perspective = null;
+		}
+
+		public  void CalibrationAxes_Changed(CalibrationAxes calibrationAxes)
+		{
+			Perspective.CalibrationAxes = calibrationAxes;
+			Window.DisplayCalibrationAxes(Perspective.CalibrationAxes);
+			Window.DisplayInvertedAxes(Perspective.CalibrationAxes, Perspective.InvertedAxes);
+
+			UpdateCoordSystemLines();
+
+			Tuple<ApplicationColor, ApplicationColor> colors = GetColorsFromCalibrationAxes(Perspective.CalibrationAxes);
+			LineA1.Color = colors.Item1;
+			LineA2.Color = colors.Item1;
+			LineB1.Color = colors.Item2;
+			LineB2.Color = colors.Item2;
+		}
+
+		public void InvertedAxes_Changed(InvertedAxes invertedAxes)
+		{
+			Perspective.InvertedAxes = invertedAxes;
+			Window.DisplayInvertedAxes(Perspective.CalibrationAxes, Perspective.InvertedAxes);
+
+			UpdateCoordSystemLines();
+		}
+	}
+
+	class ModelCreationHandler
+	{
+		private bool Active_;
+		public bool Active
+		{
+			get => Active_;
+			set
+			{
+				if (value != Active_)
+				{
+					Active_ = value;
+					SetActive(Active_);
+				}
+			}
+		}
+
+		private Model Model;
+
+		private List<Tuple<ILine, Edge, LineEventListener>> ModelLines = new List<Tuple<ILine, Edge, LineEventListener>>();
+		private IEllipse ModelHoverEllipse;
+
+		private Vertex ModelDraggingVertex = null;
+		private Ray2D ModelDraggingXAxis, ModelDraggingYAxis, ModelDraggingZAxis;
+		private Vector3 ModelDraggingLineStart;
+		private ILine ModelDraggingLine;
+
+		private PerspectiveData Perspective;
+		private IWindow Window;
+
+		private double PointGrabRadius;
+		private double PointDrawRadius;
+
+		public ModelCreationHandler(Model model, PerspectiveData perspective, IWindow window, double pointGrabRadius, double pointDrawRadius)
+		{
+			this.Model = model;
+			this.Perspective = perspective;
+			this.Window = window;
+			this.PointGrabRadius = pointGrabRadius;
+			this.PointDrawRadius = pointDrawRadius;
+
+			CreateModelLines();
+			this.ModelHoverEllipse = Window.CreateEllipse(new Vector2(), PointDrawRadius, ApplicationColor.Model);
+			this.ModelHoverEllipse.Visible = false;
+
+			this.Active = false;
+			SetActive(Active);
+		}
+
+		private void HandleHoverEllipse(Vector2 mouseCoord)
+		{
+			ModelHoverEllipse.Visible = false;
+			foreach (Vertex point in Model.Vertices)
+			{
+				Vector2 pointPos = Perspective.WorldToScreen(point.Position);
+				if (Window.ScreenDistance(mouseCoord, pointPos) < PointGrabRadius)
+				{
+					ModelHoverEllipse.Position = pointPos;
+					ModelHoverEllipse.Visible = true;
+				}
+			}
+		}
+
+		public void MouseMove(Vector2 mouseCoord)
+		{
+			if (Active)
+			{
+				HandleHoverEllipse(mouseCoord);
+
+				if (ModelDraggingVertex != null)
+				{
+					Vector2Proj projX = Intersections2D.ProjectVectorToRay(mouseCoord, ModelDraggingXAxis);
+					Vector2Proj projY = Intersections2D.ProjectVectorToRay(mouseCoord, ModelDraggingYAxis);
+					Vector2Proj projZ = Intersections2D.ProjectVectorToRay(mouseCoord, ModelDraggingZAxis);
+
+					if (projX.Distance < projY.Distance)
+					{
+						if (projX.Distance < projZ.Distance)
+						{
+							ModelDraggingVertex.Position = Intersections3D.GetRayRayClosest(Perspective.ScreenToWorldRay(projX.Projection), new Ray3D(ModelDraggingLineStart, new Vector3(1, 0, 0))).RayBClosest;
+							ModelDraggingLine.Color = ApplicationColor.XAxis;
+						}
+						else
+						{
+							ModelDraggingVertex.Position = Intersections3D.GetRayRayClosest(Perspective.ScreenToWorldRay(projZ.Projection), new Ray3D(ModelDraggingLineStart, new Vector3(0, 0, 1))).RayBClosest;
+							ModelDraggingLine.Color = ApplicationColor.ZAxis;
+						}
+					}
+					else
+					{
+						if (projY.Distance < projZ.Distance)
+						{
+							ModelDraggingVertex.Position = Intersections3D.GetRayRayClosest(Perspective.ScreenToWorldRay(projY.Projection), new Ray3D(ModelDraggingLineStart, new Vector3(0, 1, 0))).RayBClosest;
+							ModelDraggingLine.Color = ApplicationColor.YAxis;
+						}
+						else
+						{
+							ModelDraggingVertex.Position = Intersections3D.GetRayRayClosest(Perspective.ScreenToWorldRay(projZ.Projection), new Ray3D(ModelDraggingLineStart, new Vector3(0, 0, 1))).RayBClosest;
+							ModelDraggingLine.Color = ApplicationColor.ZAxis;
+						}
+					}
+				}
+			}
+		}
+
+		public void MouseDown(Vector2 mouseCoord, MouseButton button)
+		{
+			if (Active)
+			{
+				if (button != MouseButton.Left)
+					return;
+
+				if (ModelDraggingVertex != null)
+				{
+					ModelDraggingVertex = null;
+					ModelDraggingLine.Color = ApplicationColor.Model;
+				}
+				else
+				{
+					Vertex foundPoint = null;
+
+					foreach (Vertex point in Model.Vertices)
+					{
+						Vector2 pointPos = Perspective.WorldToScreen(point.Position);
+						if (Window.ScreenDistance(mouseCoord, pointPos) < PointGrabRadius)
+						{
+							foundPoint = point;
+							break;
+						}
+					}
+
+					if (foundPoint != null)
+					{
+						Vector2 screenPos = Perspective.WorldToScreen(foundPoint.Position);
+
+						ModelDraggingVertex = Model.AddVertex(foundPoint.Position);
+						ModelDraggingXAxis = new Ray2D(screenPos, Perspective.GetXDirAt(screenPos));
+						ModelDraggingYAxis = new Ray2D(screenPos, Perspective.GetYDirAt(screenPos));
+						ModelDraggingZAxis = new Ray2D(screenPos, Perspective.GetZDirAt(screenPos));
+						ModelDraggingLineStart = foundPoint.Position;
+
+						Model.AddEdge(foundPoint, ModelDraggingVertex);
+					}
+				}
+			}
+		}
+
+		public void MouseUp(Vector2 mouseCoord, MouseButton button) { }
+
+		private void EdgeAdderHelper(Edge edge)
+		{
+			Vector2 start = Perspective.WorldToScreen(edge.Start.Position);
+			Vector2 end = Perspective.WorldToScreen(edge.End.Position);
+			ILine windowLine = Window.CreateLine(start, end, 0, ApplicationColor.Model);
+			LineEventListener lineEventListener = new LineEventListener(windowLine, Perspective);
+			edge.StartPositionChangedEvent += lineEventListener.StartPositionChanged;
+			edge.EndPositionChangedEvent += lineEventListener.EndPositionChanged;
+			ModelLines.Add(new Tuple<ILine, Edge, LineEventListener>(windowLine, edge, lineEventListener));
+			ModelDraggingLine = windowLine;
+		}
+
+		private void CreateModelLines()
+		{
+			Model.AddEdgeEvent += EdgeAdderHelper;
+
+			foreach (Edge line in Model.Edges)
+				EdgeAdderHelper(line);
+		}
+
+		private void SetActive(bool active)
+		{
+			foreach (var lineTuple in ModelLines)
+				lineTuple.Item1.Visible = active;
+		}
+
+		public void UpdateDisplayedLines()
+		{
 			foreach (var lineTuple in ModelLines)
 			{
 				lineTuple.Item1.Start = Perspective.WorldToScreen(lineTuple.Item2.Start.Position);
@@ -361,7 +463,72 @@ namespace GuiControls
 			Model.AddEdgeEvent -= EdgeAdderHelper;
 
 			Perspective = null;
+		}
+	}
 
+	public class ImageWindow
+	{
+		private static readonly double PointGrabRadius = 8;
+		private static readonly double PointDrawRadius = 4;
+
+		private MasterGUI Gui;
+		private ILogger Logger;
+		private IWindow Window { get; }
+		private PerspectiveData Perspective;
+
+		private ModelCreationHandler ModelCreationHandler;
+		private CameraCalibrationHandler CameraCalibrationHandler;
+
+		private bool Initialized = false;
+
+		public ISafeSerializable<PerspectiveData> PerspectiveSafeSerializable
+		{
+			get => Perspective;
+		}
+
+		public ImageWindow(PerspectiveData perspective, MasterGUI gui, ILogger logger, Model model, DesignState startState)
+		{
+			this.Gui = gui;
+			this.Logger = logger;
+			this.Window = Gui.CreateImageWindow(this, Path.GetFileName(perspective.ImagePath));
+			this.Perspective = perspective;
+			this.Window.SetImage(perspective.Image);
+
+			this.ModelCreationHandler = new ModelCreationHandler(model, Perspective, Window, PointGrabRadius, PointDrawRadius);
+			this.CameraCalibrationHandler = new CameraCalibrationHandler(Perspective, Window, PointGrabRadius, PointDrawRadius);
+
+			this.CameraCalibrationHandler.CoordSystemUpdateEvent += ModelCreationHandler.UpdateDisplayedLines;
+
+			this.DesignState_Changed(startState);
+
+			this.Initialized = true;
+		}
+
+		public void MouseMove(Vector2 mouseCoord)
+		{
+			CameraCalibrationHandler.MouseMove(mouseCoord);
+			ModelCreationHandler.MouseMove(mouseCoord);
+		}
+
+		public void MouseDown(Vector2 mouseCoord, MouseButton button)
+		{
+			CameraCalibrationHandler.MouseDown(mouseCoord, button);
+			ModelCreationHandler.MouseDown(mouseCoord, button);
+		}
+
+		public void MouseUp(Vector2 mouseCoord, MouseButton button)
+		{
+			CameraCalibrationHandler.MouseUp(mouseCoord, button);
+			ModelCreationHandler.MouseUp(mouseCoord, button);
+		}
+
+		public void Dispose()
+		{
+			Perspective = null;
+			CameraCalibrationHandler.CoordSystemUpdateEvent -= ModelCreationHandler.UpdateDisplayedLines;
+
+			ModelCreationHandler.Dispose();
+			CameraCalibrationHandler.Dispose();
 			Window.DisposeAll();
 		}
 
@@ -369,16 +536,7 @@ namespace GuiControls
 		{
 			if (Initialized)
 			{
-				Perspective.CalibrationAxes = calibrationAxes;
-				Window.DisplayCalibrationAxes(Perspective.CalibrationAxes);
-				Window.DisplayInvertedAxes(Perspective.CalibrationAxes, Perspective.InvertedAxes);
-				UpdateCoordSystemLines();
-
-				Tuple<ApplicationColor, ApplicationColor> colors = GetColorsFromCalibrationAxes(Perspective.CalibrationAxes);
-				LineA1.Color = colors.Item1;
-				LineA2.Color = colors.Item1;
-				LineB1.Color = colors.Item2;
-				LineB2.Color = colors.Item2;
+				CameraCalibrationHandler.CalibrationAxes_Changed(calibrationAxes);
 			}	
 		}
 
@@ -386,9 +544,24 @@ namespace GuiControls
 		{
 			if (Initialized)
 			{
-				Perspective.InvertedAxes = invertedAxes;
-				Window.DisplayInvertedAxes(Perspective.CalibrationAxes, Perspective.InvertedAxes);
-				UpdateCoordSystemLines();
+				CameraCalibrationHandler.InvertedAxes_Changed(invertedAxes);
+			}
+		}
+
+		internal void DesignState_Changed(DesignState newDesignState)
+		{
+			switch (newDesignState)
+			{
+				case DesignState.CameraCalibration:
+					CameraCalibrationHandler.Active = true;
+					ModelCreationHandler.Active = false;
+					break;
+				case DesignState.ModelCreation:
+					CameraCalibrationHandler.Active = false;
+					ModelCreationHandler.Active = true;
+					break;
+				default:
+					throw new Exception("Unknown switch case.");
 			}
 		}
 	}
@@ -404,6 +577,7 @@ namespace GuiControls
 		private ProjectState State;
 		private string ProjectPath;
 		private Model Model;
+		private DesignState DesignState;
 
 		public MasterControl(MasterGUI gui)
 		{
@@ -414,6 +588,7 @@ namespace GuiControls
 			this.ProjectPath = null;
 			this.Model = new Model();
 			this.Model.AddVertex(new Vector3());
+			this.DesignState = DesignState.CameraCalibration;
 
 			Gui.DisplayProjectName(NewProjectName);
 		}
@@ -447,7 +622,7 @@ namespace GuiControls
 			if (image != null)
 			{
 				Logger.Log("Load Image", "File loaded successfully.", LogType.Info);
-				Windows.Add(new ImageWindow(new PerspectiveData(image, filePath), Gui, Logger, Model));
+				Windows.Add(new ImageWindow(new PerspectiveData(image, filePath), Gui, Logger, Model, DesignState));
 
 				if (State == ProjectState.None)
 					State = ProjectState.NewProject;
@@ -570,7 +745,7 @@ namespace GuiControls
 					for (int i = 0; i < windowCount; i++)
 					{
 						PerspectiveData perspective = ISafeSerializable<PerspectiveData>.CreateDeserialize(reader);
-						Windows.Add(new ImageWindow(perspective, Gui, Logger, Model));
+						Windows.Add(new ImageWindow(perspective, Gui, Logger, Model, DesignState));
 					}
 				}
 
@@ -597,6 +772,17 @@ namespace GuiControls
 					Logger.Log("Load Project", "File not found.", LogType.Warning);
 				else
 					Logger.Log("Load Project", "Invalid file.", LogType.Warning);
+			}
+		}
+
+		public void DesignState_Changed(DesignState newDesignState)
+		{
+			if (this.DesignState != newDesignState)
+			{
+				this.DesignState = newDesignState;
+
+				foreach (ImageWindow window in Windows)
+					window.DesignState_Changed(newDesignState);
 			}
 		}
 

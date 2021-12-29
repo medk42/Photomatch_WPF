@@ -16,6 +16,7 @@ namespace GuiInterfaces
 		Vector2 Start { get; set; }
 		Vector2 End { get; set; }
  		ApplicationColor Color { get; set; }
+		bool Visible { get; set; }
 	}
 
 	public interface IEllipse
@@ -52,5 +53,6 @@ namespace GuiInterfaces
 		void SaveProject_Pressed();
 		void SaveProjectAs_Pressed();
 		void LoadProject_Pressed();
+		void DesignState_Changed(DesignState newDesignState);
 	}
 }

@@ -9,4 +9,6 @@ namespace GuiEnums
 	public enum ApplicationColor { XAxis, YAxis, ZAxis, Model }
 
 	public enum ProjectState { None, NewProject, NamedProject }
+
+	public enum DesignState { CameraCalibration, ModelCreation }
 }

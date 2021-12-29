@@ -30,24 +30,30 @@
             </StatusBarItem>
         </StatusBar>
 
-        <ToolBar DockPanel.Dock="Top">
-            <ComboBox IsEnabled="False" 
+        <ToolBarTray DockPanel.Dock="Top">
+            <ToolBar>
+                <RadioButton Name="CameraRadioButton" Checked="CameraRadioButton_Checked" Content="Camera" IsChecked="True"/>
+                <RadioButton Name="ModelRadioButton" Checked="ModelRadioButton_Checked" Content="Model"/>
+            </ToolBar>
+            <ToolBar>
+                <ComboBox IsEnabled="False" 
                       Name="AxesComboBox" 
                       SelectionChanged="AxesComboBox_SelectionChanged" 
                       MinWidth="40" 
                       HorizontalContentAlignment="Center">
-                <ComboBoxItem Content="XY"></ComboBoxItem>
-                <ComboBoxItem Content="YX"></ComboBoxItem>
-                <ComboBoxItem Content="XZ"></ComboBoxItem>
-                <ComboBoxItem Content="ZX"></ComboBoxItem>
-                <ComboBoxItem Content="YZ"></ComboBoxItem>
-                <ComboBoxItem Content="ZY"></ComboBoxItem>
-            </ComboBox>
+                    <ComboBoxItem Content="XY"></ComboBoxItem>
+                    <ComboBoxItem Content="YX"></ComboBoxItem>
+                    <ComboBoxItem Content="XZ"></ComboBoxItem>
+                    <ComboBoxItem Content="ZX"></ComboBoxItem>
+                    <ComboBoxItem Content="YZ"></ComboBoxItem>
+                    <ComboBoxItem Content="ZY"></ComboBoxItem>
+                </ComboBox>
 
-            <CheckBox Name="XInvertedCheckbox" IsEnabled="False">X Inverted</CheckBox>
-            <CheckBox Name="YInvertedCheckbox" IsEnabled="False">Y Inverted</CheckBox>
-            <CheckBox Name="ZInvertedCheckbox" IsEnabled="False">Z Inverted</CheckBox>
-        </ToolBar>
+                <CheckBox Name="XInvertedCheckbox" IsEnabled="False" Content="X Inverted"></CheckBox>
+                <CheckBox Name="YInvertedCheckbox" IsEnabled="False" Content="Y Inverted"></CheckBox>
+                <CheckBox Name="ZInvertedCheckbox" IsEnabled="False" Content="Z Inverted"></CheckBox>
+            </ToolBar>
+        </ToolBarTray>
 
         <DockingManager DataContext="{Binding DockManagerViewModel}" DocumentsSource="{Binding Documents}" AnchorablesSource="{Binding Anchorables}" Name="MainDockMgr">
             <DockingManager.Resources>

@@ -74,6 +74,28 @@ namespace WpfGuiElements
 			}
 		}
 
+		private bool Visible_ = true;
+		public bool Visible
+		{
+			get => Visible_;
+			set
+			{
+				if (Visible_ != value)
+				{
+					if (Visible_)
+					{
+						RemoveOldColor(Color);
+					}
+					else
+					{
+						AddNewColor(Color);
+					}
+
+					Visible_ = value;
+				}
+			}
+		}
+
 		private ApplicationColor Color_;
 		public ApplicationColor Color
 		{
@@ -82,8 +104,11 @@ namespace WpfGuiElements
 			{
 				if (Color_ != value)
 				{
-					RemoveOldColor(Color_);
-					AddNewColor(value);
+					if (Visible)
+					{
+						RemoveOldColor(Color_);
+						AddNewColor(value);
+					}
 					Color_ = value;
 				}
 			}
