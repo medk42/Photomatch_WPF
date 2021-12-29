@@ -35,7 +35,7 @@
                 <RadioButton Name="CameraRadioButton" Checked="CameraRadioButton_Checked" Content="Camera" IsChecked="True"/>
                 <RadioButton Name="ModelRadioButton" Checked="ModelRadioButton_Checked" Content="Model"/>
             </ToolBar>
-            <ToolBar>
+            <ToolBar Name="CameraCalibrationTools">
                 <ComboBox IsEnabled="False" 
                       Name="AxesComboBox" 
                       SelectionChanged="AxesComboBox_SelectionChanged" 

@@ -44,6 +44,7 @@ namespace GuiInterfaces
 		void DisposeAll();
 		void DisplayCalibrationAxes(CalibrationAxes calibrationAxes);
 		void DisplayInvertedAxes(CalibrationAxes calibrationAxes, InvertedAxes invertedAxes);
+		void ShowCameraCalibrationTools(bool show);
 	}
 
 	public interface Actions

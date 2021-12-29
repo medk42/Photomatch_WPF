@@ -242,6 +242,14 @@ namespace Photomatch_ProofOfConcept_WPF
 			InvertedAxesCheckboxIgnore = false;
 		}
 
+		public void ShowCameraCalibrationTools(bool show)
+		{
+			if (show)
+				CameraCalibrationTools.Visibility = Visibility.Visible;
+			else
+				CameraCalibrationTools.Visibility = Visibility.Collapsed;
+		}
+
 		private void AnyInvertedCheckbox_Changed(object sender, RoutedEventArgs e)
 		{
 			if (MainDockMgr.ActiveContent != null && !InvertedAxesCheckboxIgnore)

@@ -236,6 +236,8 @@ namespace GuiControls
 			LineX.Visible = active;
 			LineY.Visible = active;
 			LineZ.Visible = active;
+
+			Window.ShowCameraCalibrationTools(active);
 		}
 
 		public void Dispose()
