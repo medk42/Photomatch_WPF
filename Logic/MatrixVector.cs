@@ -266,6 +266,11 @@ namespace MatrixVector
 		{
 			return $"({X}, {Y}, {Z})";
 		}
+
+		internal static double Dot(Vector3 first, Vector3 second)
+		{
+			return first.X * second.X + first.Y * second.Y + first.Z * second.Z;
+		}
 	}
 
 	public struct Vector2 : ISafeSerializable<Vector2>

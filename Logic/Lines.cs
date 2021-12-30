@@ -280,6 +280,24 @@ namespace Lines
 		public double Distance { get; set; }
 	}
 
+	public struct Vector3Proj
+	{
+		/// <summary>
+		/// The projected point.
+		/// </summary>
+		public Vector3 Projection { get; set; }
+
+		/// <summary>
+		/// Distance of the projected point from the original point.
+		/// </summary>
+		public double Distance { get; set; }
+
+		/// <summary>
+		/// Relative position of the projected point on the ray.
+		/// </summary>
+		public double RayRelative { get; set; }
+	}
+
 	public static class Intersections3D
 	{
 		/// <summary>
@@ -317,6 +335,16 @@ namespace Lines
 				RayBRelative = solution.Y, 
 				Distance = Math.Abs(solution.Z)
 			};
+		}
+
+		/// <summary>
+		/// Get a projection of a point onto ray as a Vector3 on the ray.
+		/// </summary>
+		public static Vector3Proj ProjectVectorToRay(Vector3 vector, Ray3D ray)
+		{
+			double t = Vector3.Dot(vector - ray.Start, ray.Direction);
+			Vector3 projected = ray.Start + t * ray.Direction;
+			return new Vector3Proj() { Projection = projected, RayRelative = t, Distance = (projected - vector).Magnitude };
 		}
 	}
 }
