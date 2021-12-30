@@ -11,6 +11,9 @@
         xmlns:dock="https://github.com/Dirkster99/AvalonDock"
         xmlns:dockctrl="clr-namespace:AvalonDock.Controls;assembly=AvalonDock"
         
+        KeyDown="MyMainWindow_KeyDown"
+        KeyUp="MyMainWindow_KeyUp"
+        
         mc:Ignorable="d"
         Title="Photomatcher" Height="450" Width="800">
     <DockPanel>

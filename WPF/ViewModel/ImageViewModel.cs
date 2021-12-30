@@ -22,7 +22,7 @@ using System.Windows.Media.Imaging;
 
 namespace Photomatch_ProofOfConcept_WPF.WPF.ViewModel
 {
-	public class ImageViewModel : BaseViewModel, IWindow, IMouseHandler
+	public class ImageViewModel : BaseViewModel, IWindow, IMouseHandler, IKeyboardHandler
 	{
 		private static readonly double DefaultLineStrokeThickness = 2;
 
@@ -116,6 +116,7 @@ namespace Photomatch_ProofOfConcept_WPF.WPF.ViewModel
 		private List<IScalable> scalables = new List<IScalable>();
 		private Image ImageView;
 		private MainWindow MainWindow;
+		private HashSet<Key> PressedKeys = new HashSet<Key>();
 
 		public ImageViewModel(ImageWindow imageWindow, ILogger logger, MainWindow mainWindow)
         {
@@ -329,6 +330,37 @@ namespace Photomatch_ProofOfConcept_WPF.WPF.ViewModel
 		public void InvertedAxes_Changed(InvertedAxes invertedAxes)
 		{
 			ImageWindow.InvertedAxes_Changed(invertedAxes);
+		}
+
+		public void KeyUp(object sender, KeyEventArgs e)
+		{
+			PressedKeys.Remove(e.Key);
+
+			switch (e.Key)
+			{
+				case Key.LeftShift:
+					ImageWindow.KeyUp(KeyboardKey.LeftShift);
+					break;
+			}
+
+			Logger.Log($"Keyboard event ({Title})", $"Key Up: {e.Key}", LogType.Info);
+		}
+
+		public void KeyDown(object sender, KeyEventArgs e)
+		{
+			if (!PressedKeys.Contains(e.Key))
+			{
+				PressedKeys.Add(e.Key);
+
+				switch (e.Key)
+				{
+					case Key.LeftShift:
+						ImageWindow.KeyDown(KeyboardKey.LeftShift);
+						break;
+				}
+
+				Logger.Log($"Keyboard event ({Title})", $"Key Down: {e.Key}", LogType.Info);
+			}
 		}
 	}
 }

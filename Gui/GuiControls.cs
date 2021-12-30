@@ -566,6 +566,16 @@ namespace GuiControls
 			ModelCreationHandler.MouseUp(mouseCoord, button);
 		}
 
+		public void KeyDown(KeyboardKey key)
+		{
+
+		}
+
+		public void KeyUp(KeyboardKey key)
+		{
+
+		}
+
 		public void Dispose()
 		{
 			Perspective = null;

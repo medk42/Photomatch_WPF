@@ -10,6 +10,7 @@ using GuiControls;
 using Photomatch_ProofOfConcept_WPF.WPF.ViewModel;
 using Perspective;
 using GuiEnums;
+using Photomatch_ProofOfConcept_WPF.WPF.Helper;
 
 namespace Photomatch_ProofOfConcept_WPF
 {
@@ -299,6 +300,29 @@ namespace Photomatch_ProofOfConcept_WPF
 				}
 
 				imageViewModel.InvertedAxes_Changed(invertedAxes);
+			}
+		}
+
+		private void MyMainWindow_KeyDown(object sender, System.Windows.Input.KeyEventArgs e)
+		{
+			if (MainDockMgr.ActiveContent != null)
+			{
+				IKeyboardHandler keyboardHandler = MainDockMgr.ActiveContent as IKeyboardHandler;
+				if (keyboardHandler == null)
+					throw new Exception("Active window doesn't implement " + nameof(IKeyboardHandler));
+				keyboardHandler.KeyDown(sender, e);
+			}
+
+		}
+
+		private void MyMainWindow_KeyUp(object sender, System.Windows.Input.KeyEventArgs e)
+		{
+			if (MainDockMgr.ActiveContent != null)
+			{
+				IKeyboardHandler keyboardHandler = MainDockMgr.ActiveContent as IKeyboardHandler;
+				if (keyboardHandler == null)
+					throw new Exception("Active window doesn't implement " + nameof(IKeyboardHandler));
+				keyboardHandler.KeyUp(sender, e);
 			}
 		}
 	}

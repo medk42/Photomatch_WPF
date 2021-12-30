@@ -11,4 +11,6 @@ namespace GuiEnums
 	public enum ProjectState { None, NewProject, NamedProject }
 
 	public enum DesignState { CameraCalibration, ModelCreation }
+
+	public enum KeyboardKey { LeftShift };
 }
