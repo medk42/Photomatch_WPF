@@ -10,6 +10,7 @@ using WpfInterfaces;
 using GuiInterfaces;
 using GuiEnums;
 using Photomatch_ProofOfConcept_WPF.WPF.ViewModel;
+using Lines;
 
 namespace WpfGuiElements
 {
@@ -50,29 +51,25 @@ namespace WpfGuiElements
 		private double EndRadius;
 		private ImageViewModel ImageViewModel;
 
+		private Vector2 Start_;
 		public Vector2 Start
 		{
-			get => Line.StartPoint.AsVector2();
+			get => Start_; 
 			set
 			{
-				var point = value.AsPoint();
-				if (Line != null)
-					Line.StartPoint = point;
-				if (StartEllipse != null)
-					StartEllipse.Center = point;
+				Start_ = value;
+				UpdateDrawnLine();
 			}
 		}
 
+		private Vector2 End_;
 		public Vector2 End
 		{
-			get => Line.EndPoint.AsVector2();
+			get => End_;
 			set
 			{
-				var point = value.AsPoint();
-				if (Line != null)
-					Line.EndPoint = point;
-				if (EndEllipse != null)
-					EndEllipse.Center = point;
+				End_ = value;
+				UpdateDrawnLine();
 			}
 		}
 
@@ -119,8 +116,6 @@ namespace WpfGuiElements
 		public WpfLine(Point Start, Point End, double endRadius, ImageViewModel imageViewModel, ApplicationColor color)
 		{
 			Line = new LineGeometry();
-			Line.StartPoint = Start;
-			Line.EndPoint = End;
 
 			EndRadius = endRadius;
 			ImageViewModel = imageViewModel;
@@ -137,6 +132,9 @@ namespace WpfGuiElements
 				EndEllipse = null;
 			}
 
+			this.Start = Start.AsVector2();
+			this.End = End.AsVector2();
+
 			AddNewColor(Color);
 		}
 
@@ -152,6 +150,31 @@ namespace WpfGuiElements
 				EndEllipse.RadiusX = EndRadius / scale;
 				EndEllipse.RadiusY = EndRadius / scale;
 			}
+		}
+
+		private void UpdateDrawnLine()
+		{
+			Point start = LimitPointRayToImageBox(Start, End).AsPoint();
+			Point end = LimitPointRayToImageBox(End, Start).AsPoint();
+
+			if (Line != null)
+			{
+				Line.StartPoint = start;
+				Line.EndPoint = end;
+			}
+
+			if (StartEllipse != null)
+				StartEllipse.Center = start;
+			if (EndEllipse != null)
+				EndEllipse.Center = end;
+		}
+
+		private Vector2 LimitPointRayToImageBox(Vector2 point, Vector2 rayOrigin)
+		{
+			if (point.X >= ImageViewModel.Width || point.Y >= ImageViewModel.Height || point.X < 0 || point.Y < 0)
+				return Intersections2D.GetRayInsideBoxIntersection(new Line2D(rayOrigin, point).AsRay(), new Vector2(), new Vector2(ImageViewModel.Width, ImageViewModel.Height));
+
+			return point;
 		}
 
 		private void RemoveOldColor(ApplicationColor color)
