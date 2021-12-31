@@ -12,7 +12,7 @@ namespace GuiEnums
 
 	public enum DesignTool { CameraCalibration, ModelCreation }
 
-	public enum KeyboardKey { LeftShift };
+	public enum KeyboardKey { LeftShift, Escape };
 
 	public enum ModelCreationTool { Delete, Edge };
 }

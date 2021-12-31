@@ -357,6 +357,9 @@ namespace Photomatch_ProofOfConcept_WPF.WPF.ViewModel
 					case Key.LeftShift:
 						ImageWindow.KeyDown(KeyboardKey.LeftShift);
 						break;
+					case Key.Escape:
+						ImageWindow.KeyDown(KeyboardKey.Escape);
+						break;
 				}
 
 				Logger.Log($"Keyboard event ({Title})", $"Key Down: {e.Key}", LogType.Info);

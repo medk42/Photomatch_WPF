@@ -288,6 +288,7 @@ namespace GuiControls
 		private List<Tuple<ILine, Edge, EdgeEventListener>> ModelLines = new List<Tuple<ILine, Edge, EdgeEventListener>>();
 		private IEllipse ModelHoverEllipse;
 		private ModelCreationTool ModelCreationTool;
+		private Vector2 LastMouseCoord;
 
 		private Vertex ModelDraggingVertex = null;
 		private Ray2D ModelDraggingXAxis, ModelDraggingYAxis, ModelDraggingZAxis, LastRay;
@@ -337,6 +338,8 @@ namespace GuiControls
 		{
 			if (Active)
 			{
+				this.LastMouseCoord = mouseCoord;
+
 				switch (ModelCreationTool)
 				{
 					case ModelCreationTool.Delete:
@@ -357,6 +360,8 @@ namespace GuiControls
 
 			if (Active)
 			{
+				this.LastMouseCoord = mouseCoord;
+
 				switch (ModelCreationTool)
 				{
 					case ModelCreationTool.Delete:
@@ -505,6 +510,13 @@ namespace GuiControls
 			return null;
 		}
 
+		private void CancelLineCreate()
+		{
+			ModelDraggingVertex.Remove();
+			ModelDraggingVertex = null;
+			HandleHoverEllipse(LastMouseCoord);
+		}
+
 		public void MouseUp(Vector2 mouseCoord, MouseButton button) { }
 
 		public void KeyDown(KeyboardKey key)
@@ -513,6 +525,9 @@ namespace GuiControls
 			{
 				case KeyboardKey.LeftShift:
 					HoldDirection = true;
+					break;
+				case KeyboardKey.Escape:
+					CancelLineCreate();
 					break;
 			}
 		}
