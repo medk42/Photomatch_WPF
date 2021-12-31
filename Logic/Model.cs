@@ -71,10 +71,17 @@ namespace Photomatch_ProofOfConcept_WPF.Logic
 		public List<Vertex> Vertices { get; } = new List<Vertex>();
 		public List<Edge> Edges { get; } = new List<Edge>();
 
+		/// <summary>
+		/// First added vertex will be protected against removal.
+		/// </summary>
+		/// <param name="position"></param>
+		/// <returns></returns>
 		public Vertex AddVertex(Vector3 position)
 		{
 			Vertex newPoint = new Vertex() { Position = position };
-			newPoint.VertexRemovedEvent += RemoveVertex;
+
+			if (Vertices.Count > 0)
+				newPoint.VertexRemovedEvent += RemoveVertex;
 
 			Vertices.Add(newPoint);
 			AddVertexEvent?.Invoke(newPoint);

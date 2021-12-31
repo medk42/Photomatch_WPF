@@ -10,7 +10,9 @@ namespace GuiEnums
 
 	public enum ProjectState { None, NewProject, NamedProject }
 
-	public enum DesignState { CameraCalibration, ModelCreation }
+	public enum DesignTool { CameraCalibration, ModelCreation }
 
 	public enum KeyboardKey { LeftShift };
+
+	public enum ModelCreationTool { Delete, Edge };
 }

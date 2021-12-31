@@ -38,6 +38,7 @@
                 <RadioButton Name="CameraRadioButton" Checked="CameraRadioButton_Checked" Content="Camera"/>
                 <RadioButton Name="ModelRadioButton" Checked="ModelRadioButton_Checked" Content="Model"/>
             </ToolBar>
+
             <ToolBar Name="CameraCalibrationTools">
                 <ComboBox IsEnabled="False" 
                       Name="AxesComboBox" 
@@ -55,6 +56,11 @@
                 <CheckBox Name="XInvertedCheckbox" IsEnabled="False" Content="X Inverted"></CheckBox>
                 <CheckBox Name="YInvertedCheckbox" IsEnabled="False" Content="Y Inverted"></CheckBox>
                 <CheckBox Name="ZInvertedCheckbox" IsEnabled="False" Content="Z Inverted"></CheckBox>
+            </ToolBar>
+
+            <ToolBar Name="ModelCreationTools" Visibility="Collapsed">
+                <RadioButton Name="DeleteRadioButton" Checked="DeleteRadioButton_Checked" Content="Delete"/>
+                <RadioButton Name="EdgeRadioButton" Checked="EdgeRadioButton_Checked" Content="Edge"/>
             </ToolBar>
         </ToolBarTray>
 

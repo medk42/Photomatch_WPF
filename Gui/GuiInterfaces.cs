@@ -35,8 +35,8 @@ namespace GuiInterfaces
 		string GetLoadProjectFilePath();
 		IWindow CreateImageWindow(ImageWindow imageWindow, string title);
 		void DisplayProjectName(string projectName);
-		void ShowCameraCalibrationTools(bool show);
-		void DisplayDesignState(DesignState designState);
+		void DisplayDesignTool(DesignTool designTool);
+		void DisplayModelCreationTool(ModelCreationTool modelCreationTool);
 	}
 
 	public interface IWindow
@@ -57,6 +57,7 @@ namespace GuiInterfaces
 		void SaveProject_Pressed();
 		void SaveProjectAs_Pressed();
 		void LoadProject_Pressed();
-		void DesignState_Changed(DesignState newDesignState);
+		void DesignTool_Changed(DesignTool newDesignTool);
+		void ModelCreationTool_Changed(ModelCreationTool newModelCreationTool);
 	}
 }

@@ -114,8 +114,10 @@ namespace Photomatch_ProofOfConcept_WPF
 		private void SaveProject_Click(object sender, RoutedEventArgs e) => ActionListener?.SaveProject_Pressed();
 		private void SaveProjectAs_Click(object sender, RoutedEventArgs e) => ActionListener?.SaveProjectAs_Pressed();
 		private void LoadProject_Click(object sender, RoutedEventArgs e) => ActionListener?.LoadProject_Pressed();
-		private void CameraRadioButton_Checked(object sender, RoutedEventArgs e) => ActionListener?.DesignState_Changed(DesignState.CameraCalibration);
-		private void ModelRadioButton_Checked(object sender, RoutedEventArgs e) => ActionListener?.DesignState_Changed(DesignState.ModelCreation);
+		private void CameraRadioButton_Checked(object sender, RoutedEventArgs e) => ActionListener?.DesignTool_Changed(DesignTool.CameraCalibration);
+		private void ModelRadioButton_Checked(object sender, RoutedEventArgs e) => ActionListener?.DesignTool_Changed(DesignTool.ModelCreation);
+		private void DeleteRadioButton_Checked(object sender, RoutedEventArgs e) => ActionListener?.ModelCreationTool_Changed(ModelCreationTool.Delete);
+		private void EdgeRadioButton_Checked(object sender, RoutedEventArgs e) => ActionListener?.ModelCreationTool_Changed(ModelCreationTool.Edge);
 
 		private void MainDockMgr_ActiveContentChanged(object sender, EventArgs e)
 		{
@@ -243,23 +245,34 @@ namespace Photomatch_ProofOfConcept_WPF
 			InvertedAxesCheckboxIgnore = false;
 		}
 
-		public void ShowCameraCalibrationTools(bool show)
+		public void DisplayDesignTool(DesignTool designTool)
 		{
-			if (show)
-				CameraCalibrationTools.Visibility = Visibility.Visible;
-			else
-				CameraCalibrationTools.Visibility = Visibility.Collapsed;
+			switch (designTool)
+			{
+				case DesignTool.CameraCalibration:
+					CameraRadioButton.IsChecked = true;
+					CameraCalibrationTools.Visibility = Visibility.Visible;
+					ModelCreationTools.Visibility = Visibility.Collapsed;
+					break;
+				case DesignTool.ModelCreation:
+					ModelRadioButton.IsChecked = true;
+					CameraCalibrationTools.Visibility = Visibility.Collapsed;
+					ModelCreationTools.Visibility = Visibility.Visible;
+					break;
+				default:
+					throw new Exception("Unknown switch case.");
+			}
 		}
 
-		public void DisplayDesignState(DesignState designState)
+		public void DisplayModelCreationTool(ModelCreationTool modelCreationTool)
 		{
-			switch (designState)
+			switch (modelCreationTool)
 			{
-				case DesignState.CameraCalibration:
-					CameraRadioButton.IsChecked = true;
+				case ModelCreationTool.Delete:
+					DeleteRadioButton.IsChecked = true;
 					break;
-				case DesignState.ModelCreation:
-					ModelRadioButton.IsChecked = true;
+				case ModelCreationTool.Edge:
+					EdgeRadioButton.IsChecked = true;
 					break;
 				default:
 					throw new Exception("Unknown switch case.");
