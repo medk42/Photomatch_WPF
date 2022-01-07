@@ -205,7 +205,7 @@ namespace Lines
 					return intersection.Intersection;
 			}
 
-			return ray.Start;
+			return Vector2.InvalidInstance;
 		}
 
 		/// <summary>

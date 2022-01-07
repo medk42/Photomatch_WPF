@@ -212,9 +212,9 @@ namespace GuiControls
 				Vector2 endY = Intersections2D.GetRayInsideBoxIntersection(new Ray2D(Perspective.Origin, dirY), new Vector2(), imageSize);
 				Vector2 endZ = Intersections2D.GetRayInsideBoxIntersection(new Ray2D(Perspective.Origin, dirZ), new Vector2(), imageSize);
 
-				LineX.End = endX;
-				LineY.End = endY;
-				LineZ.End = endZ;
+				LineX.End = endX.Valid ? endX : Perspective.Origin;
+				LineY.End = endY.Valid ? endY : Perspective.Origin;
+				LineZ.End = endZ.Valid ? endZ : Perspective.Origin;
 			}
 			else
 			{

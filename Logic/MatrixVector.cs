@@ -275,6 +275,8 @@ namespace MatrixVector
 
 	public struct Vector2 : ISafeSerializable<Vector2>
 	{
+		public static Vector2 InvalidInstance = new Vector2(double.NaN, double.NaN);
+
 		public Vector2(double X, double Y)
 		{
 			this.X = X;

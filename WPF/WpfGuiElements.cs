@@ -73,6 +73,7 @@ namespace WpfGuiElements
 			}
 		}
 
+		private bool OutsideView_ = false;
 		private bool Visible_ = true;
 		public bool Visible
 		{
@@ -81,13 +82,16 @@ namespace WpfGuiElements
 			{
 				if (Visible_ != value)
 				{
-					if (Visible_)
+					if (!OutsideView_)
 					{
-						RemoveOldColor(Color);
-					}
-					else
-					{
-						AddNewColor(Color);
+						if (Visible_)
+						{
+							RemoveOldColor(Color);
+						}
+						else
+						{
+							AddNewColor(Color);
+						}
 					}
 
 					Visible_ = value;
@@ -132,10 +136,10 @@ namespace WpfGuiElements
 				EndEllipse = null;
 			}
 
+			AddNewColor(Color);
+
 			this.Start = Start.AsVector2();
 			this.End = End.AsVector2();
-
-			AddNewColor(Color);
 		}
 
 		public void SetNewScale(double scale)
@@ -154,8 +158,25 @@ namespace WpfGuiElements
 
 		private void UpdateDrawnLine()
 		{
-			Point start = LimitPointRayToImageBox(Start, End).AsPoint();
-			Point end = LimitPointRayToImageBox(End, Start).AsPoint();
+			Vector2 startVector = LimitPointRayToImageBox(Start, End);
+			Vector2 endVector = LimitPointRayToImageBox(End, Start);
+
+			if (!startVector.Valid || !endVector.Valid)
+			{
+				if (Visible)
+					RemoveOldColor(Color);
+				OutsideView_ = true;
+				return;
+			}
+			else if (OutsideView_)
+			{
+				if (Visible)
+					AddNewColor(Color);
+				OutsideView_ = false;
+			}
+
+			Point start = startVector.AsPoint();
+			Point end = endVector.AsPoint();
 
 			if (Line != null)
 			{
