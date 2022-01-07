@@ -334,5 +334,10 @@ namespace MatrixVector
 			X = reader.ReadDouble();
 			Y = reader.ReadDouble();
 		}
+
+		public override string ToString()
+		{
+			return $"({X}, {Y})";
+		}
 	}
 }
