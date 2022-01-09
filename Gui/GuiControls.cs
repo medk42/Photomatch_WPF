@@ -712,6 +712,10 @@ namespace GuiControls
 					CameraCalibrationHandler.Active = true;
 					ModelCreationHandler.Active = false;
 					break;
+				case DesignTool.CameraModelCalibration:
+					CameraCalibrationHandler.Active = false;
+					ModelCreationHandler.Active = false;
+					break;
 				case DesignTool.ModelCreation:
 					CameraCalibrationHandler.Active = false;
 					ModelCreationHandler.Active = true;

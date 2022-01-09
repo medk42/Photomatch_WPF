@@ -36,6 +36,7 @@
         <ToolBarTray DockPanel.Dock="Top">
             <ToolBar>
                 <RadioButton Name="CameraRadioButton" Checked="CameraRadioButton_Checked" Content="Camera"/>
+                <RadioButton Name="CameraModelRadioButton" Checked="CameraModelRadioButton_Checked" Content="Model Calibration"/>
                 <RadioButton Name="ModelRadioButton" Checked="ModelRadioButton_Checked" Content="Model"/>
             </ToolBar>
 

@@ -115,6 +115,7 @@ namespace Photomatch_ProofOfConcept_WPF
 		private void SaveProjectAs_Click(object sender, RoutedEventArgs e) => ActionListener?.SaveProjectAs_Pressed();
 		private void LoadProject_Click(object sender, RoutedEventArgs e) => ActionListener?.LoadProject_Pressed();
 		private void CameraRadioButton_Checked(object sender, RoutedEventArgs e) => ActionListener?.DesignTool_Changed(DesignTool.CameraCalibration);
+		private void CameraModelRadioButton_Checked(object sender, RoutedEventArgs e) => ActionListener?.DesignTool_Changed(DesignTool.CameraModelCalibration);
 		private void ModelRadioButton_Checked(object sender, RoutedEventArgs e) => ActionListener?.DesignTool_Changed(DesignTool.ModelCreation);
 		private void DeleteRadioButton_Checked(object sender, RoutedEventArgs e) => ActionListener?.ModelCreationTool_Changed(ModelCreationTool.Delete);
 		private void EdgeRadioButton_Checked(object sender, RoutedEventArgs e) => ActionListener?.ModelCreationTool_Changed(ModelCreationTool.Edge);
@@ -247,16 +248,20 @@ namespace Photomatch_ProofOfConcept_WPF
 
 		public void DisplayDesignTool(DesignTool designTool)
 		{
+			CameraCalibrationTools.Visibility = Visibility.Collapsed;
+			ModelCreationTools.Visibility = Visibility.Collapsed;
+
 			switch (designTool)
 			{
 				case DesignTool.CameraCalibration:
 					CameraRadioButton.IsChecked = true;
 					CameraCalibrationTools.Visibility = Visibility.Visible;
-					ModelCreationTools.Visibility = Visibility.Collapsed;
+					break;
+				case DesignTool.CameraModelCalibration:
+					CameraModelRadioButton.IsChecked = true;
 					break;
 				case DesignTool.ModelCreation:
 					ModelRadioButton.IsChecked = true;
-					CameraCalibrationTools.Visibility = Visibility.Collapsed;
 					ModelCreationTools.Visibility = Visibility.Visible;
 					break;
 				default:
