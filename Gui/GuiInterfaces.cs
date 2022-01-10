@@ -59,5 +59,6 @@ namespace GuiInterfaces
 		void LoadProject_Pressed();
 		void DesignTool_Changed(DesignTool newDesignTool);
 		void ModelCreationTool_Changed(ModelCreationTool newModelCreationTool);
+		void CameraModelCalibrationTool_Click(CameraModelCalibrationTool cameraModelCalibrationTool);
 	}
 }

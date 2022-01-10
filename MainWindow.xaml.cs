@@ -119,15 +119,15 @@ namespace Photomatch_ProofOfConcept_WPF
 		private void ModelRadioButton_Checked(object sender, RoutedEventArgs e) => ActionListener?.DesignTool_Changed(DesignTool.ModelCreation);
 		private void DeleteRadioButton_Checked(object sender, RoutedEventArgs e) => ActionListener?.ModelCreationTool_Changed(ModelCreationTool.Delete);
 		private void EdgeRadioButton_Checked(object sender, RoutedEventArgs e) => ActionListener?.ModelCreationTool_Changed(ModelCreationTool.Edge);
+		private void CalibrateOriginButton_Click(object sender, RoutedEventArgs e) => ActionListener?.CameraModelCalibrationTool_Click(CameraModelCalibrationTool.CalibrateOrigin);
 
 		private void MainDockMgr_ActiveContentChanged(object sender, EventArgs e)
 		{
 			if (MainDockMgr.ActiveContent != null)
 			{
-				AxesComboBox.IsEnabled = true;
-				XInvertedCheckbox.IsEnabled = true;
-				YInvertedCheckbox.IsEnabled = true;
-				ZInvertedCheckbox.IsEnabled = true;
+				CameraCalibrationTools.IsEnabled = true;
+				CameraModelCalibrationTools.IsEnabled = true;
+				ModelCreationTools.IsEnabled = true;
 
 				ImageViewModel imageViewModel = MainDockMgr.ActiveContent as ImageViewModel;
 				if (imageViewModel == null)
@@ -138,10 +138,9 @@ namespace Photomatch_ProofOfConcept_WPF
 			}
 			else
 			{
-				AxesComboBox.IsEnabled = false;
-				XInvertedCheckbox.IsEnabled = false;
-				YInvertedCheckbox.IsEnabled = false;
-				ZInvertedCheckbox.IsEnabled = false;
+				CameraCalibrationTools.IsEnabled = false;
+				CameraModelCalibrationTools.IsEnabled = false;
+				ModelCreationTools.IsEnabled = false;
 			}
 		}
 
@@ -250,6 +249,7 @@ namespace Photomatch_ProofOfConcept_WPF
 		{
 			CameraCalibrationTools.Visibility = Visibility.Collapsed;
 			ModelCreationTools.Visibility = Visibility.Collapsed;
+			CameraModelCalibrationTools.Visibility = Visibility.Collapsed;
 
 			switch (designTool)
 			{
@@ -259,6 +259,7 @@ namespace Photomatch_ProofOfConcept_WPF
 					break;
 				case DesignTool.CameraModelCalibration:
 					CameraModelRadioButton.IsChecked = true;
+					CameraModelCalibrationTools.Visibility = Visibility.Visible;
 					break;
 				case DesignTool.ModelCreation:
 					ModelRadioButton.IsChecked = true;

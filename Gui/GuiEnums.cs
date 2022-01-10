@@ -15,4 +15,6 @@ namespace GuiEnums
 	public enum KeyboardKey { LeftShift, Escape };
 
 	public enum ModelCreationTool { Delete, Edge };
+
+	public enum CameraModelCalibrationTool { CalibrateOrigin };
 }

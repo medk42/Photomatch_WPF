@@ -35,13 +35,13 @@
 
         <ToolBarTray DockPanel.Dock="Top">
             <ToolBar>
-                <RadioButton Name="CameraRadioButton" Checked="CameraRadioButton_Checked" Content="Camera"/>
+                <RadioButton Name="CameraRadioButton" Checked="CameraRadioButton_Checked" Content="Camera" IsChecked="True"/>
                 <RadioButton Name="CameraModelRadioButton" Checked="CameraModelRadioButton_Checked" Content="Model Calibration"/>
                 <RadioButton Name="ModelRadioButton" Checked="ModelRadioButton_Checked" Content="Model"/>
             </ToolBar>
 
-            <ToolBar Name="CameraCalibrationTools">
-                <ComboBox IsEnabled="False" 
+            <ToolBar Name="CameraCalibrationTools" IsEnabled="False">
+                <ComboBox
                       Name="AxesComboBox" 
                       SelectionChanged="AxesComboBox_SelectionChanged" 
                       MinWidth="40" 
@@ -54,14 +54,18 @@
                     <ComboBoxItem Content="ZY"></ComboBoxItem>
                 </ComboBox>
 
-                <CheckBox Name="XInvertedCheckbox" IsEnabled="False" Content="X Inverted"></CheckBox>
-                <CheckBox Name="YInvertedCheckbox" IsEnabled="False" Content="Y Inverted"></CheckBox>
-                <CheckBox Name="ZInvertedCheckbox" IsEnabled="False" Content="Z Inverted"></CheckBox>
+                <CheckBox Name="XInvertedCheckbox" Content="X Inverted"></CheckBox>
+                <CheckBox Name="YInvertedCheckbox" Content="Y Inverted"></CheckBox>
+                <CheckBox Name="ZInvertedCheckbox" Content="Z Inverted"></CheckBox>
             </ToolBar>
 
-            <ToolBar Name="ModelCreationTools" Visibility="Collapsed">
-                <RadioButton Name="DeleteRadioButton" Checked="DeleteRadioButton_Checked" Content="Delete"/>
+            <ToolBar Name="CameraModelCalibrationTools" Visibility="Collapsed" IsEnabled="false">
+                <Button Name="CalibrateOriginButton" Content="Calibrate Origin" Click="CalibrateOriginButton_Click"></Button>
+            </ToolBar>
+
+            <ToolBar Name="ModelCreationTools" Visibility="Collapsed" IsEnabled="False">
                 <RadioButton Name="EdgeRadioButton" Checked="EdgeRadioButton_Checked" Content="Edge"/>
+                <RadioButton Name="DeleteRadioButton" Checked="DeleteRadioButton_Checked" Content="Delete"/>
             </ToolBar>
         </ToolBarTray>
 

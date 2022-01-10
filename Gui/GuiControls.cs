@@ -577,8 +577,13 @@ namespace GuiControls
 
 		private void SetActive(bool active)
 		{
+			ShowModel(active);
+		}
+
+		public void ShowModel(bool show)
+		{
 			foreach (var lineTuple in ModelLines)
-				lineTuple.Item1.Visible = active;
+				lineTuple.Item1.Visible = show;
 		}
 
 		public void UpdateDisplayedLines()
@@ -612,6 +617,40 @@ namespace GuiControls
 		}
 	}
 
+	class CameraModelCalibrationHandler
+	{
+		private bool Active_;
+		public bool Active
+		{
+			get => Active_;
+			set
+			{
+				if (value != Active_)
+				{
+					Active_ = value;
+					SetActive(Active_);
+				}
+			}
+		}
+
+		private readonly ModelCreationHandler ModelCreationHandler;
+
+		public CameraModelCalibrationHandler(ModelCreationHandler modelCreationHandler)
+		{
+			this.ModelCreationHandler = modelCreationHandler;
+		}
+
+		private void SetActive(bool active)
+		{
+			ModelCreationHandler.ShowModel(active);
+		}
+
+		public void CalibrationTool_Click(CameraModelCalibrationTool cameraModelCalibrationTool)
+		{
+
+		}
+	}
+
 	public class ImageWindow
 	{
 		private static readonly double PointGrabRadius = 8;
@@ -624,6 +663,7 @@ namespace GuiControls
 
 		private ModelCreationHandler ModelCreationHandler;
 		private CameraCalibrationHandler CameraCalibrationHandler;
+		private CameraModelCalibrationHandler CameraModelCalibrationHandler;
 
 		private bool Initialized = false;
 
@@ -632,7 +672,7 @@ namespace GuiControls
 			get => Perspective;
 		}
 
-		public ImageWindow(PerspectiveData perspective, MasterGUI gui, ILogger logger, Model model, DesignTool startState)
+		public ImageWindow(PerspectiveData perspective, MasterGUI gui, ILogger logger, Model model, DesignTool currentDesignTool, ModelCreationTool currentModelCreationTool)
 		{
 			this.Gui = gui;
 			this.Logger = logger;
@@ -642,10 +682,12 @@ namespace GuiControls
 
 			this.ModelCreationHandler = new ModelCreationHandler(model, Perspective, Window, PointGrabRadius, PointDrawRadius);
 			this.CameraCalibrationHandler = new CameraCalibrationHandler(Perspective, Window, PointGrabRadius, PointDrawRadius);
+			this.CameraModelCalibrationHandler = new CameraModelCalibrationHandler(ModelCreationHandler);
 
 			this.CameraCalibrationHandler.CoordSystemUpdateEvent += ModelCreationHandler.UpdateDisplayedLines;
 
-			this.DesignTool_Changed(startState);
+			this.DesignTool_Changed(currentDesignTool);
+			this.ModelCreationTool_Changed(currentModelCreationTool);
 
 			this.Initialized = true;
 		}
@@ -706,18 +748,19 @@ namespace GuiControls
 
 		public void DesignTool_Changed(DesignTool newDesignTool)
 		{
+			CameraCalibrationHandler.Active = false;
+			ModelCreationHandler.Active = false;
+			CameraModelCalibrationHandler.Active = false;
+
 			switch (newDesignTool)
 			{
 				case DesignTool.CameraCalibration:
 					CameraCalibrationHandler.Active = true;
-					ModelCreationHandler.Active = false;
 					break;
 				case DesignTool.CameraModelCalibration:
-					CameraCalibrationHandler.Active = false;
-					ModelCreationHandler.Active = false;
+					CameraModelCalibrationHandler.Active = true;
 					break;
 				case DesignTool.ModelCreation:
-					CameraCalibrationHandler.Active = false;
 					ModelCreationHandler.Active = true;
 					break;
 				default:
@@ -728,6 +771,11 @@ namespace GuiControls
 		public void ModelCreationTool_Changed(ModelCreationTool newModelCreationTool)
 		{
 			ModelCreationHandler.CreationTool_Changed(newModelCreationTool);
+		}
+
+		public void CameraModelCalibrationTool_Click(CameraModelCalibrationTool cameraModelCalibrationTool)
+		{
+			CameraModelCalibrationHandler.CalibrationTool_Click(cameraModelCalibrationTool);
 		}
 	}
 
@@ -755,7 +803,7 @@ namespace GuiControls
 			this.Model = new Model();
 			this.Model.AddVertex(new Vector3());
 			this.DesignTool = DesignTool.CameraCalibration;
-			this.ModelCreationTool = ModelCreationTool.Delete;
+			this.ModelCreationTool = ModelCreationTool.Edge;
 
 			Gui.DisplayProjectName(NewProjectName);
 		}
@@ -789,7 +837,7 @@ namespace GuiControls
 			if (image != null)
 			{
 				Logger.Log("Load Image", "File loaded successfully.", LogType.Info);
-				Windows.Add(new ImageWindow(new PerspectiveData(image, filePath), Gui, Logger, Model, DesignTool));
+				Windows.Add(new ImageWindow(new PerspectiveData(image, filePath), Gui, Logger, Model, DesignTool, ModelCreationTool));
 
 				if (State == ProjectState.None)
 					State = ProjectState.NewProject;
@@ -919,7 +967,7 @@ namespace GuiControls
 					for (int i = 0; i < windowCount; i++)
 					{
 						PerspectiveData perspective = ISafeSerializable<PerspectiveData>.CreateDeserialize(reader);
-						Windows.Add(new ImageWindow(perspective, Gui, Logger, Model, DesignTool));
+						Windows.Add(new ImageWindow(perspective, Gui, Logger, Model, DesignTool, ModelCreationTool));
 					}
 				}
 
@@ -987,9 +1035,15 @@ namespace GuiControls
 			Gui.DisplayProjectName(NewProjectName);
 
 			DesignTool = DesignTool.CameraCalibration;
-			ModelCreationTool = ModelCreationTool.Delete;
+			ModelCreationTool = ModelCreationTool.Edge;
 			Gui.DisplayModelCreationTool(ModelCreationTool);
 			Gui.DisplayDesignTool(DesignTool);
+		}
+
+		public void CameraModelCalibrationTool_Click(CameraModelCalibrationTool cameraModelCalibrationTool)
+		{
+			foreach (ImageWindow window in Windows)
+				window.CameraModelCalibrationTool_Click(cameraModelCalibrationTool);
 		}
 	}
 }
