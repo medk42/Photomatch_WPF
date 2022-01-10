@@ -1,9 +1,9 @@
-﻿using MatrixVector;
-using Serializables;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
+
+using Photomatch_ProofOfConcept_WPF.Utilities;
 
 namespace Photomatch_ProofOfConcept_WPF.Logic
 {

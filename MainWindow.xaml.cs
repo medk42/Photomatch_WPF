@@ -3,14 +3,13 @@ using System;
 using System.Windows;
 using System.Windows.Controls;
 
-using Logging;
-using WpfLogging;
-using GuiInterfaces;
-using GuiControls;
+using Photomatch_ProofOfConcept_WPF.WPF;
 using Photomatch_ProofOfConcept_WPF.WPF.ViewModel;
-using Perspective;
-using GuiEnums;
 using Photomatch_ProofOfConcept_WPF.WPF.Helper;
+using Photomatch_ProofOfConcept_WPF.Gui;
+using Photomatch_ProofOfConcept_WPF.Gui.GuiControls;
+using Photomatch_ProofOfConcept_WPF.Utilities;
+using Photomatch_ProofOfConcept_WPF.Logic;
 
 namespace Photomatch_ProofOfConcept_WPF
 {

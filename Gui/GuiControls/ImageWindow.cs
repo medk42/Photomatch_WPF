@@ -1,0 +1,138 @@
+﻿using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Text;
+
+using Photomatch_ProofOfConcept_WPF.Logic;
+using Photomatch_ProofOfConcept_WPF.Utilities;
+
+namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls
+{
+	public class ImageWindow
+	{
+		private static readonly double PointGrabRadius = 8;
+		private static readonly double PointDrawRadius = 4;
+
+		private MasterGUI Gui;
+		private ILogger Logger;
+		private IWindow Window { get; }
+		private PerspectiveData Perspective;
+
+		private ModelCreationHandler ModelCreationHandler;
+		private CameraCalibrationHandler CameraCalibrationHandler;
+		private CameraModelCalibrationHandler CameraModelCalibrationHandler;
+
+		private bool Initialized = false;
+
+		public ISafeSerializable<PerspectiveData> PerspectiveSafeSerializable
+		{
+			get => Perspective;
+		}
+
+		public ImageWindow(PerspectiveData perspective, MasterGUI gui, ILogger logger, Model model, DesignTool currentDesignTool, ModelCreationTool currentModelCreationTool)
+		{
+			this.Gui = gui;
+			this.Logger = logger;
+			this.Window = Gui.CreateImageWindow(this, Path.GetFileName(perspective.ImagePath));
+			this.Perspective = perspective;
+			this.Window.SetImage(perspective.Image);
+
+			this.ModelCreationHandler = new ModelCreationHandler(model, Perspective, Window, PointGrabRadius, PointDrawRadius);
+			this.CameraCalibrationHandler = new CameraCalibrationHandler(Perspective, Window, PointGrabRadius, PointDrawRadius);
+			this.CameraModelCalibrationHandler = new CameraModelCalibrationHandler(ModelCreationHandler);
+
+			this.CameraCalibrationHandler.CoordSystemUpdateEvent += ModelCreationHandler.UpdateDisplayedLines;
+
+			this.DesignTool_Changed(currentDesignTool);
+			this.ModelCreationTool_Changed(currentModelCreationTool);
+
+			this.Initialized = true;
+		}
+
+		public void MouseMove(Vector2 mouseCoord)
+		{
+			CameraCalibrationHandler.MouseMove(mouseCoord);
+			ModelCreationHandler.MouseMove(mouseCoord);
+		}
+
+		public void MouseDown(Vector2 mouseCoord, MouseButton button)
+		{
+			CameraCalibrationHandler.MouseDown(mouseCoord, button);
+			ModelCreationHandler.MouseDown(mouseCoord, button);
+		}
+
+		public void MouseUp(Vector2 mouseCoord, MouseButton button)
+		{
+			CameraCalibrationHandler.MouseUp(mouseCoord, button);
+			ModelCreationHandler.MouseUp(mouseCoord, button);
+		}
+
+		public void KeyDown(KeyboardKey key)
+		{
+			ModelCreationHandler.KeyDown(key);
+		}
+
+		public void KeyUp(KeyboardKey key)
+		{
+			ModelCreationHandler.KeyUp(key);
+		}
+
+		public void Dispose()
+		{
+			Perspective = null;
+			CameraCalibrationHandler.CoordSystemUpdateEvent -= ModelCreationHandler.UpdateDisplayedLines;
+
+			ModelCreationHandler.Dispose();
+			CameraCalibrationHandler.Dispose();
+			Window.DisposeAll();
+		}
+
+		public void CalibrationAxes_Changed(CalibrationAxes calibrationAxes)
+		{
+			if (Initialized)
+			{
+				CameraCalibrationHandler.CalibrationAxes_Changed(calibrationAxes);
+			}
+		}
+
+		public void InvertedAxes_Changed(InvertedAxes invertedAxes)
+		{
+			if (Initialized)
+			{
+				CameraCalibrationHandler.InvertedAxes_Changed(invertedAxes);
+			}
+		}
+
+		public void DesignTool_Changed(DesignTool newDesignTool)
+		{
+			CameraCalibrationHandler.Active = false;
+			ModelCreationHandler.Active = false;
+			CameraModelCalibrationHandler.Active = false;
+
+			switch (newDesignTool)
+			{
+				case DesignTool.CameraCalibration:
+					CameraCalibrationHandler.Active = true;
+					break;
+				case DesignTool.CameraModelCalibration:
+					CameraModelCalibrationHandler.Active = true;
+					break;
+				case DesignTool.ModelCreation:
+					ModelCreationHandler.Active = true;
+					break;
+				default:
+					throw new Exception("Unknown switch case.");
+			}
+		}
+
+		public void ModelCreationTool_Changed(ModelCreationTool newModelCreationTool)
+		{
+			ModelCreationHandler.CreationTool_Changed(newModelCreationTool);
+		}
+
+		public void CameraModelCalibrationTool_Click(CameraModelCalibrationTool cameraModelCalibrationTool)
+		{
+			CameraModelCalibrationHandler.CalibrationTool_Click(cameraModelCalibrationTool);
+		}
+	}
+}

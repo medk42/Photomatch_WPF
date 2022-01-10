@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace Logging
+namespace Photomatch_ProofOfConcept_WPF.Utilities
 {
 	public enum LogType
 	{

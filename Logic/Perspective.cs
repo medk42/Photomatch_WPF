@@ -1,12 +1,10 @@
 ﻿using System.IO;
-
-using MatrixVector;
 using System;
-using Lines;
 using SixLabors.ImageSharp;
-using Serializables;
 
-namespace Perspective
+using Photomatch_ProofOfConcept_WPF.Utilities;
+
+namespace Photomatch_ProofOfConcept_WPF.Logic
 {
 	public enum CalibrationAxes { XY, YX, XZ, ZX, YZ, ZY };
 

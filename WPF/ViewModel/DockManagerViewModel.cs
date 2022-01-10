@@ -1,11 +1,10 @@
-﻿using Photomatch_ProofOfConcept_WPF.WPF.ViewModel;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Text;
 
-namespace Photomatch_ProofOfConcept_WPF.WPF
+namespace Photomatch_ProofOfConcept_WPF.WPF.ViewModel
 {
     public class DockManagerViewModel
     {

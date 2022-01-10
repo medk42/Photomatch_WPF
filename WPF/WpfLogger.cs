@@ -2,9 +2,9 @@
 using System.Windows;
 using System.Windows.Controls;
 
-using Logging;
+using Photomatch_ProofOfConcept_WPF.Utilities;
 
-namespace WpfLogging
+namespace Photomatch_ProofOfConcept_WPF.WPF
 {
 	public class WarningErrorGUILogger : ILogger
 	{

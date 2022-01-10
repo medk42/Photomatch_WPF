@@ -2,11 +2,9 @@
 using System.Collections.Generic;
 using System.Text;
 
-using MatrixVector;
-using GuiEnums;
-using GuiInterfaces;
+using Photomatch_ProofOfConcept_WPF.Logic;
 
-namespace GuiPoints
+namespace Photomatch_ProofOfConcept_WPF.Gui
 {
 	public delegate void UpdateValue<T>(T value);
 

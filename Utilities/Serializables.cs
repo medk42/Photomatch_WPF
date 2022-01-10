@@ -1,9 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Text;
 
-namespace Serializables
+namespace Photomatch_ProofOfConcept_WPF.Utilities
 {
 	public interface ISafeSerializable<T> where T : ISafeSerializable<T>, new()
 	{

@@ -4,15 +4,11 @@ using System.Text;
 using System.Windows;
 using System.Windows.Media;
 
-using MatrixVector;
-using WpfExtensions;
-using WpfInterfaces;
-using GuiInterfaces;
-using GuiEnums;
 using Photomatch_ProofOfConcept_WPF.WPF.ViewModel;
-using Lines;
+using Photomatch_ProofOfConcept_WPF.Gui;
+using Photomatch_ProofOfConcept_WPF.Logic;
 
-namespace WpfGuiElements
+namespace Photomatch_ProofOfConcept_WPF.WPF
 {
 	public class WpfGuiElement
 	{

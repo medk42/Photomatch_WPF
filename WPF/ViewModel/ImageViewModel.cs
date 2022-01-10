@@ -1,15 +1,4 @@
-﻿using GuiControls;
-using GuiEnums;
-using GuiInterfaces;
-using Logging;
-using MatrixVector;
-using Photomatch_ProofOfConcept_WPF.WPF.Helper;
-using Perspective;
-using WpfExtensions;
-using WpfGuiElements;
-using WpfInterfaces;
-
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
@@ -19,6 +8,13 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
+
+using Photomatch_ProofOfConcept_WPF.WPF.Helper;
+using Photomatch_ProofOfConcept_WPF.Gui;
+using Photomatch_ProofOfConcept_WPF.Logic;
+using Photomatch_ProofOfConcept_WPF.Utilities;
+using Photomatch_ProofOfConcept_WPF.Gui.GuiControls;
+using Photomatch_ProofOfConcept_WPF;
 
 namespace Photomatch_ProofOfConcept_WPF.WPF.ViewModel
 {
@@ -208,21 +204,21 @@ namespace Photomatch_ProofOfConcept_WPF.WPF.ViewModel
 			IsClosed = true;
 		}
 
-		private GuiEnums.MouseButton? GetMouseButton(System.Windows.Input.MouseButton button)
+		private Gui.MouseButton? GetMouseButton(System.Windows.Input.MouseButton button)
 		{
 			if (button == System.Windows.Input.MouseButton.Left)
-				return GuiEnums.MouseButton.Left;
+				return Gui.MouseButton.Left;
 			else if (button == System.Windows.Input.MouseButton.Right)
-				return GuiEnums.MouseButton.Right;
+				return Gui.MouseButton.Right;
 			else if (button == System.Windows.Input.MouseButton.Middle)
-				return GuiEnums.MouseButton.Middle;
+				return Gui.MouseButton.Middle;
 			else
 				return null;
 		}
 
 		public void MouseDown(object sender, MouseButtonEventArgs e)
 		{
-			GuiEnums.MouseButton? button = GetMouseButton(e.ChangedButton);
+			Gui.MouseButton? button = GetMouseButton(e.ChangedButton);
 			if (!button.HasValue)
 				return;
 
@@ -239,7 +235,7 @@ namespace Photomatch_ProofOfConcept_WPF.WPF.ViewModel
 
 		public void MouseUp(object sender, MouseButtonEventArgs e)
 		{
-			GuiEnums.MouseButton? button = GetMouseButton(e.ChangedButton);
+			Gui.MouseButton? button = GetMouseButton(e.ChangedButton);
 			if (!button.HasValue)
 				return;
 
@@ -277,9 +273,9 @@ namespace Photomatch_ProofOfConcept_WPF.WPF.ViewModel
 			Point point = e.GetPosition(ImageView);
 
 			point = new Point(Math.Clamp(point.X, 0, Width - 1), Math.Clamp(point.X, 0, Height - 1));
-			ImageWindow.MouseUp(point.AsVector2(), GuiEnums.MouseButton.Left);
-			ImageWindow.MouseUp(point.AsVector2(), GuiEnums.MouseButton.Middle);
-			ImageWindow.MouseUp(point.AsVector2(), GuiEnums.MouseButton.Right);
+			ImageWindow.MouseUp(point.AsVector2(), Gui.MouseButton.Left);
+			ImageWindow.MouseUp(point.AsVector2(), Gui.MouseButton.Middle);
+			ImageWindow.MouseUp(point.AsVector2(), Gui.MouseButton.Right);
 		}
 
 		private void Viewbox_SizeChanged_(object args)

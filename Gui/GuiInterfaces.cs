@@ -3,13 +3,11 @@ using System.Collections.Generic;
 using System.Text;
 using SixLabors.ImageSharp;
 
-using MatrixVector;
-using Logging;
-using GuiEnums;
-using GuiControls;
-using Perspective;
+using Photomatch_ProofOfConcept_WPF.Logic;
+using Photomatch_ProofOfConcept_WPF.Utilities;
+using Photomatch_ProofOfConcept_WPF.Gui.GuiControls;
 
-namespace GuiInterfaces
+namespace Photomatch_ProofOfConcept_WPF.Gui
 {
 	public interface ILine
 	{

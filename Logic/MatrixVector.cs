@@ -1,8 +1,9 @@
-﻿using Serializables;
-using System;
+﻿using System;
 using System.IO;
 
-namespace MatrixVector
+using Photomatch_ProofOfConcept_WPF.Utilities;
+
+namespace Photomatch_ProofOfConcept_WPF.Logic
 {
 	public struct Matrix3x3 : ISafeSerializable<Matrix3x3>
 	{

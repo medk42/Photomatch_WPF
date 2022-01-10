@@ -1,10 +1,9 @@
-﻿using MatrixVector;
-using System;
-using Serializables;
+﻿using System;
 using System.IO;
-using Photomatch_ProofOfConcept_WPF.Logic;
 
-namespace Lines
+using Photomatch_ProofOfConcept_WPF.Utilities;
+
+namespace Photomatch_ProofOfConcept_WPF.Logic
 {
 	public struct Line2D : ISafeSerializable<Line2D>
 	{

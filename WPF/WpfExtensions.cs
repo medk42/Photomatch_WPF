@@ -2,9 +2,9 @@
 using System.Collections.Generic;
 using System.Text;
 using System.Windows;
-using MatrixVector;
+using Photomatch_ProofOfConcept_WPF.Logic;
 
-namespace WpfExtensions
+namespace Photomatch_ProofOfConcept_WPF.WPF
 {
 	static class PointExtensions
 	{
