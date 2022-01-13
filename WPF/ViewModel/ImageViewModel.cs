@@ -108,7 +108,7 @@ namespace Photomatch_ProofOfConcept_WPF.WPF.ViewModel
 
 		private ILogger Logger;
 		private ImageWindow ImageWindow;
-		private double ViewboxImageScale;
+		private double ViewboxImageScale = double.NaN;
 		private List<IScalable> scalables = new List<IScalable>();
 		private Image ImageView;
 		private MainWindow MainWindow;
@@ -168,7 +168,10 @@ namespace Photomatch_ProofOfConcept_WPF.WPF.ViewModel
 
 		public double ScreenDistance(Vector2 pointA, Vector2 pointB)
 		{
-			return ViewboxImageScale * (pointA - pointB).Magnitude;
+			if (double.IsNaN(ViewboxImageScale))
+				return double.PositiveInfinity;
+			else
+				return ViewboxImageScale * (pointA - pointB).Magnitude;
 		}
 
 		public ILine CreateLine(Vector2 start, Vector2 end, double endRadius, ApplicationColor color)
