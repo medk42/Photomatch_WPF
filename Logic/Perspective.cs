@@ -171,6 +171,8 @@ namespace Photomatch_ProofOfConcept_WPF.Logic
 			_lineB1.Serialize(writer);
 			_lineB2.Serialize(writer);
 
+			writer.Write(_scale);
+
 			writer.Write((int)_calibrationAxes);
 			_invertedAxes.Serialize(writer);
 		}
@@ -191,6 +193,8 @@ namespace Photomatch_ProofOfConcept_WPF.Logic
 			_lineA2 = ISafeSerializable<Line2D>.CreateDeserialize(reader);
 			_lineB1 = ISafeSerializable<Line2D>.CreateDeserialize(reader);
 			_lineB2 = ISafeSerializable<Line2D>.CreateDeserialize(reader);
+
+			_scale = reader.ReadDouble();
 
 			_calibrationAxes = (CalibrationAxes)reader.ReadInt32();
 			_invertedAxes = ISafeSerializable<InvertedAxes>.CreateDeserialize(reader);
