@@ -10,6 +10,8 @@ namespace Photomatch_ProofOfConcept_WPF.Logic
 		public Vector2 Start { get; set; }
 		public Vector2 End { get; set; }
 
+		public double Length => (Start - End).Magnitude;
+
 		public Line2D(Vector2 Start, Vector2 End)
 		{
 			this.Start = Start;
@@ -218,6 +220,37 @@ namespace Photomatch_ProofOfConcept_WPF.Logic
 		}
 	}
 
+	public struct Line3D : ISafeSerializable<Line3D>
+	{
+		public Vector3 Start { get; set; }
+		public Vector3 End { get; set; }
+
+		public double Length => (Start - End).Magnitude;
+
+		public Line3D(Vector3 Start, Vector3 End)
+		{
+			this.Start = Start;
+			this.End = End;
+		}
+
+		public Line3D WithStart(Vector3 NewStart) => new Line3D(NewStart, this.End);
+		public Line3D WithEnd(Vector3 NewEnd) => new Line3D(this.Start, NewEnd);
+
+		public Ray3D AsRay() => new Ray3D(Start, End - Start);
+
+		public void Serialize(BinaryWriter writer)
+		{
+			Start.Serialize(writer);
+			End.Serialize(writer);
+		}
+
+		public void Deserialize(BinaryReader reader)
+		{
+			Start = ISafeSerializable<Vector3>.CreateDeserialize(reader);
+			End = ISafeSerializable<Vector3>.CreateDeserialize(reader);
+		}
+	}
+
 	public struct Ray3D : ISafeSerializable<Ray3D>
 	{
 		public Vector3 Start { get; set; }
@@ -237,6 +270,8 @@ namespace Photomatch_ProofOfConcept_WPF.Logic
 
 		public Ray3D WithStart(Vector3 NewStart) => new Ray3D(NewStart, this.Direction);
 		public Ray3D WithDirection(Vector3 NewDirection) => new Ray3D(this.Start, NewDirection);
+
+		public Line3D AsLine() => new Line3D(Start, Start + Direction);
 
 		public void Serialize(BinaryWriter writer)
 		{

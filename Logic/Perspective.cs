@@ -41,6 +41,7 @@ namespace Photomatch_ProofOfConcept_WPF.Logic
 		private Line2D _lineB2 = new Line2D(new Vector2(0.55, 0.78), new Vector2(0.71, 0.68));
 		private CalibrationAxes _calibrationAxes = CalibrationAxes.XY;
 		private InvertedAxes _invertedAxes;
+		private double _scale = 1;
 
 		public Vector2 Origin
 		{
@@ -112,6 +113,16 @@ namespace Photomatch_ProofOfConcept_WPF.Logic
 			{
 				_invertedAxes = value;
 				RecalculateProjection();
+			}
+		}
+
+		public double Scale
+		{
+			get => _scale;
+			set
+			{
+				_scale = value;
+				_camera.UpdateScale(value);
 			}
 		}
 
@@ -202,6 +213,7 @@ namespace Photomatch_ProofOfConcept_WPF.Logic
 			double viewRatio = 1;
 
 			_camera.UpdateView(viewRatio, principalPoint, vanishingPointA, vanishingPointB, Origin, CalibrationAxes, InvertedAxes);
+			_camera.UpdateScale(Scale);
 		}
 
 		public Vector3 ScreenToWorld(Vector2 point) => _camera.ScreenToWorld(point);
@@ -209,6 +221,10 @@ namespace Photomatch_ProofOfConcept_WPF.Logic
 		public Vector2 WorldToScreen(Vector3 point) => _camera.WorldToScreen(point);
 
 		public Ray3D ScreenToWorldRay(Vector2 screenPoint) => _camera.ScreenToWorldRay(screenPoint);
+
+		public Vector2 MatchScreenWorldPoint(Vector2 screenPoint, Vector3 worldPoint) => _camera.MatchScreenWorldPoint(screenPoint, worldPoint);
+
+		public Vector3 MatchScreenWorldPoints(Vector2 screenPointPos, Vector3 worldPointPos, Vector2 screenPointScale, Vector3 worldPointScale) => _camera.MatchScreenWorldPoints(screenPointPos, worldPointPos, screenPointScale, worldPointScale);
 
 		public Vector2 GetXDirAt(Vector2 screenPoint)
 		{
@@ -234,43 +250,68 @@ namespace Photomatch_ProofOfConcept_WPF.Logic
 
 	public class Camera
 	{
-		private Matrix3x3 intrinsicMatrix;
-		private Matrix3x3 rotationMatrix;
+		private Matrix3x3 IntrinsicMatrix;
+		private Matrix3x3 RotationMatrix;
 
-		private Matrix3x3 intrinsicMatrixInverse;
-		private Matrix3x3 rotationMatrixInverse;
+		private Matrix3x3 IntrinsicMatrixInverse;
+		private Matrix3x3 RotationMatrixInverse;
 
-		private Vector3 translate;
+		private Vector3 Translate;
+
+		private double Scale;
 
 		public void UpdateView(double viewRatio, Vector2 principalPoint, Vector2 vanishingPointA, Vector2 vanishingPointB, Vector2 origin, CalibrationAxes axes, InvertedAxes inverted)
 		{
 			double scale = GetInstrinsicParametersScale(principalPoint, viewRatio, vanishingPointA, vanishingPointB);
-			intrinsicMatrix = GetIntrinsicParametersMatrix(principalPoint, scale, viewRatio);
-			intrinsicMatrixInverse = GetInvertedIntrinsicParametersMatrix(principalPoint, scale, viewRatio);
-			rotationMatrix = GetRotationalMatrix(intrinsicMatrixInverse, vanishingPointA, vanishingPointB, principalPoint, axes, inverted);
-			rotationMatrixInverse = rotationMatrix.Transposed();
+			IntrinsicMatrix = GetIntrinsicParametersMatrix(principalPoint, scale, viewRatio);
+			IntrinsicMatrixInverse = GetInvertedIntrinsicParametersMatrix(principalPoint, scale, viewRatio);
+			RotationMatrix = GetRotationalMatrix(IntrinsicMatrixInverse, vanishingPointA, vanishingPointB, principalPoint, axes, inverted);
+			RotationMatrixInverse = RotationMatrix.Transposed();
 
-			translate = intrinsicMatrixInverse * new Vector3(origin.X, origin.Y, 1);
+			Translate = IntrinsicMatrixInverse * new Vector3(origin.X, origin.Y, 1);
 		}
+
+		public void UpdateScale(double newScale) => Scale = newScale;
 
 		public Vector2 WorldToScreen(Vector3 worldPoint)
 		{
-			Vector3 point = rotationMatrix * worldPoint + translate;
+			Vector3 point = RotationMatrix * worldPoint * Scale + Translate;
 			point = point / point.Z;
-			point = intrinsicMatrix * point;
+			point = IntrinsicMatrix * point;
 			return new Vector2(point.X, point.Y);
 		}
 
 		public Vector3 ScreenToWorld(Vector2 screenPoint)
 		{
-			return rotationMatrixInverse * (intrinsicMatrixInverse * new Vector3(screenPoint.X, screenPoint.Y, 1) - translate);
+			return RotationMatrixInverse * (IntrinsicMatrixInverse * new Vector3(screenPoint.X, screenPoint.Y, 1) - Translate) / Scale;
 		}
 
 		public Ray3D ScreenToWorldRay(Vector2 screenPoint)
 		{
-			Vector3 origin = rotationMatrixInverse * (intrinsicMatrixInverse * new Vector3(screenPoint.X, screenPoint.Y, 1) - translate);
-			Vector3 behindOrigin = rotationMatrixInverse * (intrinsicMatrixInverse * new Vector3(screenPoint.X, screenPoint.Y, 1) * 2 - translate);
+			Vector3 origin = RotationMatrixInverse * (IntrinsicMatrixInverse * new Vector3(screenPoint.X, screenPoint.Y, 1) - Translate) / Scale;
+			Vector3 behindOrigin = RotationMatrixInverse * (IntrinsicMatrixInverse * new Vector3(screenPoint.X, screenPoint.Y, 1) * 2 - Translate) / Scale;
 			return new Ray3D(origin, behindOrigin - origin);
+		}
+
+		public Vector2 MatchScreenWorldPoint(Vector2 screenPoint, Vector3 worldPoint)
+		{
+			Vector3 rightHandSide = IntrinsicMatrix * (RotationMatrix * (Scale * worldPoint)) + new Vector3(0, 0, 1);
+			return new Vector2(screenPoint.X * rightHandSide.Z - rightHandSide.X, screenPoint.Y * rightHandSide.Z - rightHandSide.Y);
+		}
+
+		public Vector3 MatchScreenWorldPoints(Vector2 screenPointPos, Vector3 worldPointPos, Vector2 screenPointScale, Vector3 worldPointScale)
+		{
+			Vector3 a = IntrinsicMatrix * RotationMatrix * worldPointPos;
+			Vector2 s = screenPointPos;
+			Vector3 a2 = IntrinsicMatrix * RotationMatrix * worldPointScale;
+			Vector2 ps = Intersections2D.ProjectVectorToRay(screenPointScale, new Line2D(screenPointPos, WorldToScreen(worldPointScale)).AsRay()).Projection;
+
+			double S = (s.X - ps.X) / (a.X - s.X * a.Z - a2.X + ps.X * a2.Z);
+
+			double X = s.X + (s.X * a.Z - a.X) * S;
+			double Y = s.Y + (s.Y * a.Z - a.Y) * S;
+
+			return new Vector3(X, Y, S);
 		}
 
 		public static double GetInstrinsicParametersScale(Vector2 principalPoint, double viewRatio, Vector2 firstVanishingPoint, Vector2 secondVanishingPoint)

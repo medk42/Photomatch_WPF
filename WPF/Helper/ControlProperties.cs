@@ -39,7 +39,7 @@ namespace Photomatch_ProofOfConcept_WPF.WPF.Helper
             UIElement uiElement = GetUIElement(dependencyObject);
             IMouseHandler handler = uiElement.GetValue(MouseHandlerProperty) as IMouseHandler;
             if (handler == null) throw new ArgumentException("handler is not " + nameof(IMouseHandler));
-
+            
             uiElement.MouseDown += handler.MouseDown;
             uiElement.MouseUp += handler.MouseUp;
             uiElement.MouseMove += handler.MouseMove;

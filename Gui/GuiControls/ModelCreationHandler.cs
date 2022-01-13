@@ -26,9 +26,9 @@ namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls
 		private Model Model;
 
 		private List<Tuple<ILine, Edge, EdgeEventListener>> ModelLines = new List<Tuple<ILine, Edge, EdgeEventListener>>();
-		private IEllipse ModelHoverEllipse;
 		private ModelCreationTool ModelCreationTool;
 		private Vector2 LastMouseCoord;
+		private ModelHoverEllipse ModelHoverEllipse;
 
 		private Vertex ModelDraggingVertex = null;
 		private Ray2D ModelDraggingXAxis, ModelDraggingYAxis, ModelDraggingZAxis, LastRay;
@@ -50,28 +50,12 @@ namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls
 			this.Window = window;
 			this.PointGrabRadius = pointGrabRadius;
 			this.PointDrawRadius = pointDrawRadius;
+			this.ModelHoverEllipse = new ModelHoverEllipse(Model, Perspective, Window, PointGrabRadius, PointDrawRadius);
 
 			CreateModelLines();
-			this.ModelHoverEllipse = Window.CreateEllipse(new Vector2(), PointDrawRadius, ApplicationColor.Model);
-			this.ModelHoverEllipse.Visible = false;
 
 			this.Active = false;
 			SetActive(Active);
-		}
-
-		private void HandleHoverEllipse(Vector2 mouseCoord)
-		{
-			ModelHoverEllipse.Visible = false;
-			foreach (Vertex point in Model.Vertices)
-			{
-				Vector2 pointPos = Perspective.WorldToScreen(point.Position);
-				if (Window.ScreenDistance(mouseCoord, pointPos) < PointGrabRadius)
-				{
-					ModelHoverEllipse.Position = pointPos;
-					ModelHoverEllipse.Visible = true;
-					break;
-				}
-			}
 		}
 
 		public void MouseMove(Vector2 mouseCoord)
@@ -83,11 +67,11 @@ namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls
 				switch (ModelCreationTool)
 				{
 					case ModelCreationTool.Delete:
-						HandleHoverEllipse(mouseCoord);
+						this.ModelHoverEllipse.MouseEvent(mouseCoord);
 						break;
 					case ModelCreationTool.Edge:
 						MouseMoveEdge(mouseCoord);
-						HandleHoverEllipse(mouseCoord);
+						this.ModelHoverEllipse.MouseEvent(mouseCoord);
 						break;
 					default:
 						throw new Exception("Unknown switch case.");
@@ -106,11 +90,11 @@ namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls
 				{
 					case ModelCreationTool.Delete:
 						MouseDownDelete(mouseCoord, button);
-						HandleHoverEllipse(mouseCoord);
+						this.ModelHoverEllipse.MouseEvent(mouseCoord);
 						break;
 					case ModelCreationTool.Edge:
 						MouseDownEdge(mouseCoord, button);
-						HandleHoverEllipse(mouseCoord);
+						this.ModelHoverEllipse.MouseEvent(mouseCoord);
 						break;
 					default:
 						throw new Exception("Unknown switch case.");
@@ -235,7 +219,7 @@ namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls
 			}
 		}
 
-		private Vertex GetVertexUnderMouse(Vector2 mouseCoord)
+		public Vertex GetVertexUnderMouse(Vector2 mouseCoord)
 		{
 
 			foreach (Vertex point in Model.Vertices)
@@ -252,9 +236,12 @@ namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls
 
 		private void CancelLineCreate()
 		{
-			ModelDraggingVertex.Remove();
-			ModelDraggingVertex = null;
-			HandleHoverEllipse(LastMouseCoord);
+			if (ModelDraggingVertex != null)
+			{
+				ModelDraggingVertex.Remove();
+				ModelDraggingVertex = null;
+				this.ModelHoverEllipse.MouseEvent(LastMouseCoord);
+			}
 		}
 
 		public void MouseUp(Vector2 mouseCoord, MouseButton button) { }
@@ -318,6 +305,10 @@ namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls
 		private void SetActive(bool active)
 		{
 			ShowModel(active);
+			if (!active)
+			{
+				CancelLineCreate();
+			}
 		}
 
 		public void ShowModel(bool show)

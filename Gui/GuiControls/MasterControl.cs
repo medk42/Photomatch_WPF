@@ -11,6 +11,8 @@ namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls
 {
 	public class MasterControl : Actions
 	{
+		private enum ProjectState { None, NewProject, NamedProject }
+
 		private static readonly ulong ProjectFileChecksum = 0x54_07_02_47_23_43_94_42;
 		private static readonly string NewProjectName = "new project...";
 
@@ -22,6 +24,7 @@ namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls
 		private Model Model;
 		private DesignTool DesignTool;
 		private ModelCreationTool ModelCreationTool;
+		private CameraModelCalibrationTool CameraModelCalibrationTool;
 
 		public MasterControl(MasterGUI gui)
 		{
@@ -34,6 +37,7 @@ namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls
 			this.Model.AddVertex(new Vector3());
 			this.DesignTool = DesignTool.CameraCalibration;
 			this.ModelCreationTool = ModelCreationTool.Edge;
+			this.CameraModelCalibrationTool = CameraModelCalibrationTool.CalibrateOrigin;
 
 			Gui.DisplayProjectName(NewProjectName);
 		}
@@ -67,12 +71,13 @@ namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls
 			if (image != null)
 			{
 				Logger.Log("Load Image", "File loaded successfully.", LogType.Info);
-				Windows.Add(new ImageWindow(new PerspectiveData(image, filePath), Gui, Logger, Model, DesignTool, ModelCreationTool));
+				Windows.Add(new ImageWindow(new PerspectiveData(image, filePath), Gui, Logger, Model, DesignTool, ModelCreationTool, CameraModelCalibrationTool));
 
 				if (State == ProjectState.None)
 					State = ProjectState.NewProject;
 
 				Gui.DisplayModelCreationTool(ModelCreationTool);
+				Gui.DisplayCameraModelCalibrationTool(CameraModelCalibrationTool);
 				Gui.DisplayDesignTool(DesignTool);
 			}
 		}
@@ -197,7 +202,7 @@ namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls
 					for (int i = 0; i < windowCount; i++)
 					{
 						PerspectiveData perspective = ISafeSerializable<PerspectiveData>.CreateDeserialize(reader);
-						Windows.Add(new ImageWindow(perspective, Gui, Logger, Model, DesignTool, ModelCreationTool));
+						Windows.Add(new ImageWindow(perspective, Gui, Logger, Model, DesignTool, ModelCreationTool, CameraModelCalibrationTool));
 					}
 				}
 
@@ -251,6 +256,17 @@ namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls
 			}
 		}
 
+		public void CameraModelCalibrationTool_Changed(CameraModelCalibrationTool newCameraModelCalibrationTool)
+		{
+			if (this.CameraModelCalibrationTool != newCameraModelCalibrationTool)
+			{
+				this.CameraModelCalibrationTool = newCameraModelCalibrationTool;
+
+				foreach (ImageWindow window in Windows)
+					window.CameraModelCalibrationTool_Changed(newCameraModelCalibrationTool);
+			}
+		}
+
 		public void Reset()
 		{
 			foreach (ImageWindow window in Windows)
@@ -266,14 +282,10 @@ namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls
 
 			DesignTool = DesignTool.CameraCalibration;
 			ModelCreationTool = ModelCreationTool.Edge;
+			CameraModelCalibrationTool = CameraModelCalibrationTool.CalibrateOrigin;
 			Gui.DisplayModelCreationTool(ModelCreationTool);
+			Gui.DisplayCameraModelCalibrationTool(CameraModelCalibrationTool);
 			Gui.DisplayDesignTool(DesignTool);
-		}
-
-		public void CameraModelCalibrationTool_Click(CameraModelCalibrationTool cameraModelCalibrationTool)
-		{
-			foreach (ImageWindow window in Windows)
-				window.CameraModelCalibrationTool_Click(cameraModelCalibrationTool);
 		}
 	}
 }

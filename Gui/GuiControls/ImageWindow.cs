@@ -29,7 +29,7 @@ namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls
 			get => Perspective;
 		}
 
-		public ImageWindow(PerspectiveData perspective, MasterGUI gui, ILogger logger, Model model, DesignTool currentDesignTool, ModelCreationTool currentModelCreationTool)
+		public ImageWindow(PerspectiveData perspective, MasterGUI gui, ILogger logger, Model model, DesignTool currentDesignTool, ModelCreationTool currentModelCreationTool, CameraModelCalibrationTool currentCameraModelCalibrationTool)
 		{
 			this.Gui = gui;
 			this.Logger = logger;
@@ -39,12 +39,13 @@ namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls
 
 			this.ModelCreationHandler = new ModelCreationHandler(model, Perspective, Window, PointGrabRadius, PointDrawRadius);
 			this.CameraCalibrationHandler = new CameraCalibrationHandler(Perspective, Window, PointGrabRadius, PointDrawRadius);
-			this.CameraModelCalibrationHandler = new CameraModelCalibrationHandler(ModelCreationHandler);
+			this.CameraModelCalibrationHandler = new CameraModelCalibrationHandler(ModelCreationHandler, model, Perspective, Window, PointGrabRadius, PointDrawRadius);
 
 			this.CameraCalibrationHandler.CoordSystemUpdateEvent += ModelCreationHandler.UpdateDisplayedLines;
 
 			this.DesignTool_Changed(currentDesignTool);
 			this.ModelCreationTool_Changed(currentModelCreationTool);
+			this.CameraModelCalibrationTool_Changed(currentCameraModelCalibrationTool);
 
 			this.Initialized = true;
 		}
@@ -53,18 +54,21 @@ namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls
 		{
 			CameraCalibrationHandler.MouseMove(mouseCoord);
 			ModelCreationHandler.MouseMove(mouseCoord);
+			CameraModelCalibrationHandler.MouseMove(mouseCoord);
 		}
 
 		public void MouseDown(Vector2 mouseCoord, MouseButton button)
 		{
 			CameraCalibrationHandler.MouseDown(mouseCoord, button);
 			ModelCreationHandler.MouseDown(mouseCoord, button);
+			CameraModelCalibrationHandler.MouseDown(mouseCoord, button);
 		}
 
 		public void MouseUp(Vector2 mouseCoord, MouseButton button)
 		{
 			CameraCalibrationHandler.MouseUp(mouseCoord, button);
 			ModelCreationHandler.MouseUp(mouseCoord, button);
+			CameraModelCalibrationHandler.MouseUp(mouseCoord, button);
 		}
 
 		public void KeyDown(KeyboardKey key)
@@ -130,9 +134,9 @@ namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls
 			ModelCreationHandler.CreationTool_Changed(newModelCreationTool);
 		}
 
-		public void CameraModelCalibrationTool_Click(CameraModelCalibrationTool cameraModelCalibrationTool)
+		public void CameraModelCalibrationTool_Changed(CameraModelCalibrationTool newCameraModelCalibrationTool)
 		{
-			CameraModelCalibrationHandler.CalibrationTool_Click(cameraModelCalibrationTool);
+			CameraModelCalibrationHandler.CalibrationTool_Changed(newCameraModelCalibrationTool);
 		}
 	}
 }

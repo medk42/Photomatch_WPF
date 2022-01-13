@@ -33,14 +33,14 @@
             </StatusBarItem>
         </StatusBar>
 
-        <ToolBarTray DockPanel.Dock="Top">
+        <ToolBarTray Name="Toolbar" DockPanel.Dock="Top" IsEnabled="False">
             <ToolBar>
                 <RadioButton Name="CameraRadioButton" Checked="CameraRadioButton_Checked" Content="Camera" IsChecked="True"/>
                 <RadioButton Name="CameraModelRadioButton" Checked="CameraModelRadioButton_Checked" Content="Model Calibration"/>
                 <RadioButton Name="ModelRadioButton" Checked="ModelRadioButton_Checked" Content="Model"/>
             </ToolBar>
 
-            <ToolBar Name="CameraCalibrationTools" IsEnabled="False">
+            <ToolBar Name="CameraCalibrationTools">
                 <ComboBox
                       Name="AxesComboBox" 
                       SelectionChanged="AxesComboBox_SelectionChanged" 
@@ -59,11 +59,12 @@
                 <CheckBox Name="ZInvertedCheckbox" Content="Z Inverted"></CheckBox>
             </ToolBar>
 
-            <ToolBar Name="CameraModelCalibrationTools" Visibility="Collapsed" IsEnabled="false">
-                <Button Name="CalibrateOriginButton" Content="Calibrate Origin" Click="CalibrateOriginButton_Click"></Button>
+            <ToolBar Name="CameraModelCalibrationTools" Visibility="Collapsed">
+                <RadioButton Name="CalibrateOriginRadioButton" Checked="CalibrateOriginRadioButton_Checked" Content="Calibrate Origin"/>
+                <RadioButton Name="CalibrateScaleRadioButton" Checked="CalibrateScaleRadioButton_Checked" Content="Calibrate Scale"/>
             </ToolBar>
 
-            <ToolBar Name="ModelCreationTools" Visibility="Collapsed" IsEnabled="False">
+            <ToolBar Name="ModelCreationTools" Visibility="Collapsed">
                 <RadioButton Name="EdgeRadioButton" Checked="EdgeRadioButton_Checked" Content="Edge"/>
                 <RadioButton Name="DeleteRadioButton" Checked="DeleteRadioButton_Checked" Content="Delete"/>
             </ToolBar>

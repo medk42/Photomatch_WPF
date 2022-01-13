@@ -118,15 +118,14 @@ namespace Photomatch_ProofOfConcept_WPF
 		private void ModelRadioButton_Checked(object sender, RoutedEventArgs e) => ActionListener?.DesignTool_Changed(DesignTool.ModelCreation);
 		private void DeleteRadioButton_Checked(object sender, RoutedEventArgs e) => ActionListener?.ModelCreationTool_Changed(ModelCreationTool.Delete);
 		private void EdgeRadioButton_Checked(object sender, RoutedEventArgs e) => ActionListener?.ModelCreationTool_Changed(ModelCreationTool.Edge);
-		private void CalibrateOriginButton_Click(object sender, RoutedEventArgs e) => ActionListener?.CameraModelCalibrationTool_Click(CameraModelCalibrationTool.CalibrateOrigin);
+		private void CalibrateOriginRadioButton_Checked(object sender, RoutedEventArgs e) => ActionListener?.CameraModelCalibrationTool_Changed(CameraModelCalibrationTool.CalibrateOrigin);
+		private void CalibrateScaleRadioButton_Checked(object sender, RoutedEventArgs e) => ActionListener?.CameraModelCalibrationTool_Changed(CameraModelCalibrationTool.CalibrateScale);
 
 		private void MainDockMgr_ActiveContentChanged(object sender, EventArgs e)
 		{
 			if (MainDockMgr.ActiveContent != null)
 			{
-				CameraCalibrationTools.IsEnabled = true;
-				CameraModelCalibrationTools.IsEnabled = true;
-				ModelCreationTools.IsEnabled = true;
+				Toolbar.IsEnabled = true;
 
 				ImageViewModel imageViewModel = MainDockMgr.ActiveContent as ImageViewModel;
 				if (imageViewModel == null)
@@ -137,9 +136,7 @@ namespace Photomatch_ProofOfConcept_WPF
 			}
 			else
 			{
-				CameraCalibrationTools.IsEnabled = false;
-				CameraModelCalibrationTools.IsEnabled = false;
-				ModelCreationTools.IsEnabled = false;
+				Toolbar.IsEnabled = false;
 			}
 		}
 
@@ -278,6 +275,21 @@ namespace Photomatch_ProofOfConcept_WPF
 					break;
 				case ModelCreationTool.Edge:
 					EdgeRadioButton.IsChecked = true;
+					break;
+				default:
+					throw new Exception("Unknown switch case.");
+			}
+		}
+
+		public void DisplayCameraModelCalibrationTool(CameraModelCalibrationTool cameraModelCalibrationTool)
+		{
+			switch (cameraModelCalibrationTool)
+			{
+				case CameraModelCalibrationTool.CalibrateOrigin:
+					CalibrateOriginRadioButton.IsChecked = true;
+					break;
+				case CameraModelCalibrationTool.CalibrateScale:
+					CalibrateScaleRadioButton.IsChecked = true;
 					break;
 				default:
 					throw new Exception("Unknown switch case.");
