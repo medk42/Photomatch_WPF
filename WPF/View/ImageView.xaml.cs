@@ -43,6 +43,7 @@ namespace Photomatch_ProofOfConcept_WPF.WPF.View
 			YAxisLines.Data.Transform = matrixTransform;
 			ZAxisLines.Data.Transform = matrixTransform;
 			ModelLines.Data.Transform = matrixTransform;
+			SelectedLines.Data.Transform = matrixTransform;
 		}
 
 		/// <summary>

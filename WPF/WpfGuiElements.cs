@@ -31,7 +31,7 @@ namespace Photomatch_ProofOfConcept_WPF.WPF
 					geometry = imageViewModel.ModelLinesGeometry;
 					break;
 				case ApplicationColor.Selected:
-					geometry = imageViewModel.YAxisLinesGeometry;
+					geometry = imageViewModel.SelectedLinesGeometry;
 					break;
 				default:
 					throw new ArgumentException("Unknown application color.");

@@ -20,5 +20,6 @@
         <Path x:Name="YAxisLines" Stroke="Green" Fill="Green" Data="{Binding YAxisLinesGeometry}" StrokeThickness="{Binding LineStrokeThickness}"/>
         <Path x:Name="ZAxisLines" Stroke="Blue" Fill="Blue" Data="{Binding ZAxisLinesGeometry}" StrokeThickness="{Binding LineStrokeThickness}"/>
         <Path x:Name="ModelLines" Stroke="Cyan" Fill="Cyan" Data="{Binding ModelLinesGeometry}" StrokeThickness="{Binding LineStrokeThickness}"/>
+        <Path x:Name="SelectedLines" Stroke="Orange" Fill="Orange" Data="{Binding SelectedLinesGeometry}" StrokeThickness="{Binding LineStrokeThickness}"/>
     </Grid>
 </UserControl>
