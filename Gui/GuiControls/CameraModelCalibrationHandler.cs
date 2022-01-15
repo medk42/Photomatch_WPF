@@ -108,7 +108,7 @@ namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls
 						if (button != MouseButton.Left)
 							return;
 
-						vertex = ModelVisualization.GetVertexUnderMouse(mouseCoord);
+						vertex = ModelVisualization.GetVertexUnderMouse(mouseCoord).Item1;
 						if (vertex != null)
 						{
 							SelectedVertex = vertex;
@@ -120,14 +120,14 @@ namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls
 					case ToolState.CalibrateScaleSelectPoint:
 						if (button == MouseButton.Right)
 						{
-							vertex = ModelVisualization.GetVertexUnderMouse(mouseCoord);
+							vertex = ModelVisualization.GetVertexUnderMouse(mouseCoord).Item1;
 							if (vertex != null)
 								FixedVertex = vertex;
 							SelectedEllipse.Position = Perspective.WorldToScreen(FixedVertex.Position);
 						}
 						else if (button == MouseButton.Left)
 						{
-							vertex = ModelVisualization.GetVertexUnderMouse(mouseCoord);
+							vertex = ModelVisualization.GetVertexUnderMouse(mouseCoord).Item1;
 							if (vertex != null && vertex != FixedVertex)
 							{
 								SelectedVertex = vertex;

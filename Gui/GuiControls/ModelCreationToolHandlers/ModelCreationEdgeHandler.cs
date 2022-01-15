@@ -39,7 +39,7 @@ namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls.ModelCreationToolHandler
 
 				if (ModelDraggingVertex != null)
 				{
-					Vertex foundPoint = ModelVisualization.GetVertexUnderMouse(mouseCoord);
+					Vertex foundPoint = ModelVisualization.GetVertexUnderMouse(mouseCoord).Item1;
 
 					if (foundPoint != null && foundPoint != ModelDraggingVertex)
 					{
@@ -118,7 +118,7 @@ namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls.ModelCreationToolHandler
 				if (button != MouseButton.Left)
 					return;
 
-				Vertex foundPoint = ModelVisualization.GetVertexUnderMouse(mouseCoord);
+				Vertex foundPoint = ModelVisualization.GetVertexUnderMouse(mouseCoord).Item1;
 
 				if (ModelDraggingVertex != null)
 				{

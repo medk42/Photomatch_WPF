@@ -39,7 +39,7 @@ namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls
 			this.Window.SetImage(perspective.Image);
 
 			this.ModelVisualization = new ModelVisualization(Perspective, Window, model, PointGrabRadius, PointDrawRadius);
-			this.ModelCreationHandler = new ModelCreationHandler(model, Perspective, ModelVisualization);
+			this.ModelCreationHandler = new ModelCreationHandler(model, Window, Perspective, ModelVisualization);
 			this.CameraCalibrationHandler = new CameraCalibrationHandler(Perspective, Window, PointGrabRadius, PointDrawRadius);
 			this.CameraModelCalibrationHandler = new CameraModelCalibrationHandler(ModelVisualization, model, Perspective, Window, PointGrabRadius, PointDrawRadius);
 

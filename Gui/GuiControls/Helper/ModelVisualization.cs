@@ -33,18 +33,18 @@ namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls.Helper
 			CreateModelLines();
 		}
 
-		public Vertex GetVertexUnderMouse(Vector2 mouseCoord)
+		public Tuple<Vertex, Vector2> GetVertexUnderMouse(Vector2 mouseCoord)
 		{
 			foreach (Vertex point in Model.Vertices)
 			{
 				Vector2 pointPos = Perspective.WorldToScreen(point.Position);
 				if (Window.ScreenDistance(mouseCoord, pointPos) < PointGrabRadius)
 				{
-					return point;
+					return new Tuple<Vertex, Vector2>(point, pointPos);
 				}
 			}
 
-			return null;
+			return new Tuple<Vertex, Vector2>(null, new Vector2());
 		}
 
 		public void ShowModel(bool show)
