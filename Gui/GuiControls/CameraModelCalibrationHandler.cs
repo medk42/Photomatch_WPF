@@ -32,17 +32,16 @@ namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls
 		private double PointGrabRadius;
 		private double PointDrawRadius;
 
-		private readonly ModelCreationHandler ModelCreationHandler;
+		private readonly ModelVisualization ModelVisualization;
 		private ToolState State;
-		private ModelHoverEllipse ModelHoverEllipse;
 
 		private Vertex SelectedVertex;
 		private Vertex FixedVertex;
 		private IEllipse SelectedEllipse;
 
-		public CameraModelCalibrationHandler(ModelCreationHandler modelCreationHandler, Model model, PerspectiveData perspective, IWindow window, double pointGrabRadius, double pointDrawRadius)
+		public CameraModelCalibrationHandler(ModelVisualization modelVisualization, Model model, PerspectiveData perspective, IWindow window, double pointGrabRadius, double pointDrawRadius)
 		{
-			this.ModelCreationHandler = modelCreationHandler;
+			this.ModelVisualization = modelVisualization;
 			this.Model = model;
 			this.Perspective = perspective;
 			this.Window = window;
@@ -50,8 +49,6 @@ namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls
 			this.PointDrawRadius = pointDrawRadius;
 
 			this.State = ToolState.CalibrateOriginSelectPoint;
-			this.ModelHoverEllipse = new ModelHoverEllipse(Model, Perspective, Window, PointGrabRadius, PointDrawRadius);
-			this.ModelHoverEllipse.Active = false;
 
 			this.SelectedEllipse = Window.CreateEllipse(new Vector2(), PointDrawRadius, ApplicationColor.Selected);
 			this.SelectedEllipse.Visible = false;
@@ -63,7 +60,7 @@ namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls
 		private void UpdateOrigin(Vector2 mouseCoord)
 		{
 			Perspective.Origin = Perspective.MatchScreenWorldPoint(mouseCoord, SelectedVertex.Position);
-			ModelCreationHandler.UpdateDisplayedLines();
+			ModelVisualization.UpdateDisplayedLines();
 		}
 
 		private void UpdateScale(Vector2 mouseCoord)
@@ -74,7 +71,7 @@ namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls
 				Perspective.Scale = originScale.Z;
 				Perspective.Origin = new Vector2(originScale.X, originScale.Y);
 			}
-			ModelCreationHandler.UpdateDisplayedLines();
+			ModelVisualization.UpdateDisplayedLines();
 		}
 
 		public void MouseMove(Vector2 mouseCoord)
@@ -84,13 +81,13 @@ namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls
 				switch (State)
 				{
 					case ToolState.CalibrateOriginSelectPoint:
-						ModelHoverEllipse.MouseEvent(mouseCoord);
+						ModelVisualization.ModelHoverEllipse.MouseEvent(mouseCoord);
 						break;
 					case ToolState.CalibrateOriginDraggingPoint:
 						UpdateOrigin(mouseCoord);
 						break;
 					case ToolState.CalibrateScaleSelectPoint:
-						ModelHoverEllipse.MouseEvent(mouseCoord);
+						ModelVisualization.ModelHoverEllipse.MouseEvent(mouseCoord);
 						break;
 					case ToolState.CalibrateScaleDraggingPoint:
 						UpdateScale(mouseCoord);
@@ -111,31 +108,31 @@ namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls
 						if (button != MouseButton.Left)
 							return;
 
-						vertex = ModelCreationHandler.GetVertexUnderMouse(mouseCoord);
+						vertex = ModelVisualization.GetVertexUnderMouse(mouseCoord);
 						if (vertex != null)
 						{
 							SelectedVertex = vertex;
 							State = ToolState.CalibrateOriginDraggingPoint;
-							ModelHoverEllipse.Active = false;
+							ModelVisualization.ModelHoverEllipse.Active = false;
 							UpdateOrigin(mouseCoord);
 						}
 						break;
 					case ToolState.CalibrateScaleSelectPoint:
 						if (button == MouseButton.Right)
 						{
-							vertex = ModelCreationHandler.GetVertexUnderMouse(mouseCoord);
+							vertex = ModelVisualization.GetVertexUnderMouse(mouseCoord);
 							if (vertex != null)
 								FixedVertex = vertex;
 							SelectedEllipse.Position = Perspective.WorldToScreen(FixedVertex.Position);
 						}
 						else if (button == MouseButton.Left)
 						{
-							vertex = ModelCreationHandler.GetVertexUnderMouse(mouseCoord);
+							vertex = ModelVisualization.GetVertexUnderMouse(mouseCoord);
 							if (vertex != null && vertex != FixedVertex)
 							{
 								SelectedVertex = vertex;
 								State = ToolState.CalibrateScaleDraggingPoint;
-								ModelHoverEllipse.Active = false;
+								ModelVisualization.ModelHoverEllipse.Active = false;
 
 								UpdateScale(mouseCoord);
 							}
@@ -153,13 +150,13 @@ namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls
 				{
 					case ToolState.CalibrateOriginDraggingPoint:
 						State = ToolState.CalibrateOriginSelectPoint;
-						ModelHoverEllipse.Active = true;
-						ModelHoverEllipse.MouseEvent(mouseCoord);
+						ModelVisualization.ModelHoverEllipse.Active = true;
+						ModelVisualization.ModelHoverEllipse.MouseEvent(mouseCoord);
 						break;
 					case ToolState.CalibrateScaleDraggingPoint:
 						State = ToolState.CalibrateScaleSelectPoint;
-						ModelHoverEllipse.Active = true;
-						ModelHoverEllipse.MouseEvent(mouseCoord);
+						ModelVisualization.ModelHoverEllipse.Active = true;
+						ModelVisualization.ModelHoverEllipse.MouseEvent(mouseCoord);
 						break;
 				}
 			}
@@ -167,7 +164,9 @@ namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls
 
 		private void SetActive(bool active)
 		{
-			ModelCreationHandler.ShowModel(active);
+			ModelVisualization.ModelHoverEllipse.Active = active;
+
+			ModelVisualization.ShowModel(active);
 
 			if (active)
 				SelectedEllipse.Visible = (State == ToolState.CalibrateScaleSelectPoint || State == ToolState.CalibrateScaleDraggingPoint);
@@ -181,16 +180,16 @@ namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls
 			{
 				case CameraModelCalibrationTool.CalibrateOrigin:
 					State = ToolState.CalibrateOriginSelectPoint;
-					ModelHoverEllipse.Active = true;
+					ModelVisualization.ModelHoverEllipse.Active = Active;
 
 					SelectedEllipse.Visible = false;
 					break;
 				case CameraModelCalibrationTool.CalibrateScale:
 					State = ToolState.CalibrateScaleSelectPoint;
-					ModelHoverEllipse.Active = true;
+					ModelVisualization.ModelHoverEllipse.Active = Active;
 
 					FixedVertex = Model.Vertices[0];
-					SelectedEllipse.Visible = true;
+					SelectedEllipse.Visible = Active;
 					SelectedEllipse.Position = Perspective.WorldToScreen(FixedVertex.Position);
 					break;
 			}

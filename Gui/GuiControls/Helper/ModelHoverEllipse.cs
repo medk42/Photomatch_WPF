@@ -5,7 +5,7 @@ using System.Text;
 
 namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls.Helper
 {
-	class ModelHoverEllipse
+	public class ModelHoverEllipse
 	{
 		private bool Active_ = true;
 		public bool Active

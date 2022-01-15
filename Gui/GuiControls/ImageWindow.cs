@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
-
+using Photomatch_ProofOfConcept_WPF.Gui.GuiControls.Helper;
 using Photomatch_ProofOfConcept_WPF.Logic;
 using Photomatch_ProofOfConcept_WPF.Utilities;
 
@@ -17,6 +17,7 @@ namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls
 		private ILogger Logger;
 		private IWindow Window { get; }
 		private PerspectiveData Perspective;
+		private ModelVisualization ModelVisualization;
 
 		private ModelCreationHandler ModelCreationHandler;
 		private CameraCalibrationHandler CameraCalibrationHandler;
@@ -37,11 +38,12 @@ namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls
 			this.Perspective = perspective;
 			this.Window.SetImage(perspective.Image);
 
-			this.ModelCreationHandler = new ModelCreationHandler(model, Perspective, Window, PointGrabRadius, PointDrawRadius);
+			this.ModelVisualization = new ModelVisualization(Perspective, Window, model, PointGrabRadius, PointDrawRadius);
+			this.ModelCreationHandler = new ModelCreationHandler(model, Perspective, ModelVisualization);
 			this.CameraCalibrationHandler = new CameraCalibrationHandler(Perspective, Window, PointGrabRadius, PointDrawRadius);
-			this.CameraModelCalibrationHandler = new CameraModelCalibrationHandler(ModelCreationHandler, model, Perspective, Window, PointGrabRadius, PointDrawRadius);
+			this.CameraModelCalibrationHandler = new CameraModelCalibrationHandler(ModelVisualization, model, Perspective, Window, PointGrabRadius, PointDrawRadius);
 
-			this.CameraCalibrationHandler.CoordSystemUpdateEvent += ModelCreationHandler.UpdateDisplayedLines;
+			this.CameraCalibrationHandler.CoordSystemUpdateEvent += ModelVisualization.UpdateDisplayedLines;
 
 			this.DesignTool_Changed(currentDesignTool);
 			this.ModelCreationTool_Changed(currentModelCreationTool);
@@ -84,7 +86,7 @@ namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls
 		public void Dispose()
 		{
 			Perspective = null;
-			CameraCalibrationHandler.CoordSystemUpdateEvent -= ModelCreationHandler.UpdateDisplayedLines;
+			CameraCalibrationHandler.CoordSystemUpdateEvent -= ModelVisualization.UpdateDisplayedLines;
 
 			ModelCreationHandler.Dispose();
 			CameraCalibrationHandler.Dispose();
