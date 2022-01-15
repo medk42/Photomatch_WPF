@@ -24,6 +24,7 @@
                 <MenuItem Header="Save Project As" Click="SaveProjectAs_Click"/>
                 <MenuItem Header="Load Project" Click="LoadProject_Click"/>
                 <MenuItem Header="Load Image" Click="LoadImage_Click"/>
+                <MenuItem Header="Export Model" Click="ExportModel_Click"/>
             </MenuItem>
         </Menu>
 
@@ -67,6 +68,8 @@
             <ToolBar Name="ModelCreationTools" Visibility="Collapsed">
                 <RadioButton Name="EdgeRadioButton" Checked="EdgeRadioButton_Checked" Content="Edge"/>
                 <RadioButton Name="DeleteRadioButton" Checked="DeleteRadioButton_Checked" Content="Delete"/>
+                <Separator></Separator>
+                <RadioButton Name="TriangleFaceRadioButton" Checked="TriangleFaceRadioButton_Checked" Content="Triangle Face"/>
             </ToolBar>
         </ToolBarTray>
 

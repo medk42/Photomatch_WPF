@@ -73,6 +73,9 @@ namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls
 						MouseMoveEdge(mouseCoord);
 						this.ModelHoverEllipse.MouseEvent(mouseCoord);
 						break;
+					case ModelCreationTool.TriangleFace:
+						this.ModelHoverEllipse.MouseEvent(mouseCoord);
+						break;
 					default:
 						throw new Exception("Unknown switch case.");
 				}
@@ -96,8 +99,49 @@ namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls
 						MouseDownEdge(mouseCoord, button);
 						this.ModelHoverEllipse.MouseEvent(mouseCoord);
 						break;
+					case ModelCreationTool.TriangleFace:
+						MouseDownTriangleFace(mouseCoord, button);
+						this.ModelHoverEllipse.MouseEvent(mouseCoord);
+						break;
 					default:
 						throw new Exception("Unknown switch case.");
+				}
+			}
+		}
+
+		private enum TriangleFaceState { None, FirstPoint, SecondPoint };
+		private Vertex first, second;
+		private TriangleFaceState State = TriangleFaceState.None;
+
+		private void MouseDownTriangleFace(Vector2 mouseCoord, MouseButton button)
+		{
+			if (button != MouseButton.Left)
+				return;
+
+			Vertex foundPoint = GetVertexUnderMouse(mouseCoord);
+
+			if (foundPoint != null)
+			{
+				switch (State)
+				{
+					case TriangleFaceState.None:
+						first = foundPoint;
+						State = TriangleFaceState.FirstPoint;
+						break;
+					case TriangleFaceState.FirstPoint:
+						if (first != foundPoint)
+						{
+							second = foundPoint;
+							State = TriangleFaceState.SecondPoint;
+						}
+						break;
+					case TriangleFaceState.SecondPoint:
+						if (first != foundPoint && second != foundPoint)
+						{
+							Model.AddFace(new List<Vertex>() { first, second, foundPoint });
+							State = TriangleFaceState.None;
+						}
+						break;
 				}
 			}
 		}

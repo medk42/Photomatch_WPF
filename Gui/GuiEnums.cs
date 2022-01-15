@@ -12,7 +12,7 @@ namespace Photomatch_ProofOfConcept_WPF.Gui
 
 	public enum KeyboardKey { LeftShift, Escape };
 
-	public enum ModelCreationTool { Delete, Edge };
+	public enum ModelCreationTool { Delete, Edge, TriangleFace };
 
 	public enum CameraModelCalibrationTool { CalibrateOrigin, CalibrateScale };
 }

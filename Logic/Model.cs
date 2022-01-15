@@ -60,6 +60,16 @@ namespace Photomatch_ProofOfConcept_WPF.Logic
 		}
 	}
 
+	public class Face
+	{
+		public List<Vertex> Vertices { get; } = new List<Vertex>();
+
+		public Face(List<Vertex> vertices)
+		{
+			this.Vertices = vertices;
+		}
+	}
+
 	public class Model : ISafeSerializable<Model>
 	{
 		public delegate void AddEdgeEventHandler(Edge line);
@@ -70,6 +80,7 @@ namespace Photomatch_ProofOfConcept_WPF.Logic
 
 		public List<Vertex> Vertices { get; } = new List<Vertex>();
 		public List<Edge> Edges { get; } = new List<Edge>();
+		public List<Face> Faces { get; } = new List<Face>();
 
 		/// <summary>
 		/// First added vertex will be protected against removal.
@@ -98,6 +109,15 @@ namespace Photomatch_ProofOfConcept_WPF.Logic
 			AddEdgeEvent?.Invoke(newLine);
 
 			return newLine;
+		}
+
+		public Face AddFace(List<Vertex> vertices)
+		{
+			Face newFace = new Face(vertices);
+
+			Faces.Add(newFace);
+
+			return newFace;
 		}
 
 		private void RemoveVertex(Vertex v)

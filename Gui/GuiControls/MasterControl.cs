@@ -6,6 +6,7 @@ using System.Text;
 
 using Photomatch_ProofOfConcept_WPF.Logic;
 using Photomatch_ProofOfConcept_WPF.Utilities;
+using System.Globalization;
 
 namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls
 {
@@ -230,6 +231,50 @@ namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls
 				else
 					Logger.Log("Load Project", "Invalid file.", LogType.Warning);
 			}
+		}
+
+		public void ExportModel_Pressed()
+		{
+			string fileName = Gui.GetModelExportFilePath();
+
+			try
+			{
+				using (var fileStream = File.Create(fileName))
+				using (var writer = new StreamWriter(fileStream, Encoding.ASCII))
+				{
+					foreach (Vertex v in Model.Vertices)
+						writer.WriteLine($"v {v.Position.X.ToString(CultureInfo.InvariantCulture)} {v.Position.Y.ToString(CultureInfo.InvariantCulture)} {v.Position.Z.ToString(CultureInfo.InvariantCulture)}");
+
+					writer.WriteLine();
+
+					foreach (Face f in Model.Faces)
+					{
+						writer.Write('f');
+
+						foreach (Vertex v in f.Vertices)
+						{
+							writer.Write(" ");
+							writer.Write(Model.Vertices.IndexOf(v) + 1);
+						}
+
+						writer.WriteLine();
+					}
+				}
+			}
+			catch (Exception ex)
+			{
+				if (ex is UnauthorizedAccessException)
+					Logger.Log("Export Model", "Unauthorized access to file.", LogType.Warning);
+				else if (ex is IOException)
+					Logger.Log("Export Model", "Save operation was not successful.", LogType.Warning);
+				else if (ex is ArgumentException || ex is DirectoryNotFoundException || ex is NotSupportedException)
+					Logger.Log("Export Model", "Path is invalid.", LogType.Warning);
+				else if (ex is PathTooLongException)
+					Logger.Log("Export Model", "Path is too long.", LogType.Warning);
+				else throw ex;
+			}
+
+			Logger.Log("Export Model", "Successfully exported model.", LogType.Info);
 		}
 
 		public void DesignTool_Changed(DesignTool newDesignTool)

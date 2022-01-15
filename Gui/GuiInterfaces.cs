@@ -31,6 +31,7 @@ namespace Photomatch_ProofOfConcept_WPF.Gui
 		string GetImageFilePath();
 		string GetSaveProjectFilePath();
 		string GetLoadProjectFilePath();
+		string GetModelExportFilePath();
 		IWindow CreateImageWindow(ImageWindow imageWindow, string title);
 		void DisplayProjectName(string projectName);
 		void DisplayDesignTool(DesignTool designTool);
@@ -56,6 +57,7 @@ namespace Photomatch_ProofOfConcept_WPF.Gui
 		void SaveProject_Pressed();
 		void SaveProjectAs_Pressed();
 		void LoadProject_Pressed();
+		void ExportModel_Pressed();
 		void DesignTool_Changed(DesignTool newDesignTool);
 		void ModelCreationTool_Changed(ModelCreationTool newModelCreationTool);
 		void CameraModelCalibrationTool_Changed(CameraModelCalibrationTool newCameraModelCalibrationTool);

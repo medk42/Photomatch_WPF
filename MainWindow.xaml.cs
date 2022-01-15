@@ -20,6 +20,7 @@ namespace Photomatch_ProofOfConcept_WPF
 	{
 		private static readonly string PhotomatcherProjectFileFilter = "Photomatcher Project Files (*.ppf)|*.ppf";
 		private static readonly string ImageFileFilter = "Image Files(*.BMP;*.JPG;*.GIF;*.PNG;*.TIFF)|*.BMP;*.JPG;*.GIF;*.PNG;*.TIFF";
+		private static readonly string ModelExportFileFilter = "3D Files(*.obj)|*.obj";
 		private static readonly string MainTitle = "Photomatcher";
 
 		private MasterControl AppControl;
@@ -47,7 +48,7 @@ namespace Photomatch_ProofOfConcept_WPF
 			XInvertedCheckbox.Checked += AnyInvertedCheckbox_Changed;
 			YInvertedCheckbox.Checked += AnyInvertedCheckbox_Changed;
 			ZInvertedCheckbox.Checked += AnyInvertedCheckbox_Changed;
-			XInvertedCheckbox.Unchecked+= AnyInvertedCheckbox_Changed;
+			XInvertedCheckbox.Unchecked += AnyInvertedCheckbox_Changed;
 			YInvertedCheckbox.Unchecked += AnyInvertedCheckbox_Changed;
 			ZInvertedCheckbox.Unchecked += AnyInvertedCheckbox_Changed;
 		}
@@ -88,10 +89,9 @@ namespace Photomatch_ProofOfConcept_WPF
 		}
 
 		public string GetImageFilePath() => GetFilePath(ImageFileFilter);
-
 		public string GetSaveProjectFilePath() => SaveFilePath(PhotomatcherProjectFileFilter);
-
 		public string GetLoadProjectFilePath() => GetFilePath(PhotomatcherProjectFileFilter);
+		public string GetModelExportFilePath() => SaveFilePath(ModelExportFileFilter);
 
 		public IWindow CreateImageWindow(ImageWindow imageWindow, string title)
 		{
@@ -113,11 +113,13 @@ namespace Photomatch_ProofOfConcept_WPF
 		private void SaveProject_Click(object sender, RoutedEventArgs e) => ActionListener?.SaveProject_Pressed();
 		private void SaveProjectAs_Click(object sender, RoutedEventArgs e) => ActionListener?.SaveProjectAs_Pressed();
 		private void LoadProject_Click(object sender, RoutedEventArgs e) => ActionListener?.LoadProject_Pressed();
+		private void ExportModel_Click(object sender, RoutedEventArgs e) => ActionListener?.ExportModel_Pressed();
 		private void CameraRadioButton_Checked(object sender, RoutedEventArgs e) => ActionListener?.DesignTool_Changed(DesignTool.CameraCalibration);
 		private void CameraModelRadioButton_Checked(object sender, RoutedEventArgs e) => ActionListener?.DesignTool_Changed(DesignTool.CameraModelCalibration);
 		private void ModelRadioButton_Checked(object sender, RoutedEventArgs e) => ActionListener?.DesignTool_Changed(DesignTool.ModelCreation);
 		private void DeleteRadioButton_Checked(object sender, RoutedEventArgs e) => ActionListener?.ModelCreationTool_Changed(ModelCreationTool.Delete);
 		private void EdgeRadioButton_Checked(object sender, RoutedEventArgs e) => ActionListener?.ModelCreationTool_Changed(ModelCreationTool.Edge);
+		private void TriangleFaceRadioButton_Checked(object sender, RoutedEventArgs e) => ActionListener?.ModelCreationTool_Changed(ModelCreationTool.TriangleFace);
 		private void CalibrateOriginRadioButton_Checked(object sender, RoutedEventArgs e) => ActionListener?.CameraModelCalibrationTool_Changed(CameraModelCalibrationTool.CalibrateOrigin);
 		private void CalibrateScaleRadioButton_Checked(object sender, RoutedEventArgs e) => ActionListener?.CameraModelCalibrationTool_Changed(CameraModelCalibrationTool.CalibrateScale);
 
@@ -275,6 +277,9 @@ namespace Photomatch_ProofOfConcept_WPF
 					break;
 				case ModelCreationTool.Edge:
 					EdgeRadioButton.IsChecked = true;
+					break;
+				case ModelCreationTool.TriangleFace:
+					TriangleFaceRadioButton.IsChecked = true;
 					break;
 				default:
 					throw new Exception("Unknown switch case.");
