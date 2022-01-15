@@ -26,6 +26,16 @@ namespace Photomatch_ProofOfConcept_WPF.Gui
 		bool Visible { get; set; }
 	}
 
+	public interface IPolygon
+	{
+		Vector2 this[int i] { get; set; }
+		ApplicationColor Color { get; set; }
+		bool Visible { get; set; }
+		int Count { get; }
+		void Add(Vector2 vertex);
+		void Remove(int index);
+	}
+
 	public interface MasterGUI : ILogger
 	{
 		string GetImageFilePath();
@@ -45,6 +55,7 @@ namespace Photomatch_ProofOfConcept_WPF.Gui
 		double ScreenDistance(Vector2 pointA, Vector2 pointB);
 		ILine CreateLine(Vector2 start, Vector2 end, double endRadius, ApplicationColor color);
 		IEllipse CreateEllipse(Vector2 position, double radius, ApplicationColor color);
+		IPolygon CreateFilledPolygon(ApplicationColor color);
 		void DisposeAll();
 		void DisplayCalibrationAxes(CalibrationAxes calibrationAxes);
 		void DisplayInvertedAxes(CalibrationAxes calibrationAxes, InvertedAxes invertedAxes);

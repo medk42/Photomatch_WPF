@@ -10,8 +10,48 @@ using Photomatch_ProofOfConcept_WPF.Logic;
 
 namespace Photomatch_ProofOfConcept_WPF.WPF
 {
-	public class WpfGuiElement
+	public abstract class WpfGuiElement
 	{
+		private protected ApplicationColor Color_;
+		public virtual ApplicationColor Color
+		{
+			get => Color_;
+			set
+			{
+				if (Color_ != value)
+				{
+					if (Visible)
+					{
+						RemoveOldColor(Color_);
+						AddNewColor(value);
+					}
+					Color_ = value;
+				}
+			}
+		}
+
+		private protected bool Visible_ = true;
+		public virtual bool Visible
+		{
+			get => Visible_;
+			set
+			{
+				if (Visible_ != value)
+				{
+					if (Visible_)
+					{
+						RemoveOldColor(Color);
+					}
+					else
+					{
+						AddNewColor(Color);
+					}
+
+					Visible_ = value;
+				}
+			}
+		}
+
 		protected GeometryGroup GetGeometry(ApplicationColor color, ImageViewModel imageViewModel)
 		{
 			GeometryGroup geometry;
@@ -38,6 +78,89 @@ namespace Photomatch_ProofOfConcept_WPF.WPF
 			}
 
 			return geometry;
+		}
+
+		private protected abstract void RemoveOldColor(ApplicationColor color);
+		private protected abstract void AddNewColor(ApplicationColor color);
+	}
+
+	public class WpfPolygon : WpfGuiElement, IPolygon
+	{
+		private ImageViewModel ImageViewModel;
+		private PathFigure Polygon;
+		private PathGeometry PolygonGeometry;
+
+		public Vector2 this[int i]
+		{
+			get
+			{
+				if (i == 0)
+					return Polygon.StartPoint.AsVector2();
+				else
+					return ((LineSegment)Polygon.Segments[i - 1]).Point.AsVector2();
+			}
+
+			set
+			{
+				if (i == 0)
+					Polygon.StartPoint = value.AsPoint();
+				else
+					((LineSegment)Polygon.Segments[i - 1]).Point = value.AsPoint();
+			}
+		}
+
+		public int Count { get; private set; } = 0;
+
+		public WpfPolygon(ImageViewModel imageViewModel, ApplicationColor color)
+		{
+			ImageViewModel = imageViewModel;
+			Color_ = color;
+
+			Polygon = new PathFigure() { IsClosed = true };
+
+			PolygonGeometry = new PathGeometry(new PathFigure[] { Polygon });
+
+			AddNewColor(Color);
+		}
+
+		public void Add(Vector2 vertex)
+		{
+			if (Count == 0)
+				Polygon.StartPoint = vertex.AsPoint();
+			else
+				Polygon.Segments.Add(new LineSegment() { Point = vertex.AsPoint() });
+
+			Count++;
+		}
+
+		public void Remove(int index)
+		{
+			if (index == 0)
+			{
+				if (Count > 1)
+				{
+					Polygon.StartPoint = ((LineSegment)Polygon.Segments[0]).Point;
+					Polygon.Segments.RemoveAt(0);
+					Count--;
+				}
+			}
+			else
+			{
+				Polygon.Segments.RemoveAt(index - 1);
+				Count--;
+			}
+		}
+
+		private protected override void RemoveOldColor(ApplicationColor color)
+		{
+			GeometryGroup geometry = GetGeometry(color, ImageViewModel);
+			geometry.Children.Remove(PolygonGeometry);
+		}
+
+		private protected override void AddNewColor(ApplicationColor color)
+		{
+			GeometryGroup geometry = GetGeometry(color, ImageViewModel);
+			geometry.Children.Add(PolygonGeometry);
 		}
 	}
 
@@ -73,8 +196,7 @@ namespace Photomatch_ProofOfConcept_WPF.WPF
 		}
 
 		private bool OutsideView_ = false;
-		private bool Visible_ = true;
-		public bool Visible
+		public override bool Visible
 		{
 			get => Visible_;
 			set
@@ -94,24 +216,6 @@ namespace Photomatch_ProofOfConcept_WPF.WPF
 					}
 
 					Visible_ = value;
-				}
-			}
-		}
-
-		private ApplicationColor Color_;
-		public ApplicationColor Color
-		{
-			get => Color_;
-			set
-			{
-				if (Color_ != value)
-				{
-					if (Visible)
-					{
-						RemoveOldColor(Color_);
-						AddNewColor(value);
-					}
-					Color_ = value;
 				}
 			}
 		}
@@ -197,7 +301,7 @@ namespace Photomatch_ProofOfConcept_WPF.WPF
 			return point;
 		}
 
-		private void RemoveOldColor(ApplicationColor color)
+		private protected override void RemoveOldColor(ApplicationColor color)
 		{
 			GeometryGroup geometry = GetGeometry(color, ImageViewModel);
 			if (Line != null)
@@ -209,7 +313,7 @@ namespace Photomatch_ProofOfConcept_WPF.WPF
 			}
 		}
 
-		private void AddNewColor(ApplicationColor color)
+		private protected override void AddNewColor(ApplicationColor color)
 		{
 			GeometryGroup geometry = GetGeometry(color, ImageViewModel);
 
@@ -248,46 +352,6 @@ namespace Photomatch_ProofOfConcept_WPF.WPF
 			}
 		}
 
-		private bool Visible_ = true;
-		public bool Visible
-		{
-			get => Visible_;
-			set
-			{
-				if (Visible_ != value)
-				{
-					if (Visible_)
-					{
-						RemoveOldColor(Color);
-					}
-					else
-					{
-						AddNewColor(Color);
-					}
-
-					Visible_ = value;
-				}
-			}
-		}
-
-		private ApplicationColor Color_;
-		public ApplicationColor Color
-		{
-			get => Color_;
-			set
-			{
-				if (Color_ != value)
-				{
-					if (Visible)
-					{
-						RemoveOldColor(Color_);
-						AddNewColor(value);
-					}
-					Color_ = value;
-				}
-			}
-		}
-
 		public WpfEllipse(Point position, double radius, ImageViewModel imageViewModel, ApplicationColor color)
 		{
 			Radius = radius;
@@ -304,13 +368,13 @@ namespace Photomatch_ProofOfConcept_WPF.WPF
 			Ellipse.RadiusY = Radius / scale;
 		}
 
-		private void RemoveOldColor(ApplicationColor color)
+		private protected override void RemoveOldColor(ApplicationColor color)
 		{
 			GeometryGroup geometry = GetGeometry(color, ImageViewModel);
 			geometry.Children.Remove(Ellipse);
 		}
 
-		private void AddNewColor(ApplicationColor color)
+		private protected override void AddNewColor(ApplicationColor color)
 		{
 			GeometryGroup geometry = GetGeometry(color, ImageViewModel);
 			geometry.Children.Add(Ellipse);

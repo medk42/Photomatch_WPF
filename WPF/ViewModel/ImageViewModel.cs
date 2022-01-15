@@ -197,6 +197,11 @@ namespace Photomatch_ProofOfConcept_WPF.WPF.ViewModel
 			return wpfEllipse;
 		}
 
+		public IPolygon CreateFilledPolygon(ApplicationColor color)
+		{
+			return new WpfPolygon(this, color);
+		}
+
 		public void DisposeAll()
 		{
 			XAxisLinesGeometry.Children.Clear();
