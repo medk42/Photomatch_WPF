@@ -8,7 +8,7 @@ using Photomatch_ProofOfConcept_WPF.Logic;
 
 namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls
 {
-	class ModelCreationHandler
+	public class ModelCreationHandler
 	{
 		private bool Active_;
 		public bool Active
@@ -24,13 +24,12 @@ namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls
 			}
 		}
 
-		private ModelCreationEdgeHandler ModelCreationEdgeHandler;
-
 		private PerspectiveData Perspective;
 		private Model Model;
 		private ModelVisualization ModelVisualization;
 
 		private ModelCreationTool ModelCreationTool;
+		private IModelCreationToolHandler[] ModelCreationToolHandlers;
 
 		public ModelCreationHandler(Model model, PerspectiveData perspective, ModelVisualization modelVisualization)
 		{
@@ -38,7 +37,11 @@ namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls
 			this.Perspective = perspective;
 			this.ModelVisualization = modelVisualization;
 
-			this.ModelCreationEdgeHandler = new ModelCreationEdgeHandler(Perspective, Model, ModelVisualization);
+			ModelCreationToolHandlers = new IModelCreationToolHandler[] {
+				new ModelCreationEdgeHandler(Perspective, Model, ModelVisualization),
+				new ModelCreationDeleteHandler(ModelVisualization),
+				new ModelCreationTriangleFaceHandler(ModelVisualization, Model)
+			}; 
 
 			this.Active = false;
 			SetActive(Active);
@@ -46,139 +49,65 @@ namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls
 
 		public void MouseMove(Vector2 mouseCoord)
 		{
-			ModelCreationEdgeHandler.MouseMove(mouseCoord);
-
-			if (Active)
+			for (int i = 0; i < ModelCreationToolHandlers.Length; i++)
 			{
-				switch (ModelCreationTool)
-				{
-					case ModelCreationTool.Delete:
-						ModelVisualization.ModelHoverEllipse.MouseEvent(mouseCoord);
-						break;
-					case ModelCreationTool.Edge:
-						break;
-					case ModelCreationTool.TriangleFace:
-						ModelVisualization.ModelHoverEllipse.MouseEvent(mouseCoord);
-						break;
-					default:
-						throw new Exception("Unknown switch case.");
-				}
+				ModelCreationToolHandlers[i].MouseMove(mouseCoord);
 			}
 		}
 
 		public void MouseDown(Vector2 mouseCoord, MouseButton button)
 		{
-			ModelCreationEdgeHandler.MouseDown(mouseCoord, button);
-
-			if (Active)
+			for (int i = 0; i < ModelCreationToolHandlers.Length; i++)
 			{
-				switch (ModelCreationTool)
-				{
-					case ModelCreationTool.Delete:
-						MouseDownDelete(mouseCoord, button);
-						ModelVisualization.ModelHoverEllipse.MouseEvent(mouseCoord);
-						break;
-					case ModelCreationTool.Edge:
-						break;
-					case ModelCreationTool.TriangleFace:
-						MouseDownTriangleFace(mouseCoord, button);
-						ModelVisualization.ModelHoverEllipse.MouseEvent(mouseCoord);
-						break;
-					default:
-						throw new Exception("Unknown switch case.");
-				}
+				ModelCreationToolHandlers[i].MouseDown(mouseCoord, button);
 			}
 		}
 
 		public void MouseUp(Vector2 mouseCoord, MouseButton button)
 		{
-			ModelCreationEdgeHandler.MouseUp(mouseCoord, button);
-		}
-
-		private enum TriangleFaceState { None, FirstPoint, SecondPoint };
-		private Vertex first, second;
-		private TriangleFaceState State = TriangleFaceState.None;
-
-		private void MouseDownTriangleFace(Vector2 mouseCoord, MouseButton button)
-		{
-			if (button != MouseButton.Left)
-				return;
-
-			Vertex foundPoint = ModelVisualization.GetVertexUnderMouse(mouseCoord);
-
-			if (foundPoint != null)
+			for (int i = 0; i < ModelCreationToolHandlers.Length; i++)
 			{
-				switch (State)
-				{
-					case TriangleFaceState.None:
-						first = foundPoint;
-						State = TriangleFaceState.FirstPoint;
-						break;
-					case TriangleFaceState.FirstPoint:
-						if (first != foundPoint)
-						{
-							second = foundPoint;
-							State = TriangleFaceState.SecondPoint;
-						}
-						break;
-					case TriangleFaceState.SecondPoint:
-						if (first != foundPoint && second != foundPoint)
-						{
-							Model.AddFace(new List<Vertex>() { first, second, foundPoint });
-							State = TriangleFaceState.None;
-						}
-						break;
-				}
+				ModelCreationToolHandlers[i].MouseUp(mouseCoord, button);
 			}
-		}
-
-		private void MouseDownDelete(Vector2 mouseCoord, MouseButton button)
-		{
-			if (button != MouseButton.Left)
-				return;
-
-			Vertex foundPoint = ModelVisualization.GetVertexUnderMouse(mouseCoord);
-
-			if (foundPoint != null)
-				foundPoint.Remove();
 		}
 
 		public void KeyDown(KeyboardKey key)
 		{
-			ModelCreationEdgeHandler.KeyDown(key);
+			for (int i = 0; i < ModelCreationToolHandlers.Length; i++)
+			{
+				ModelCreationToolHandlers[i].KeyDown(key);
+			}
 		}
 
 		public void KeyUp(KeyboardKey key)
 		{
-			ModelCreationEdgeHandler.KeyUp(key);
+			for (int i = 0; i < ModelCreationToolHandlers.Length; i++)
+			{
+				ModelCreationToolHandlers[i].KeyUp(key);
+			}
 		}
 
 		private void SetActive(bool active)
 		{
 			ModelVisualization.ShowModel(active);
 
-			if (active)
+			IModelCreationToolHandler handler = null;
+			for (int i = 0; i < ModelCreationToolHandlers.Length; i++)
 			{
-				switch (ModelCreationTool)
-				{
-					case ModelCreationTool.Delete:
-						break;
-					case ModelCreationTool.Edge:
-						ModelCreationEdgeHandler.Active = true;
-						break;
-					case ModelCreationTool.TriangleFace:
-						break;
-				}
+				ModelCreationToolHandlers[i].Active = false;
+				if (ModelCreationToolHandlers[i].ToolType == ModelCreationTool)
+					handler = ModelCreationToolHandlers[i];
 			}
-			else
-			{
-				ModelCreationEdgeHandler.Active = false;
-			}
+			handler.Active = active;
 		}
 
 		public void Dispose()
 		{
 			ModelVisualization.Dispose();
+			for (int i = 0; i < ModelCreationToolHandlers.Length; i++)
+			{
+				ModelCreationToolHandlers[i].Dispose();
+			}
 			Perspective = null;
 		}
 
@@ -190,17 +119,14 @@ namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls
 
 				if (Active)
 				{
-					ModelCreationEdgeHandler.Active = false;
-					switch (ModelCreationTool)
+					IModelCreationToolHandler handler = null;
+					for (int i = 0; i < ModelCreationToolHandlers.Length; i++)
 					{
-						case ModelCreationTool.Delete:
-							break;
-						case ModelCreationTool.Edge:
-							ModelCreationEdgeHandler.Active = true;
-							break;
-						case ModelCreationTool.TriangleFace:
-							break;
+						ModelCreationToolHandlers[i].Active = false;
+						if (ModelCreationToolHandlers[i].ToolType == ModelCreationTool)
+							handler = ModelCreationToolHandlers[i];
 					}
+					handler.Active = true;
 				}
 			}
 		}

@@ -6,21 +6,9 @@ using System.Text;
 
 namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls.ModelCreationToolHandlers
 {
-	public class ModelCreationEdgeHandler
+	public class ModelCreationEdgeHandler : BaseModelCreationToolHandler
 	{
-		private bool Active_;
-		public bool Active
-		{
-			get => Active_;
-			set
-			{
-				if (value != Active_)
-				{
-					Active_ = value;
-					SetActive(Active_);
-				}
-			}
-		}
+		public override ModelCreationTool ToolType => ModelCreationTool.Edge;
 
 		private PerspectiveData Perspective;
 		private Model Model;
@@ -43,7 +31,7 @@ namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls.ModelCreationToolHandler
 			SetActive(Active);
 		}
 
-		public void MouseMove(Vector2 mouseCoord)
+		public override void MouseMove(Vector2 mouseCoord)
 		{
 			if (Active)
 			{
@@ -121,7 +109,7 @@ namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls.ModelCreationToolHandler
 			}
 		}
 
-		public void MouseDown(Vector2 mouseCoord, MouseButton button)
+		public override void MouseDown(Vector2 mouseCoord, MouseButton button)
 		{
 			if (Active)
 			{
@@ -163,7 +151,7 @@ namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls.ModelCreationToolHandler
 			}
 		}
 
-		public void MouseUp(Vector2 mouseCoord, MouseButton button)
+		public override void MouseUp(Vector2 mouseCoord, MouseButton button)
 		{
 			if (Active)
 			{
@@ -171,7 +159,7 @@ namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls.ModelCreationToolHandler
 			}
 		}
 
-		public void KeyDown(KeyboardKey key)
+		public override void KeyDown(KeyboardKey key)
 		{
 			if (Active)
 			{
@@ -187,7 +175,7 @@ namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls.ModelCreationToolHandler
 			}
 		}
 
-		public void KeyUp(KeyboardKey key)
+		public override void KeyUp(KeyboardKey key)
 		{
 			if (Active)
 			{
@@ -200,7 +188,7 @@ namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls.ModelCreationToolHandler
 			}
 		}
 
-		private void SetActive(bool active)
+		internal override void SetActive(bool active)
 		{
 			ModelVisualization.ModelHoverEllipse.Active = active;
 
@@ -219,6 +207,11 @@ namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls.ModelCreationToolHandler
 				ModelDraggingVertex = null;
 				ModelVisualization.ModelHoverEllipse.MouseEvent(LastMouseCoord);
 			}
+		}
+
+		public override void Dispose()
+		{
+			Perspective = null;
 		}
 	}
 }
