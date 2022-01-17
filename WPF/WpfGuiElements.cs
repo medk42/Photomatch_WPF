@@ -7,6 +7,8 @@ using System.Windows.Media;
 using Photomatch_ProofOfConcept_WPF.WPF.ViewModel;
 using Photomatch_ProofOfConcept_WPF.Gui;
 using Photomatch_ProofOfConcept_WPF.Logic;
+using System.Windows.Shapes;
+using System.Collections.ObjectModel;
 
 namespace Photomatch_ProofOfConcept_WPF.WPF
 {
@@ -84,106 +86,106 @@ namespace Photomatch_ProofOfConcept_WPF.WPF
 		private protected abstract void AddNewColor(ApplicationColor color);
 	}
 
-	public class WpfPolygon : WpfGuiElement, IPolygon
+	public static class ApplicationColorBrushes
 	{
-		private ImageViewModel ImageViewModel;
-		private PathFigure Polygon;
-		private PathGeometry PolygonGeometry;
+		private static SolidColorBrush FaceBrush = new SolidColorBrush(System.Windows.Media.Color.FromArgb(128, 255, 255, 255));
 
-		public Vector2 this[int i]
+		public static Brush GetColor(ApplicationColor color)
 		{
-			get
+			switch (color)
 			{
-				if (Polygon == null)
-					return Vector2.InvalidInstance;
-
-				if (i == 0)
-					return Polygon.StartPoint.AsVector2();
-				else
-					return ((LineSegment)Polygon.Segments[i - 1]).Point.AsVector2();
+				case ApplicationColor.XAxis:
+					return Brushes.Red;
+				case ApplicationColor.YAxis:
+					return Brushes.Green;
+				case ApplicationColor.ZAxis:
+					return Brushes.Blue;
+				case ApplicationColor.Model:
+					return Brushes.Cyan;
+				case ApplicationColor.Selected:
+					return Brushes.Orange;
+				case ApplicationColor.Face:
+					return FaceBrush;
+				default:
+					throw new ArgumentException("Unknown application color.");
 			}
+		}
+	}
 
+	public class WpfPolygon : IPolygon
+	{
+		private ApplicationColor Color_;
+		public ApplicationColor Color
+		{
+			get => Color_;
 			set
 			{
-				if (Polygon == null)
-					return;
-				if (i == 0)
-					Polygon.StartPoint = value.AsPoint();
-				else
-					((LineSegment)Polygon.Segments[i - 1]).Point = value.AsPoint();
+				if (value != Color_)
+				{
+					Color_ = value;
+					SetColor(value);
+				}
 			}
 		}
 
-		public int Count { get; private set; } = 0;
-
-		public WpfPolygon(ImageViewModel imageViewModel, ApplicationColor color)
+		private bool Visible_ = true;
+		public bool Visible
 		{
-			ImageViewModel = imageViewModel;
+			get => Visible_;
+			set
+			{
+				if (value != Visible_)
+				{
+					Visible_ = value;
+					if (value)
+						Polygon.Visibility = Visibility.Collapsed;
+					else
+						Polygon.Visibility = Visibility.Visible;
+				}
+			}
+		}
+
+		public int Count => Polygon.Points.Count;
+
+		public Vector2 this[int i]
+		{
+			get => Polygon.Points[i].AsVector2();
+			set => Polygon.Points[i] = value.AsPoint();
+		}
+
+		private ObservableCollection<Polygon> Polygons;
+		private Polygon Polygon;
+
+		public WpfPolygon(ObservableCollection<Polygon> polygons, ApplicationColor color)
+		{
+			this.Polygons = polygons;
+
+			Polygon = new Polygon();
+			Polygons.Add(Polygon);
+
 			Color_ = color;
+			SetColor(Color_);
+		}
 
-			Polygon = new PathFigure() { IsClosed = true };
-
-			PolygonGeometry = new PathGeometry(new PathFigure[] { Polygon });
-
-			AddNewColor(Color);
+		private void SetColor(ApplicationColor color)
+		{
+			Polygon.Fill = ApplicationColorBrushes.GetColor(color);
 		}
 
 		public void Add(Vector2 vertex)
 		{
-			if (Polygon == null)
-				return;
-
-			if (Count == 0)
-				Polygon.StartPoint = vertex.AsPoint();
-			else
-				Polygon.Segments.Add(new LineSegment() { Point = vertex.AsPoint() });
-
-			Count++;
+			Polygon.Points.Add(vertex.AsPoint());
 		}
 
 		public void Remove(int index)
 		{
-			if (Polygon == null)
-				return;
-
-			if (index == 0)
-			{
-				if (Count > 1)
-				{
-					Polygon.StartPoint = ((LineSegment)Polygon.Segments[0]).Point;
-					Polygon.Segments.RemoveAt(0);
-					Count--;
-				}
-			}
-			else
-			{
-				Polygon.Segments.RemoveAt(index - 1);
-				Count--;
-			}
-		}
-
-		private protected override void RemoveOldColor(ApplicationColor color)
-		{
-			if (PolygonGeometry == null)
-				return;
-
-			GeometryGroup geometry = GetGeometry(color, ImageViewModel);
-			geometry.Children.Remove(PolygonGeometry);
-		}
-
-		private protected override void AddNewColor(ApplicationColor color)
-		{
-			if (PolygonGeometry == null)
-				return;
-
-			GeometryGroup geometry = GetGeometry(color, ImageViewModel);
-			geometry.Children.Add(PolygonGeometry);
+			Polygon.Points.RemoveAt(index);
 		}
 
 		public void Dispose()
 		{
-			RemoveOldColor(Color);
-			PolygonGeometry = null;
+			Polygons.Remove(Polygon);
+			Polygons = null;
 			Polygon = null;
 		}
 	}

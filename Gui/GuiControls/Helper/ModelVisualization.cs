@@ -99,7 +99,7 @@ namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls.Helper
 
 		private void FaceAdderHelper(Face face)
 		{
-			IPolygon windowPolygon = Window.CreateFilledPolygon(ApplicationColor.XAxis);
+			IPolygon windowPolygon = Window.CreateFilledPolygon(ApplicationColor.Face);
 			foreach (Vertex vertex in face.Vertices)
 				windowPolygon.Add(Perspective.WorldToScreen(vertex.Position));
 			face.FaceRemovedEvent += FaceRemoved;

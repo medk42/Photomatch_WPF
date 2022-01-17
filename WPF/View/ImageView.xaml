@@ -13,6 +13,13 @@
         <Viewbox x:Name="MainViewbox" behavior:ControlProperties.SizeChanged="{Binding Viewbox_SizeChanged}">
             <Grid>
                 <Image x:Name="MainImage" Source="{Binding ImageSource}" behavior:ControlProperties.Loaded="{Binding Image_Loaded}"></Image>
+                <ItemsControl ItemsSource="{Binding Polygons}">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <Canvas />
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                </ItemsControl>
             </Grid>
         </Viewbox>
 

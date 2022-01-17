@@ -15,6 +15,8 @@ using Photomatch_ProofOfConcept_WPF.Logic;
 using Photomatch_ProofOfConcept_WPF.Utilities;
 using Photomatch_ProofOfConcept_WPF.Gui.GuiControls;
 using Photomatch_ProofOfConcept_WPF;
+using System.Windows.Shapes;
+using System.Collections.ObjectModel;
 
 namespace Photomatch_ProofOfConcept_WPF.WPF.ViewModel
 {
@@ -94,6 +96,8 @@ namespace Photomatch_ProofOfConcept_WPF.WPF.ViewModel
 				OnPropertyChanged(nameof(LineStrokeThickness));
 			}
 		}
+
+		public ObservableCollection<Polygon> Polygons { get; } = new ObservableCollection<Polygon>();
 
 		public IMouseHandler MouseHandler
 		{
@@ -199,7 +203,7 @@ namespace Photomatch_ProofOfConcept_WPF.WPF.ViewModel
 
 		public IPolygon CreateFilledPolygon(ApplicationColor color)
 		{
-			return new WpfPolygon(this, color);
+			return new WpfPolygon(Polygons, color);
 		}
 
 		public void DisposeAll()
@@ -313,7 +317,7 @@ namespace Photomatch_ProofOfConcept_WPF.WPF.ViewModel
 			{
 				throw new ArgumentException("obj is not of type Image");
 			}
-
+			
 			ImageView = image;
 		}
 
