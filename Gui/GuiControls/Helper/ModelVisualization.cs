@@ -18,7 +18,7 @@ namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls.Helper
 		private double PointDrawRadius;
 
 		private List<Tuple<ILine, Edge, EdgeEventListener>> ModelLines = new List<Tuple<ILine, Edge, EdgeEventListener>>();
-		private List<Tuple<IPolygon, Face>> ModelFaces = new List<Tuple<IPolygon, Face>>();
+		private List<Tuple<IPolygon, Face, FaceEventListener>> ModelFaces = new List<Tuple<IPolygon, Face, FaceEventListener>>();
 
 		public ModelVisualization(PerspectiveData perspective, IWindow window, Model model, double pointGrabRadius, double pointDrawRadius)
 		{
@@ -52,15 +52,22 @@ namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls.Helper
 		{
 			foreach (var lineTuple in ModelLines)
 				lineTuple.Item1.Visible = show;
+
+			foreach (var faceTuple in ModelFaces)
+				faceTuple.Item1.Visible = show;
 		}
 
-		public void UpdateDisplayedLines()
+		public void UpdateDisplayedGeometry()
 		{
 			foreach (var lineTuple in ModelLines)
 			{
 				lineTuple.Item1.Start = Perspective.WorldToScreen(lineTuple.Item2.Start.Position);
 				lineTuple.Item1.End = Perspective.WorldToScreen(lineTuple.Item2.End.Position);
 			}
+
+			foreach (var faceTuple in ModelFaces)
+				for (int i = 0; i < faceTuple.Item2.Count; i++)
+					faceTuple.Item1[i] = Perspective.WorldToScreen(faceTuple.Item2[i].Position);
 		}
 
 		private void EdgeRemoved(Edge edge)
@@ -78,7 +85,9 @@ namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls.Helper
 		private void FaceRemoved(Face face)
 		{
 			face.FaceRemovedEvent -= FaceRemoved;
+
 			var tuple = ModelFaces.Find((faceTuple) => faceTuple.Item2 == face);
+			face.VertexPositionChangedEvent -= tuple.Item3.FaceVertexPositionChanged;
 
 			tuple.Item1.Dispose();
 			ModelFaces.Remove(tuple);
@@ -100,10 +109,12 @@ namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls.Helper
 		private void FaceAdderHelper(Face face)
 		{
 			IPolygon windowPolygon = Window.CreateFilledPolygon(ApplicationColor.Face);
-			foreach (Vertex vertex in face.Vertices)
-				windowPolygon.Add(Perspective.WorldToScreen(vertex.Position));
+			for (int i = 0; i < face.Count; i++)
+				windowPolygon.Add(Perspective.WorldToScreen(face[i].Position));
+			FaceEventListener faceEventListener = new FaceEventListener(windowPolygon, Perspective);
 			face.FaceRemovedEvent += FaceRemoved;
-			ModelFaces.Add(new Tuple<IPolygon, Face>(windowPolygon, face));
+			face.VertexPositionChangedEvent += faceEventListener.FaceVertexPositionChanged;
+			ModelFaces.Add(new Tuple<IPolygon, Face, FaceEventListener>(windowPolygon, face, faceEventListener));
 		}
 
 		private void CreateModelLines()
@@ -132,6 +143,7 @@ namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls.Helper
 			foreach (var faceTuple in ModelFaces)
 			{
 				faceTuple.Item2.FaceRemovedEvent -= FaceRemoved;
+				faceTuple.Item2.VertexPositionChangedEvent -= faceTuple.Item3.FaceVertexPositionChanged;
 
 				faceTuple.Item1.Dispose();
 			}

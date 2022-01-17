@@ -251,10 +251,10 @@ namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls
 					{
 						writer.Write('f');
 
-						foreach (Vertex v in f.Vertices)
+						for (int i = 0; i < f.Count; i++)
 						{
 							writer.Write(" ");
-							writer.Write(Model.Vertices.IndexOf(v) + 1);
+							writer.Write(Model.Vertices.IndexOf(f[i]) + 1);
 						}
 
 						writer.WriteLine();

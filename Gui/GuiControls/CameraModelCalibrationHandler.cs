@@ -60,7 +60,7 @@ namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls
 		private void UpdateOrigin(Vector2 mouseCoord)
 		{
 			Perspective.Origin = Perspective.MatchScreenWorldPoint(mouseCoord, SelectedVertex.Position);
-			ModelVisualization.UpdateDisplayedLines();
+			ModelVisualization.UpdateDisplayedGeometry();
 		}
 
 		private void UpdateScale(Vector2 mouseCoord)
@@ -71,7 +71,7 @@ namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls
 				Perspective.Scale = originScale.Z;
 				Perspective.Origin = new Vector2(originScale.X, originScale.Y);
 			}
-			ModelVisualization.UpdateDisplayedLines();
+			ModelVisualization.UpdateDisplayedGeometry();
 		}
 
 		public void MouseMove(Vector2 mouseCoord)

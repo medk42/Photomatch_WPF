@@ -43,7 +43,7 @@ namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls
 			this.CameraCalibrationHandler = new CameraCalibrationHandler(Perspective, Window, PointGrabRadius, PointDrawRadius);
 			this.CameraModelCalibrationHandler = new CameraModelCalibrationHandler(ModelVisualization, model, Perspective, Window, PointGrabRadius, PointDrawRadius);
 
-			this.CameraCalibrationHandler.CoordSystemUpdateEvent += ModelVisualization.UpdateDisplayedLines;
+			this.CameraCalibrationHandler.CoordSystemUpdateEvent += ModelVisualization.UpdateDisplayedGeometry;
 
 			this.DesignTool_Changed(currentDesignTool);
 			this.ModelCreationTool_Changed(currentModelCreationTool);
@@ -86,7 +86,7 @@ namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls
 		public void Dispose()
 		{
 			Perspective = null;
-			CameraCalibrationHandler.CoordSystemUpdateEvent -= ModelVisualization.UpdateDisplayedLines;
+			CameraCalibrationHandler.CoordSystemUpdateEvent -= ModelVisualization.UpdateDisplayedGeometry;
 
 			ModelCreationHandler.Dispose();
 			CameraCalibrationHandler.Dispose();

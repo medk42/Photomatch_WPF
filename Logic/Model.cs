@@ -11,6 +11,7 @@ namespace Photomatch_ProofOfConcept_WPF.Logic
 	public delegate void VertexRemovedEventHandler(Vertex vertex);
 	public delegate void EdgeRemovedEventHandler(Edge edge);
 	public delegate void FaceRemovedEventHandler(Face face);
+	public delegate void VertexPositionChangedEventHandler(Vector3 position, int id);
 
 	public class Vertex
 	{
@@ -63,16 +64,52 @@ namespace Photomatch_ProofOfConcept_WPF.Logic
 
 	public class Face
 	{
-		public FaceRemovedEventHandler FaceRemovedEvent;
+		public event VertexPositionChangedEventHandler VertexPositionChangedEvent;
+		public event FaceRemovedEventHandler FaceRemovedEvent;
 
-		public List<Vertex> Vertices { get; } = new List<Vertex>();
+		public Vertex this[int i]
+		{
+			get => Vertices[i];
+		}
+
+		public int Count => Vertices.Count;
+
+		private Vector3 Normal_;
+		public Vector3 Normal { get => Normal_; }
+
+		private Vector3 TriangleMiddle_;
+		public Vector3 TriangleMiddle { get => TriangleMiddle_; }
+
+		private List<Vertex> Vertices { get; } = new List<Vertex>();
 
 		public Face(List<Vertex> vertices)
 		{
 			this.Vertices = vertices;
 
-			foreach (Vertex v in Vertices)
+			for (int i = 0; i < Vertices.Count; i++)
+			{
+				Vertex v = Vertices[i];
 				v.VertexRemovedEvent += (v) => Remove();
+
+				if (i < 3)
+				{
+					v.PositionChangedEvent += (position) =>
+					{
+						RecalculateProperties();
+						VertexPositionChangedEvent?.Invoke(position, i);
+					};
+				}
+				else
+					v.PositionChangedEvent += (position) => VertexPositionChangedEvent?.Invoke(position, i);
+			}
+
+			RecalculateProperties();
+		}
+
+		private void RecalculateProperties()
+		{
+			Normal_ = Vector3.Cross(Vertices[1].Position - Vertices[0].Position, Vertices[2].Position - Vertices[0].Position).Normalized();
+			TriangleMiddle_ = (Vertices[0].Position + Vertices[1].Position + Vertices[2].Position) / 3;
 		}
 
 		public void Remove()
