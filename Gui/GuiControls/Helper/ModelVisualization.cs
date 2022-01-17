@@ -18,6 +18,7 @@ namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls.Helper
 		private double PointDrawRadius;
 
 		private List<Tuple<ILine, Edge, EdgeEventListener>> ModelLines = new List<Tuple<ILine, Edge, EdgeEventListener>>();
+		private List<Tuple<IPolygon, Face>> ModelFaces = new List<Tuple<IPolygon, Face>>();
 
 		public ModelVisualization(PerspectiveData perspective, IWindow window, Model model, double pointGrabRadius, double pointDrawRadius)
 		{
@@ -74,6 +75,15 @@ namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls.Helper
 			ModelLines.Remove(tuple);
 		}
 
+		private void FaceRemoved(Face face)
+		{
+			face.FaceRemovedEvent -= FaceRemoved;
+			var tuple = ModelFaces.Find((faceTuple) => faceTuple.Item2 == face);
+
+			tuple.Item1.Dispose();
+			ModelFaces.Remove(tuple);
+		}
+
 		private void EdgeAdderHelper(Edge edge)
 		{
 			Vector2 start = Perspective.WorldToScreen(edge.Start.Position);
@@ -87,12 +97,25 @@ namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls.Helper
 			ModelDraggingLine = windowLine;
 		}
 
+		private void FaceAdderHelper(Face face)
+		{
+			IPolygon windowPolygon = Window.CreateFilledPolygon(ApplicationColor.XAxis);
+			foreach (Vertex vertex in face.Vertices)
+				windowPolygon.Add(Perspective.WorldToScreen(vertex.Position));
+			face.FaceRemovedEvent += FaceRemoved;
+			ModelFaces.Add(new Tuple<IPolygon, Face>(windowPolygon, face));
+		}
+
 		private void CreateModelLines()
 		{
 			Model.AddEdgeEvent += EdgeAdderHelper;
+			Model.AddFaceEvent += FaceAdderHelper;
 
-			foreach (Edge line in Model.Edges)
-				EdgeAdderHelper(line);
+			foreach (Edge edge in Model.Edges)
+				EdgeAdderHelper(edge);
+
+			foreach (Face face in Model.Faces)
+				FaceAdderHelper(face);
 		}
 
 		public void Dispose()
@@ -102,6 +125,15 @@ namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls.Helper
 				lineTuple.Item2.StartPositionChangedEvent -= lineTuple.Item3.StartPositionChanged;
 				lineTuple.Item2.EndPositionChangedEvent -= lineTuple.Item3.EndPositionChanged;
 				lineTuple.Item2.EdgeRemovedEvent -= EdgeRemoved;
+
+				lineTuple.Item1.Dispose();
+			}
+
+			foreach (var faceTuple in ModelFaces)
+			{
+				faceTuple.Item2.FaceRemovedEvent -= FaceRemoved;
+
+				faceTuple.Item1.Dispose();
 			}
 
 			ModelLines.Clear();

@@ -15,7 +15,6 @@ namespace Photomatch_ProofOfConcept_WPF.Gui
 		Vector2 End { get; set; }
  		ApplicationColor Color { get; set; }
 		bool Visible { get; set; }
-
 		void Dispose();
 	}
 
@@ -34,6 +33,7 @@ namespace Photomatch_ProofOfConcept_WPF.Gui
 		int Count { get; }
 		void Add(Vector2 vertex);
 		void Remove(int index);
+		void Dispose();
 	}
 
 	public interface MasterGUI : ILogger

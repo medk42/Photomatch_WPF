@@ -10,6 +10,7 @@ namespace Photomatch_ProofOfConcept_WPF.Logic
 	public delegate void PositionChangedEventHandler(Vector3 position);
 	public delegate void VertexRemovedEventHandler(Vertex vertex);
 	public delegate void EdgeRemovedEventHandler(Edge edge);
+	public delegate void FaceRemovedEventHandler(Face face);
 
 	public class Vertex
 	{
@@ -62,21 +63,34 @@ namespace Photomatch_ProofOfConcept_WPF.Logic
 
 	public class Face
 	{
+		public FaceRemovedEventHandler FaceRemovedEvent;
+
 		public List<Vertex> Vertices { get; } = new List<Vertex>();
 
 		public Face(List<Vertex> vertices)
 		{
 			this.Vertices = vertices;
+
+			foreach (Vertex v in Vertices)
+				v.VertexRemovedEvent += (v) => Remove();
+		}
+
+		public void Remove()
+		{
+			FaceRemovedEvent?.Invoke(this);
 		}
 	}
 
 	public class Model : ISafeSerializable<Model>
 	{
-		public delegate void AddEdgeEventHandler(Edge line);
+		public delegate void AddEdgeEventHandler(Edge edge);
 		public event AddEdgeEventHandler AddEdgeEvent;
 
-		public delegate void AddVertexEventHandler(Vertex line);
+		public delegate void AddVertexEventHandler(Vertex vertex);
 		public event AddVertexEventHandler AddVertexEvent;
+
+		public delegate void AddFaceEventHandler(Face face);
+		public event AddFaceEventHandler AddFaceEvent;
 
 		public List<Vertex> Vertices { get; } = new List<Vertex>();
 		public List<Edge> Edges { get; } = new List<Edge>();
@@ -102,20 +116,22 @@ namespace Photomatch_ProofOfConcept_WPF.Logic
 
 		public Edge AddEdge(Vertex start, Vertex end)
 		{
-			Edge newLine = new Edge(start, end);
-			newLine.EdgeRemovedEvent += RemoveEdge;
+			Edge newEdge = new Edge(start, end);
+			newEdge.EdgeRemovedEvent += RemoveEdge;
 
-			Edges.Add(newLine);
-			AddEdgeEvent?.Invoke(newLine);
+			Edges.Add(newEdge);
+			AddEdgeEvent?.Invoke(newEdge);
 
-			return newLine;
+			return newEdge;
 		}
 
 		public Face AddFace(List<Vertex> vertices)
 		{
 			Face newFace = new Face(vertices);
+			newFace.FaceRemovedEvent += RemoveFace;
 
 			Faces.Add(newFace);
+			AddFaceEvent?.Invoke(newFace);
 
 			return newFace;
 		}
@@ -130,6 +146,12 @@ namespace Photomatch_ProofOfConcept_WPF.Logic
 		{
 			e.EdgeRemovedEvent -= RemoveEdge;
 			Edges.Remove(e);
+		}
+
+		private void RemoveFace(Face f)
+		{
+			f.FaceRemovedEvent -= RemoveFace;
+			Faces.Remove(f);
 		}
 
 		public void Serialize(BinaryWriter writer)

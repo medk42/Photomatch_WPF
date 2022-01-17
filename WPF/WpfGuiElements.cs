@@ -94,6 +94,9 @@ namespace Photomatch_ProofOfConcept_WPF.WPF
 		{
 			get
 			{
+				if (Polygon == null)
+					return Vector2.InvalidInstance;
+
 				if (i == 0)
 					return Polygon.StartPoint.AsVector2();
 				else
@@ -102,6 +105,8 @@ namespace Photomatch_ProofOfConcept_WPF.WPF
 
 			set
 			{
+				if (Polygon == null)
+					return;
 				if (i == 0)
 					Polygon.StartPoint = value.AsPoint();
 				else
@@ -125,6 +130,9 @@ namespace Photomatch_ProofOfConcept_WPF.WPF
 
 		public void Add(Vector2 vertex)
 		{
+			if (Polygon == null)
+				return;
+
 			if (Count == 0)
 				Polygon.StartPoint = vertex.AsPoint();
 			else
@@ -135,6 +143,9 @@ namespace Photomatch_ProofOfConcept_WPF.WPF
 
 		public void Remove(int index)
 		{
+			if (Polygon == null)
+				return;
+
 			if (index == 0)
 			{
 				if (Count > 1)
@@ -153,14 +164,27 @@ namespace Photomatch_ProofOfConcept_WPF.WPF
 
 		private protected override void RemoveOldColor(ApplicationColor color)
 		{
+			if (PolygonGeometry == null)
+				return;
+
 			GeometryGroup geometry = GetGeometry(color, ImageViewModel);
 			geometry.Children.Remove(PolygonGeometry);
 		}
 
 		private protected override void AddNewColor(ApplicationColor color)
 		{
+			if (PolygonGeometry == null)
+				return;
+
 			GeometryGroup geometry = GetGeometry(color, ImageViewModel);
 			geometry.Children.Add(PolygonGeometry);
+		}
+
+		public void Dispose()
+		{
+			RemoveOldColor(Color);
+			PolygonGeometry = null;
+			Polygon = null;
 		}
 	}
 
