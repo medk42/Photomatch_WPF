@@ -93,10 +93,11 @@ namespace Photomatch_ProofOfConcept_WPF.Logic
 
 				if (i < 3)
 				{
+					int iCopy = i;
 					v.PositionChangedEvent += (position) =>
 					{
 						RecalculateProperties();
-						VertexPositionChangedEvent?.Invoke(position, i);
+						VertexPositionChangedEvent?.Invoke(position, iCopy);
 					};
 				}
 				else
