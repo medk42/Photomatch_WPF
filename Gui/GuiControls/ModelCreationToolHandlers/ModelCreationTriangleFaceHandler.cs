@@ -117,17 +117,33 @@ namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls.ModelCreationToolHandler
 			}
 		}
 
+		public override void KeyDown(KeyboardKey key)
+		{
+			if (Active)
+			{
+				switch (key)
+				{
+					case KeyboardKey.Escape:
+						CancelFaceCreate();
+						break;
+				}
+			}
+		}
+
+		private void CancelFaceCreate()
+		{
+			State = TriangleFaceState.None;
+			Line1.Visible = false;
+			Line2.Visible = false;
+			Line3.Visible = false;
+		}
+
 		internal override void SetActive(bool active)
 		{
 			ModelVisualization.ModelHoverEllipse.Active = active;
 
 			if (!active)
-			{
-				State = TriangleFaceState.None;
-				Line1.Visible = false;
-				Line2.Visible = false;
-				Line3.Visible = false;
-			}
+				CancelFaceCreate();
 		}
 	}
 }
