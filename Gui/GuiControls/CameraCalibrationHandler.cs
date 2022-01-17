@@ -204,6 +204,9 @@ namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls
 			LineX.Visible = active;
 			LineY.Visible = active;
 			LineZ.Visible = active;
+
+			if (active)
+				UpdateCoordSystemLines();
 		}
 
 		public void Dispose()
