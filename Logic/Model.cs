@@ -33,6 +33,12 @@ namespace Photomatch_ProofOfConcept_WPF.Logic
 		{
 			VertexRemovedEvent?.Invoke(this);
 		}
+
+		public void Dispose()
+		{
+			VertexRemovedEvent = null;
+			PositionChangedEvent = null;
+		}
 	}
 
 	public class Edge
@@ -60,6 +66,13 @@ namespace Photomatch_ProofOfConcept_WPF.Logic
 		{
 			EdgeRemovedEvent?.Invoke(this);
 		}
+
+		public void Dispose()
+		{
+			EdgeRemovedEvent = null;
+			StartPositionChangedEvent = null;
+			EndPositionChangedEvent = null;
+		}
 	}
 
 	public class Face
@@ -74,13 +87,19 @@ namespace Photomatch_ProofOfConcept_WPF.Logic
 
 		public int Count => Vertices.Count;
 
+		public bool Reversed
+		{
+			get => FacesFront.Count % 2 == 1;
+		}
+
 		private Vector3 Normal_;
 		public Vector3 Normal { get => Normal_; }
 
 		private Vector3 TriangleMiddle_;
 		public Vector3 TriangleMiddle { get => TriangleMiddle_; }
 
-		private List<Vertex> Vertices { get; } = new List<Vertex>();
+		private List<Vertex> Vertices = new List<Vertex>();
+		private List<Face> FacesFront = new List<Face>();
 
 		public Face(List<Vertex> vertices)
 		{
@@ -107,6 +126,33 @@ namespace Photomatch_ProofOfConcept_WPF.Logic
 			RecalculateProperties();
 		}
 
+		internal void FaceAdded(Face other)
+		{
+			if (other == this)
+				return;
+
+			Ray3D ray = new Ray3D(TriangleMiddle, Normal);
+
+			List<Vector3> vertices = new List<Vector3>();
+			for (int i = 0; i < other.Count; i++)
+				vertices.Add(other[i].Position);
+
+			RayPolygonIntersectionPoint point = Intersections3D.GetRayPolygonIntersection(ray, vertices, other.Normal);
+			if (point.IntersectedPolygon && point.RayRelative >= 0)
+				FacesFront.Add(other);
+		}
+
+		internal void FaceChanged(Face other)
+		{
+			if (FacesFront.Remove(other))
+				FaceAdded(other);
+		}
+
+		internal void FaceRemoved(Face other)
+		{
+			FacesFront.Remove(other);
+		}
+
 		private void RecalculateProperties()
 		{
 			Normal_ = Vector3.Cross(Vertices[1].Position - Vertices[0].Position, Vertices[2].Position - Vertices[0].Position).Normalized();
@@ -116,6 +162,12 @@ namespace Photomatch_ProofOfConcept_WPF.Logic
 		public void Remove()
 		{
 			FaceRemovedEvent?.Invoke(this);
+		}
+
+		public void Dispose()
+		{
+			FaceRemovedEvent = null;
+			VertexPositionChangedEvent = null;
 		}
 	}
 
@@ -167,6 +219,13 @@ namespace Photomatch_ProofOfConcept_WPF.Logic
 		{
 			Face newFace = new Face(vertices);
 			newFace.FaceRemovedEvent += RemoveFace;
+			newFace.VertexPositionChangedEvent += (position, id) => FaceUpdated(newFace, id, position);
+
+			foreach (Face face in Faces)
+			{
+				face.FaceAdded(newFace);
+				newFace.FaceAdded(face);
+			}
 
 			Faces.Add(newFace);
 			AddFaceEvent?.Invoke(newFace);
@@ -174,22 +233,38 @@ namespace Photomatch_ProofOfConcept_WPF.Logic
 			return newFace;
 		}
 
+		private void FaceUpdated(Face face, int vertexId, Vector3 position)
+		{
+			foreach (Face f in Faces)
+			{
+				f.FaceChanged(face);
+				face.FaceChanged(f);
+			}					
+		}
+
 		private void RemoveVertex(Vertex v)
 		{
 			v.VertexRemovedEvent -= RemoveVertex;
 			Vertices.Remove(v);
+			v.Dispose();
 		}
 
 		private void RemoveEdge(Edge e)
 		{
 			e.EdgeRemovedEvent -= RemoveEdge;
 			Edges.Remove(e);
+			e.Dispose();
 		}
 
 		private void RemoveFace(Face f)
 		{
 			f.FaceRemovedEvent -= RemoveFace;
 			Faces.Remove(f);
+
+			foreach (Face face in Faces)
+				face.FaceRemoved(f);
+
+			f.Dispose();
 		}
 
 		public void Serialize(BinaryWriter writer)
@@ -225,6 +300,7 @@ namespace Photomatch_ProofOfConcept_WPF.Logic
 		{
 			Vertices.Clear();
 			Edges.Clear();
+			Faces.Clear();
 		}
 	}
 }

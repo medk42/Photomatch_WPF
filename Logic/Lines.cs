@@ -395,6 +395,11 @@ namespace Photomatch_ProofOfConcept_WPF.Logic
 		public Vector3 Intersection { get; set; }
 
 		/// <summary>
+		/// Relative position of the intersection point on the ray.
+		/// </summary>
+		public double RayRelative { get; set; }
+
+		/// <summary>
 		/// true if ray intersected the polygon, false otherwise.
 		/// </summary>
 		public bool IntersectedPolygon { get; set; }
@@ -481,7 +486,7 @@ namespace Photomatch_ProofOfConcept_WPF.Logic
 
 			bool inside = Intersections2D.IsPointInsidePolygon(planePoint, planeVertices);
 
-			return new RayPolygonIntersectionPoint() { Intersection = planeIntersectionPoint.Intersection, IntersectedPolygon = inside };
+			return new RayPolygonIntersectionPoint() { Intersection = planeIntersectionPoint.Intersection, RayRelative = planeIntersectionPoint.RayRelative, IntersectedPolygon = inside };
 		}
 	}
 }
