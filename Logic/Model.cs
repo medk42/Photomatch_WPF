@@ -279,6 +279,14 @@ namespace Photomatch_ProofOfConcept_WPF.Logic
 				writer.Write(Vertices.IndexOf(e.Start));
 				writer.Write(Vertices.IndexOf(e.End));
 			}
+
+			writer.Write(Faces.Count);
+			foreach (Face f in Faces)
+			{
+				writer.Write(f.Count);
+				for (int i = 0; i < f.Count; i++)
+					writer.Write(Vertices.IndexOf(f[i]));
+			}
 		}
 
 		public void Deserialize(BinaryReader reader)
@@ -293,6 +301,16 @@ namespace Photomatch_ProofOfConcept_WPF.Logic
 				int startIndex = reader.ReadInt32();
 				int endIndex = reader.ReadInt32();
 				AddEdge(Vertices[startIndex], Vertices[endIndex]);
+			}
+
+			int faceCount = reader.ReadInt32();
+			for (int i = 0; i < faceCount; i++)
+			{
+				List<Vertex> vertices = new List<Vertex>();
+				int faceVertexCount = reader.ReadInt32();
+				for (int j = 0; j < faceVertexCount; j++)
+					vertices.Add(Vertices[reader.ReadInt32()]);
+				AddFace(vertices);
 			}
 		}
 
