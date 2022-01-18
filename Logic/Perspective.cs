@@ -435,5 +435,33 @@ namespace Photomatch_ProofOfConcept_WPF.Logic
 
 			return thirdVertex;
 		}
+
+
+		/// <summary>
+		/// Create a rotational matrix so that vector v1 is projected to vector v2. (source https://gist.github.com/kevinmoran/b45980723e53edeb8a5a43c49f134724)
+		/// </summary>
+		/// <param name="v1">A unit vector to be projected.</param>
+		/// <param name="v2">A unit vector.</param>
+		/// <returns>Rotational matrix.</returns>
+		public static Matrix3x3 RotateAlign(Vector3 v1, Vector3 v2)
+		{
+			Vector3 axis = Vector3.Cross(v1, v2);
+
+			double cosA = Vector3.Dot(v1, v2);
+			double k = 1.0 / (1.0 + cosA);
+
+			if (cosA == -1.0)
+			{
+				Vector3 mid = (v1.X >= 0.5 || v1.X <= -0.5) ? (v1 + new Vector3(0, 0.5, 0)).Normalized() : (v1 + new Vector3(0.5, 0, 0)).Normalized();
+				return RotateAlign(mid, v2) * RotateAlign(v1, mid);
+			}
+
+			return new Matrix3x3()
+			{
+				A0_ = new Vector3((axis.X * axis.X * k) + cosA, (axis.Y * axis.X * k) - axis.Z, (axis.Z * axis.X * k) + axis.Y),
+				A1_ = new Vector3((axis.X * axis.Y * k) + axis.Z, (axis.Y * axis.Y * k) + cosA, (axis.Z * axis.Y * k) - axis.X),
+				A2_ = new Vector3((axis.X * axis.Z * k) - axis.Y, (axis.Y * axis.Z * k) + axis.X, (axis.Z * axis.Z * k) + cosA)
+			};
+		}
 	}
 }

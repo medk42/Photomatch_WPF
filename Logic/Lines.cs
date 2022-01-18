@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 
 using Photomatch_ProofOfConcept_WPF.Utilities;
@@ -218,6 +219,29 @@ namespace Photomatch_ProofOfConcept_WPF.Logic
 			Vector2 projected = ray.Start + t * ray.Direction;
 			return new Vector2Proj() { Projection = projected, RayRelative = t, Distance = (projected - vector).Magnitude };
 		}
+
+		/// <summary>
+		/// Return whether a point is inside a polygon.
+		/// </summary>
+		/// <param name="vertices">Vertices defining the polygon.</param>
+		public static bool IsPointInsidePolygon(Vector2 point, List<Vector2> vertices)
+		{
+			int crossings = 0;
+			Line2D ray = new Line2D(point, point + new Vector2(1, 0));
+			for (int i = 0; i < vertices.Count; i++)
+			{
+				Line2D edge;
+				if (i < vertices.Count - 1)
+					edge = new Line2D(vertices[i], vertices[i + 1]);
+				else
+					edge = new Line2D(vertices[i], vertices[0]);
+				IntersectionPoint2D intersection = GetLineLineIntersection(ray, edge);
+				if (intersection.LineBRelative >= 0 && intersection.LineBRelative <= 1 && intersection.LineARelative >= 0)
+					crossings++;
+			}
+
+			return crossings % 2 == 1;
+		}
 	}
 
 	public struct Line3D : ISafeSerializable<Line3D>
@@ -286,6 +310,24 @@ namespace Photomatch_ProofOfConcept_WPF.Logic
 		}
 	}
 
+	public struct Plane3D
+	{
+		public Vector3 PlanePoint { get; set; }
+
+		private Vector3 _Normal;
+		public Vector3 Normal
+		{
+			get => _Normal;
+			set => _Normal = value.Normalized();
+		}
+
+		public Plane3D(Vector3 planePoint, Vector3 normal) : this()
+		{
+			this.PlanePoint = planePoint;
+			this.Normal = normal;
+		}
+	}
+
 	public struct ClosestPoint3D
 	{
 		/// <summary>
@@ -330,6 +372,32 @@ namespace Photomatch_ProofOfConcept_WPF.Logic
 		/// Relative position of the projected point on the ray.
 		/// </summary>
 		public double RayRelative { get; set; }
+	}
+
+	public struct RayPlaneIntersectionPoint
+	{
+		/// <summary>
+		/// The point of intersection.
+		/// </summary>
+		public Vector3 Intersection { get; set; }
+
+		/// <summary>
+		/// Relative position of the intersection point on the ray.
+		/// </summary>
+		public double RayRelative { get; set; }
+	}
+
+	public struct RayPolygonIntersectionPoint
+	{
+		/// <summary>
+		/// Point of intersection of the ray with the plane defined by the normal and the first vertex of the polygon.
+		/// </summary>
+		public Vector3 Intersection { get; set; }
+
+		/// <summary>
+		/// true if ray intersected the polygon, false otherwise.
+		/// </summary>
+		public bool IntersectedPolygon { get; set; }
 	}
 
 	public static class Intersections3D
@@ -379,6 +447,41 @@ namespace Photomatch_ProofOfConcept_WPF.Logic
 			double t = Vector3.Dot(vector - ray.Start, ray.Direction);
 			Vector3 projected = ray.Start + t * ray.Direction;
 			return new Vector3Proj() { Projection = projected, RayRelative = t, Distance = (projected - vector).Magnitude };
+		}
+
+		/// <summary>
+		/// Get intersection between ray and a plane (source https://en.wikipedia.org/wiki/Line%E2%80%93plane_intersection).
+		/// </summary>
+		public static RayPlaneIntersectionPoint GetRayPlaneIntersection(Ray3D ray, Plane3D plane)
+		{
+			double d = Vector3.Dot(plane.PlanePoint - ray.Start, plane.Normal) / Vector3.Dot(ray.Direction, plane.Normal);
+			return new RayPlaneIntersectionPoint() { Intersection = ray.Start + (d * ray.Direction), RayRelative = d };
+		}
+
+		/// <summary>
+		/// Get intersection between ray and a polygon (which has to lay in one plane defined by normal).
+		/// </summary>
+		/// <param name="vertices">Polygon vertices.</param>
+		/// <param name="normal">Normal defining polygon plane.</param>
+		public static RayPolygonIntersectionPoint GetRayPolygonIntersection(Ray3D ray, List<Vector3> vertices, Vector3 normal)
+		{
+			RayPlaneIntersectionPoint planeIntersectionPoint = GetRayPlaneIntersection(ray, new Plane3D(vertices[0], normal));
+
+			Matrix3x3 rotateMatrix = Camera.RotateAlign(normal, new Vector3(0, 0, 1));
+
+			Vector3 rotated = rotateMatrix * planeIntersectionPoint.Intersection;
+			Vector2 planePoint = new Vector2(rotated.X, rotated.Y);
+
+			List<Vector2> planeVertices = new List<Vector2>();
+			foreach (Vector3 vertex in vertices)
+			{
+				rotated = rotateMatrix * vertex;
+				planeVertices.Add(new Vector2(rotated.X, rotated.Y));
+			}
+
+			bool inside = Intersections2D.IsPointInsidePolygon(planePoint, planeVertices);
+
+			return new RayPolygonIntersectionPoint() { Intersection = planeIntersectionPoint.Intersection, IntersectedPolygon = inside };
 		}
 	}
 }

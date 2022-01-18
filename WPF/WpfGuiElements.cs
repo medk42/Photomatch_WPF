@@ -138,9 +138,9 @@ namespace Photomatch_ProofOfConcept_WPF.WPF
 				{
 					Visible_ = value;
 					if (value)
-						Polygon.Visibility = Visibility.Collapsed;
-					else
 						Polygon.Visibility = Visibility.Visible;
+					else
+						Polygon.Visibility = Visibility.Collapsed;
 				}
 			}
 		}
