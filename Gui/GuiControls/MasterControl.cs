@@ -18,7 +18,7 @@ namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls
 
 		private static readonly ulong ProjectFileChecksum = 0x54_07_02_47_23_43_94_42;
 		private static readonly string NewProjectName = "new project...";
-		private static readonly int ExportTextureResolution = 1024;
+		private static readonly double ExportTextureResolutionMultiplier = 1.5;
 
 		private MasterGUI Gui;
 		private ILogger Logger;
@@ -273,7 +273,7 @@ namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls
 			return null;
 		}
 
-		private Matrix3x3 GetFaceWindowProjectMatrix(Face face, ImageWindow window)
+		private Matrix3x3 GetFaceWindowProjectMatrix(Face face, ImageWindow window, out int width, out int height)
 		{
 			Matrix3x3 rotate = Camera.RotateAlign(face.Normal, new Vector3(0, 0, 1));
 			Matrix3x3 inverseRotate = rotate.Transposed();
@@ -301,14 +301,17 @@ namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls
 			Vector2 bottomLeft = window.Perspective.WorldToScreen(inverseRotate * max.WithX(min.X));
 			Vector2 bottomRight = window.Perspective.WorldToScreen(inverseRotate * max);
 
+			width = (int)(ExportTextureResolutionMultiplier * Math.Max((topRight - topLeft).Magnitude, (bottomRight - bottomLeft).Magnitude));
+			height = (int)(ExportTextureResolutionMultiplier * Math.Max((bottomLeft - topLeft).Magnitude, (bottomRight - topRight).Magnitude));
+
 			return ImageUtils.CalculateProjectiveTransformationMatrix(
 				topLeft, topRight, bottomLeft, bottomRight,
-				new Vector2(0, 0), new Vector2(ExportTextureResolution - 1, 0),
-				new Vector2(0, ExportTextureResolution - 1), new Vector2(ExportTextureResolution - 1, ExportTextureResolution - 1)
+				new Vector2(0, 0), new Vector2(width - 1, 0),
+				new Vector2(0, height - 1), new Vector2(width - 1, height - 1)
 			);
 		}
 
-		private void GenerateFaceWindowUVCoordinates(Face face, ImageWindow window, Matrix3x3 project, List<Vector2> uvCoordinatesList)
+		private void GenerateFaceWindowUVCoordinates(Face face, ImageWindow window, Matrix3x3 project, List<Vector2> uvCoordinatesList, int width, int height)
 		{
 			for (int i = 0; i < face.Count; i++)
 			{
@@ -316,13 +319,13 @@ namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls
 				Vector2 screenPosition = window.Perspective.WorldToScreen(face[vertexID].Position);
 				Vector3 scaledNewPosition = project * new Vector3(screenPosition.X, screenPosition.Y, 1);
 				scaledNewPosition /= scaledNewPosition.Z;
-				uvCoordinatesList.Add(new Vector2(scaledNewPosition.X / (ExportTextureResolution - 1), 1 - scaledNewPosition.Y / (ExportTextureResolution - 1)));
+				uvCoordinatesList.Add(new Vector2(scaledNewPosition.X / (width - 1), 1 - scaledNewPosition.Y / (height - 1)));
 			}
 		}
 
-		private void ExportProjectWindowTexture(Image<Rgb24> image, Matrix3x3 project, string path)
+		private void ExportProjectWindowTexture(Image<Rgb24> image, Matrix3x3 project, string path, int width, int height)
 		{
-			using (var canvas = new Image<Rgb24>(ExportTextureResolution, ExportTextureResolution))
+			using (var canvas = new Image<Rgb24>(width, height))
 			{
 				Matrix3x3 inverseProject = project.Adjugate();
 
@@ -441,9 +444,10 @@ namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls
 
 					if (selectedWindow != null)
 					{
-						Matrix3x3 project = GetFaceWindowProjectMatrix(Model.Faces[i], selectedWindow);
-						GenerateFaceWindowUVCoordinates(Model.Faces[i], selectedWindow, project, uvCoordinates);
-						ExportProjectWindowTexture(selectedWindow.Perspective.Image, project, Path.Combine(newFolderPath, $"face{i}.png"));
+						int width, height;
+						Matrix3x3 project = GetFaceWindowProjectMatrix(Model.Faces[i], selectedWindow, out width, out height);
+						GenerateFaceWindowUVCoordinates(Model.Faces[i], selectedWindow, project, uvCoordinates, width, height);
+						ExportProjectWindowTexture(selectedWindow.Perspective.Image, project, Path.Combine(newFolderPath, $"face{i}.png"), width, height);
 					}
 					else
 					{
