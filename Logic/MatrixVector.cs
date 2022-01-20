@@ -137,6 +137,22 @@ namespace Photomatch_ProofOfConcept_WPF.Logic
 			return result;
 		}
 
+		public Matrix3x3 Adjugate()
+		{
+			return new Matrix3x3()
+			{
+				A00 = A11 * A22 - A12 * A21,
+				A01 = A21 * A02 - A01 * A22,
+				A02 = A01 * A12 - A02 * A11,
+				A10 = A20 * A12 - A10 * A22,
+				A11 = A00 * A22 - A20 * A02,
+				A12 = A10 * A02 - A00 * A12,
+				A20 = A10 * A21 - A20 * A11,
+				A21 = A20 * A01 - A00 * A21,
+				A22 = A00 * A11 - A10 * A01
+			};
+		}
+
 		public void AddToRow(int row, Vector3 vector)
 		{
 			switch(row)

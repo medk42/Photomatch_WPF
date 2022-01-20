@@ -3,6 +3,7 @@ using System;
 using SixLabors.ImageSharp;
 
 using Photomatch_ProofOfConcept_WPF.Utilities;
+using SixLabors.ImageSharp.PixelFormats;
 
 namespace Photomatch_ProofOfConcept_WPF.Logic
 {
@@ -31,7 +32,7 @@ namespace Photomatch_ProofOfConcept_WPF.Logic
 
 	public class PerspectiveData : ISafeSerializable<PerspectiveData>
 	{
-		public Image Image { get; private set; }
+		public Image<Rgb24> Image { get; private set; }
 
 		private Camera _camera = new Camera();
 		private Vector2 _origin;
@@ -128,7 +129,7 @@ namespace Photomatch_ProofOfConcept_WPF.Logic
 
 		public string ImagePath { get; private set; }
 
-		public PerspectiveData(Image image, string imagePath)
+		public PerspectiveData(Image<Rgb24> image, string imagePath)
 		{
 			Image = image;
 			ImagePath = imagePath;
@@ -183,7 +184,7 @@ namespace Photomatch_ProofOfConcept_WPF.Logic
 			byte[] imageData = reader.ReadBytes(imageDataLength);
 			using (var stream = new MemoryStream(imageData))
 			{
-				Image = Image.Load(stream);
+				Image = SixLabors.ImageSharp.Image.Load<Rgb24>(stream);
 			}
 
 			ImagePath = reader.ReadString();

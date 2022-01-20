@@ -95,8 +95,8 @@ namespace Photomatch_ProofOfConcept_WPF.Logic
 		private Vector3 Normal_;
 		public Vector3 Normal { get => Normal_; }
 
-		private Vector3 TriangleMiddle_;
-		public Vector3 TriangleMiddle { get => TriangleMiddle_; }
+		private Vector3 FacePoint_;
+		public Vector3 FacePoint { get => FacePoint_; }
 
 		private List<Vertex> Vertices = new List<Vertex>();
 		private List<Face> FacesFront = new List<Face>();
@@ -131,7 +131,7 @@ namespace Photomatch_ProofOfConcept_WPF.Logic
 			if (other == this)
 				return;
 
-			Ray3D ray = new Ray3D(TriangleMiddle, Normal);
+			Ray3D ray = new Ray3D(FacePoint, Normal);
 
 			List<Vector3> vertices = new List<Vector3>();
 			for (int i = 0; i < other.Count; i++)
@@ -156,7 +156,7 @@ namespace Photomatch_ProofOfConcept_WPF.Logic
 		private void RecalculateProperties()
 		{
 			Normal_ = Vector3.Cross(Vertices[1].Position - Vertices[0].Position, Vertices[2].Position - Vertices[0].Position).Normalized();
-			TriangleMiddle_ = (Vertices[0].Position + Vertices[1].Position + Vertices[2].Position) / 3;
+			FacePoint_ = (0.5 * Vertices[0].Position +  0.16 * Vertices[1].Position +  0.34 * Vertices[2].Position);
 		}
 
 		public void Remove()

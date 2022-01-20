@@ -10,13 +10,14 @@ namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls
 {
 	public class ImageWindow
 	{
+		public PerspectiveData Perspective;
+
 		private static readonly double PointGrabRadius = 8;
 		private static readonly double PointDrawRadius = 4;
 
 		private MasterGUI Gui;
 		private ILogger Logger;
 		private IWindow Window { get; }
-		private PerspectiveData Perspective;
 		private ModelVisualization ModelVisualization;
 
 		private ModelCreationHandler ModelCreationHandler;
@@ -24,11 +25,6 @@ namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls
 		private CameraModelCalibrationHandler CameraModelCalibrationHandler;
 
 		private bool Initialized = false;
-
-		public ISafeSerializable<PerspectiveData> PerspectiveSafeSerializable
-		{
-			get => Perspective;
-		}
 
 		public ImageWindow(PerspectiveData perspective, MasterGUI gui, ILogger logger, Model model, DesignTool currentDesignTool, ModelCreationTool currentModelCreationTool, CameraModelCalibrationTool currentCameraModelCalibrationTool)
 		{
@@ -45,9 +41,9 @@ namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls
 
 			this.CameraCalibrationHandler.CoordSystemUpdateEvent += ModelVisualization.UpdateDisplayedGeometry;
 
-			this.DesignTool_Changed(currentDesignTool);
 			this.ModelCreationTool_Changed(currentModelCreationTool);
 			this.CameraModelCalibrationTool_Changed(currentCameraModelCalibrationTool);
+			this.DesignTool_Changed(currentDesignTool);
 
 			this.Initialized = true;
 		}

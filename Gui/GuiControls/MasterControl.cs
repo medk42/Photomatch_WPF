@@ -7,6 +7,8 @@ using System.Text;
 using Photomatch_ProofOfConcept_WPF.Logic;
 using Photomatch_ProofOfConcept_WPF.Utilities;
 using System.Globalization;
+using SixLabors.ImageSharp.PixelFormats;
+using Photomatch_ProofOfConcept_WPF.Gui.GuiControls.Helper;
 
 namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls
 {
@@ -16,6 +18,7 @@ namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls
 
 		private static readonly ulong ProjectFileChecksum = 0x54_07_02_47_23_43_94_42;
 		private static readonly string NewProjectName = "new project...";
+		private static readonly int ExportTextureResolution = 1024;
 
 		private MasterGUI Gui;
 		private ILogger Logger;
@@ -54,10 +57,10 @@ namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls
 				return;
 			}
 
-			Image image = null;
+			Image<Rgb24> image = null;
 			try
 			{
-				image = Image.Load(filePath);
+				image = Image.Load<Rgb24>(filePath);
 			}
 			catch (Exception ex)
 			{
@@ -139,16 +142,15 @@ namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls
 			try
 			{
 				using (var fileStream = File.Create(fileName))
+				using (var writer = new BinaryWriter(fileStream))
 				{
-					var writer = new BinaryWriter(fileStream);
-
 					writer.Write(ProjectFileChecksum);
 					Model.Serialize(writer);
 					writer.Write((int)DesignTool);
 					writer.Write(Windows.Count);
 					foreach (ImageWindow window in Windows)
 					{
-						window.PerspectiveSafeSerializable.Serialize(writer);
+						window.Perspective.Serialize(writer);
 					}
 				}
 			}
@@ -233,44 +235,224 @@ namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls
 			}
 		}
 
-		public void ExportModel_Pressed()
+		private RayPolygonIntersectionPoint GetRayFaceIntersection(Ray3D ray, Face face)
 		{
-			string fileName = Gui.GetModelExportFilePath();
+			List<Vector3> vertices = new List<Vector3>();
+			for (int j = 0; j < face.Count; j++)
+				vertices.Add(face[j].Position);
 
-			try
+			return Intersections3D.GetRayPolygonIntersection(ray, vertices, face.Normal);
+		}
+
+		private ImageWindow GetFaceWindow(Face face)
+		{
+			foreach (ImageWindow window in Windows)
 			{
-				using (var fileStream = File.Create(fileName))
-				using (var writer = new StreamWriter(fileStream, Encoding.ASCII))
+				Vector2 facePointScreen = window.Perspective.WorldToScreen(face.FacePoint);
+				Ray3D ray = window.Perspective.ScreenToWorldRay(facePointScreen);
+				RayPolygonIntersectionPoint faceIntersection = GetRayFaceIntersection(ray, face);
+
+				bool viable = true;
+				foreach (Face otherFace in Model.Faces)
 				{
-					foreach (Vertex v in Model.Vertices)
-						writer.WriteLine($"v {v.Position.X.ToString(CultureInfo.InvariantCulture)} {v.Position.Y.ToString(CultureInfo.InvariantCulture)} {v.Position.Z.ToString(CultureInfo.InvariantCulture)}");
-
-					writer.WriteLine();
-
-					foreach (Face f in Model.Faces)
+					if (otherFace != face)
 					{
-						writer.Write('f');
-
-						if (f.Reversed)
+						RayPolygonIntersectionPoint compareFaceIntersection = GetRayFaceIntersection(ray, otherFace);
+						if (compareFaceIntersection.IntersectedPolygon && compareFaceIntersection.RayRelative < faceIntersection.RayRelative)
 						{
-							for (int i = f.Count - 1; i >= 0; i--)
-							{
-								writer.Write(" ");
-								writer.Write(Model.Vertices.IndexOf(f[i]) + 1);
-							}
+							viable = false;
+							break;
 						}
-						else
-						{
-							for (int i = 0; i < f.Count; i++)
-							{
-								writer.Write(" ");
-								writer.Write(Model.Vertices.IndexOf(f[i]) + 1);
-							}
-						}
+					}
+				}
 
+				if (viable)
+					return window;
+			}
+
+			return null;
+		}
+
+		private Matrix3x3 GetFaceWindowProjectMatrix(Face face, ImageWindow window)
+		{
+			Matrix3x3 rotate = Camera.RotateAlign(face.Normal, new Vector3(0, 0, 1));
+			Matrix3x3 inverseRotate = rotate.Transposed();
+
+			Vector3 min = new Vector3(double.PositiveInfinity, double.PositiveInfinity, 0);
+			Vector3 max = new Vector3(double.NegativeInfinity, double.NegativeInfinity, 0);
+
+			for (int j = 0; j < face.Count; j++)
+			{
+				Vector3 rotated = rotate * face[j].Position;
+				if (rotated.X < min.X)
+					min.X = rotated.X;
+				if (rotated.X > max.X)
+					max.X = rotated.X;
+				if (rotated.Y < min.Y)
+					min.Y = rotated.Y;
+				if (rotated.Y > max.Y)
+					max.Y = rotated.Y;
+				min.Z = rotated.Z;
+				max.Z = rotated.Z;
+			}
+
+			Vector2 topLeft = window.Perspective.WorldToScreen(inverseRotate * min);
+			Vector2 topRight = window.Perspective.WorldToScreen(inverseRotate * min.WithX(max.X));
+			Vector2 bottomLeft = window.Perspective.WorldToScreen(inverseRotate * max.WithX(min.X));
+			Vector2 bottomRight = window.Perspective.WorldToScreen(inverseRotate * max);
+
+			return ImageUtils.CalculateProjectiveTransformationMatrix(
+				topLeft, topRight, bottomLeft, bottomRight,
+				new Vector2(0, 0), new Vector2(ExportTextureResolution - 1, 0),
+				new Vector2(0, ExportTextureResolution - 1), new Vector2(ExportTextureResolution - 1, ExportTextureResolution - 1)
+			);
+		}
+
+		private void GenerateFaceWindowUVCoordinates(Face face, ImageWindow window, Matrix3x3 project, List<Vector2> uvCoordinatesList)
+		{
+			for (int i = 0; i < face.Count; i++)
+			{
+				int vertexID = face.Reversed ? (face.Count - i - 1) : i;
+				Vector2 screenPosition = window.Perspective.WorldToScreen(face[vertexID].Position);
+				Vector3 scaledNewPosition = project * new Vector3(screenPosition.X, screenPosition.Y, 1);
+				scaledNewPosition /= scaledNewPosition.Z;
+				uvCoordinatesList.Add(new Vector2(scaledNewPosition.X / (ExportTextureResolution - 1), 1 - scaledNewPosition.Y / (ExportTextureResolution - 1)));
+			}
+		}
+
+		private void ExportProjectWindowTexture(Image<Rgb24> image, Matrix3x3 project, string path)
+		{
+			using (var canvas = new Image<Rgb24>(ExportTextureResolution, ExportTextureResolution))
+			{
+				Matrix3x3 inverseProject = project.Adjugate();
+
+				for (int y = 0; y < canvas.Height; y++)
+				{
+					for (int x = 0; x < canvas.Width; x++)
+					{
+						Vector3 p = inverseProject * new Vector3(x, y, 1);
+						double u = p.X / p.Z;
+						double v = p.Y / p.Z;
+						int u_min = (int)Math.Floor(u);
+						int u_max = (int)Math.Ceiling(u);
+						int v_min = (int)Math.Floor(v);
+						int v_max = (int)Math.Ceiling(v);
+						double u_dist = u - u_min;
+						double v_dist = v - v_min;
+
+						if (u_min >= 0 && v_min >= 0 && u_max < image.Width && v_max < image.Height)
+						{
+							Vector3 resMin = (1 - u_dist) * image[u_min, v_min].AsVector3() + u_dist * image[u_max, v_min].AsVector3();
+							Vector3 resMax = (1 - u_dist) * image[u_min, v_max].AsVector3() + u_dist * image[u_max, v_max].AsVector3();
+							Vector3 res = (1 - v_dist) * resMin + v_dist * resMax;
+							canvas[x, y] = new Rgb24((byte)res.X, (byte)res.Y, (byte)res.Z);
+						}
+					}
+				}
+
+				canvas.Save(path);
+			}
+		}
+
+		private void GenerateMtlFile(string path, List<int> invalidFaces)
+		{
+			using (var fileStream = File.Create(path))
+			using (var writer = new StreamWriter(fileStream, Encoding.ASCII))
+			{
+				for (int i = 0; i < Model.Faces.Count; i++)
+				{
+					if (!invalidFaces.Contains(i))
+					{
+						writer.WriteLine($"newmtl face{i}");
+						writer.WriteLine($"\tmap_Kd face{i}.png");
 						writer.WriteLine();
 					}
 				}
+			}
+		}
+
+		private void GenerateObjFile(string path, string fileNameNoExtension, List<Vector2> uvCoordinates, List<int> invalidFaces)
+		{
+			using (var fileStream = File.Create(path))
+			using (var writer = new StreamWriter(fileStream, Encoding.ASCII))
+			{
+				writer.WriteLine($"mtllib ./{fileNameNoExtension}.mtl");
+				writer.WriteLine();
+
+				foreach (Vertex v in Model.Vertices)
+					writer.WriteLine($"v {v.Position.X.ToString(CultureInfo.InvariantCulture)} {v.Position.Z.ToString(CultureInfo.InvariantCulture)} {(-v.Position.Y).ToString(CultureInfo.InvariantCulture)}");
+
+
+				writer.WriteLine();
+
+				foreach (Vector2 uvCoord in uvCoordinates)
+					writer.WriteLine($"vt {uvCoord.X.ToString(CultureInfo.InvariantCulture)} {uvCoord.Y.ToString(CultureInfo.InvariantCulture)}");
+
+				writer.WriteLine();
+
+				for (int i = 0, uvID = 1; i < Model.Faces.Count; i++)
+				{
+					Face face = Model.Faces[i];
+
+					if (!invalidFaces.Contains(i))
+						writer.WriteLine($"usemtl face{i}");
+
+					writer.Write('f');
+
+					for (int j = 0; j < face.Count; j++)
+					{
+						int faceVertexId = (face.Reversed) ? face.Count - j - 1 : j;
+						int vertexId = Model.Vertices.IndexOf(face[faceVertexId]) + 1;
+						if (invalidFaces.Contains(i))
+							writer.Write($" {vertexId}");
+						else
+							writer.Write($" {vertexId}/{uvID++}");
+					}
+
+					writer.WriteLine();
+				}
+			}
+		}
+
+		public void ExportModel_Pressed()
+		{
+			if (State == ProjectState.None)
+			{
+				Logger.Log("Export Model", "Nothing to export.", LogType.Info);
+				return;
+			}
+
+			string filePath = Gui.GetModelExportFilePath();
+
+			try
+			{
+				string fileName = Path.GetFileName(filePath);
+				string fileNameNoExtension = Path.GetFileNameWithoutExtension(filePath);
+				string newFolderPath = Path.Combine(new FileInfo(filePath).Directory.FullName, fileNameNoExtension);
+
+				Directory.CreateDirectory(newFolderPath);
+
+				List<Vector2> uvCoordinates = new List<Vector2>();
+				List<int> invalidFaces = new List<int>();
+
+				for (int i = 0; i < Model.Faces.Count; i++)
+				{
+					ImageWindow selectedWindow = GetFaceWindow(Model.Faces[i]);
+
+					if (selectedWindow != null)
+					{
+						Matrix3x3 project = GetFaceWindowProjectMatrix(Model.Faces[i], selectedWindow);
+						GenerateFaceWindowUVCoordinates(Model.Faces[i], selectedWindow, project, uvCoordinates);
+						ExportProjectWindowTexture(selectedWindow.Perspective.Image, project, Path.Combine(newFolderPath, $"face{i}.png"));
+					}
+					else
+					{
+						invalidFaces.Add(i);
+					}
+				}
+
+				GenerateMtlFile(Path.Combine(newFolderPath, fileNameNoExtension + ".mtl"), invalidFaces);
+				GenerateObjFile(Path.Combine(newFolderPath, fileName), fileNameNoExtension, uvCoordinates, invalidFaces);
 			}
 			catch (Exception ex)
 			{
@@ -283,6 +465,8 @@ namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls
 				else if (ex is PathTooLongException)
 					Logger.Log("Export Model", "Path is too long.", LogType.Warning);
 				else throw ex;
+
+				return;
 			}
 
 			Logger.Log("Export Model", "Successfully exported model.", LogType.Info);
