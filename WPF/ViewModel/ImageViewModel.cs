@@ -84,6 +84,8 @@ namespace Photomatch_ProofOfConcept_WPF.WPF.ViewModel
 		public GeometryGroup ZAxisLinesGeometry { get; } = new GeometryGroup();
 		public GeometryGroup ModelLinesGeometry { get; } = new GeometryGroup();
 		public GeometryGroup SelectedLinesGeometry { get; } = new GeometryGroup();
+		public GeometryGroup FaceLinesGeometry { get; } = new GeometryGroup();
+		public GeometryGroup HighlightLinesGeometry { get; } = new GeometryGroup();
 		public ICommand Viewbox_SizeChanged { get; private set; }
 		public ICommand Image_Loaded { get; private set; }
 
@@ -141,6 +143,8 @@ namespace Photomatch_ProofOfConcept_WPF.WPF.ViewModel
 			ZAxisLinesGeometry.FillRule = FillRule.Nonzero;
 			ModelLinesGeometry.FillRule = FillRule.Nonzero;
 			SelectedLinesGeometry.FillRule = FillRule.Nonzero;
+			FaceLinesGeometry.FillRule = FillRule.Nonzero;
+			HighlightLinesGeometry.FillRule = FillRule.Nonzero;
 		}
 
         public void Close()
@@ -213,6 +217,8 @@ namespace Photomatch_ProofOfConcept_WPF.WPF.ViewModel
 			ZAxisLinesGeometry.Children.Clear();
 			ModelLinesGeometry.Children.Clear();
 			SelectedLinesGeometry.Children.Clear();
+			FaceLinesGeometry.Children.Clear();
+			HighlightLinesGeometry.Children.Clear();
 			scalables.Clear(); 
 			ImageSource = null;
 

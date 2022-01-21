@@ -38,6 +38,8 @@ namespace Photomatch_ProofOfConcept_WPF.WPF.View
 			ZAxisLines.Data.Transform = matrixTransform;
 			ModelLines.Data.Transform = matrixTransform;
 			SelectedLines.Data.Transform = matrixTransform;
+			FaceLines.Data.Transform = matrixTransform;
+			HighlightLines.Data.Transform = matrixTransform;
 		}
 
 		/// <summary>

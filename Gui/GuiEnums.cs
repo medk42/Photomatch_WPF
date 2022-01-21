@@ -6,7 +6,7 @@ namespace Photomatch_ProofOfConcept_WPF.Gui
 {
 	public enum MouseButton { Left, Right, Middle }
 
-	public enum ApplicationColor { XAxis, YAxis, ZAxis, Model, Selected, Face }
+	public enum ApplicationColor { XAxis, YAxis, ZAxis, Model, Selected, Face, Highlight }
 
 	public enum DesignTool { CameraCalibration, CameraModelCalibration, ModelCreation }
 
