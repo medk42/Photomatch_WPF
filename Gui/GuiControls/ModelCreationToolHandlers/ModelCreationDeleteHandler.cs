@@ -14,6 +14,7 @@ namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls.ModelCreationToolHandler
 		private Model Model;
 
 		private ILine HoverEdge = null;
+		private IPolygon HoverFace = null;
 
 		public ModelCreationDeleteHandler(ModelVisualization modelVisualization, Model model)
 		{
@@ -32,6 +33,15 @@ namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls.ModelCreationToolHandler
 				HoverEdge = null;
 			}
 		}
+		
+		private void ResetHoverFace()
+		{
+			if (HoverFace != null)
+			{
+				HoverFace.Color = ApplicationColor.Face;
+				HoverFace = null;
+			}
+		}
 
 		public override void MouseMove(Vector2 mouseCoord)
 		{
@@ -40,21 +50,37 @@ namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls.ModelCreationToolHandler
 				if (ModelVisualization.ModelHoverEllipse.MouseEvent(mouseCoord))
 				{
 					ResetHoverEdge();
+					ResetHoverFace();
 					return;
 				}
 
-				Tuple<Edge, ILine> foundEdge = ModelVisualization.GetEdgeUnderMouse(mouseCoord);
+				ILine foundEdge = ModelVisualization.GetEdgeUnderMouse(mouseCoord)?.Item2;
 				if (foundEdge != null)
 				{
 					if (foundEdge != HoverEdge)
 					{
 						ResetHoverEdge();
-						HoverEdge = foundEdge.Item2;
-						foundEdge.Item2.Color = ApplicationColor.Highlight;
+						HoverEdge = foundEdge;
+						foundEdge.Color = ApplicationColor.Highlight;
 					}
+					ResetHoverFace();
+					return;
 				}
 				else 
 					ResetHoverEdge();
+
+				IPolygon foundPolygon = ModelVisualization.GetFaceUnderMouse(mouseCoord)?.Item2;
+				if (foundPolygon != null)
+				{
+					if (foundPolygon != HoverFace)
+					{
+						ResetHoverFace();
+						HoverFace = foundPolygon;
+						foundPolygon.Color = ApplicationColor.Highlight;
+					}
+				}
+				else
+					ResetHoverFace();
 			}
 		}
 
@@ -74,11 +100,19 @@ namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls.ModelCreationToolHandler
 					return;
 				}
 
-				Tuple<Edge, ILine> foundEdge = ModelVisualization.GetEdgeUnderMouse(mouseCoord);
+				Edge foundEdge = ModelVisualization.GetEdgeUnderMouse(mouseCoord)?.Item1;
 				if (foundEdge != null)
 				{
 					ResetHoverEdge();
-					foundEdge.Item1.Remove();
+					foundEdge.Remove();
+					return;
+				}
+
+				Face foundFace = ModelVisualization.GetFaceUnderMouse(mouseCoord)?.Item1;
+				if (foundFace != null)
+				{
+					ResetHoverFace();
+					foundFace.Remove();
 					return;
 				}
 			}
@@ -89,7 +123,10 @@ namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls.ModelCreationToolHandler
 			ModelVisualization.ModelHoverEllipse.Active = active;
 
 			if (!active)
+			{
 				ResetHoverEdge();
+				ResetHoverFace();
+			}
 		}
 	}
 }

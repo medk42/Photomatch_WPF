@@ -61,6 +61,21 @@ namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls.Helper
 			return null;
 		}
 
+		public Tuple<Face, IPolygon> GetFaceUnderMouse(Vector2 mouseCoord)
+		{
+			foreach (var faceTuple in ModelFaces)
+			{
+				List<Vector2> vertices = new List<Vector2>();
+				for (int i = 0; i < faceTuple.Item1.Count; i++)
+					vertices.Add(faceTuple.Item1[i]);
+
+				if (Intersections2D.IsPointInsidePolygon(mouseCoord, vertices))
+					return new Tuple<Face, IPolygon>(faceTuple.Item2, faceTuple.Item1);
+			}
+
+			return null;
+		}
+
 		public void ShowModel(bool show)
 		{
 			foreach (var lineTuple in ModelLines)
