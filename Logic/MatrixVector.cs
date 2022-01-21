@@ -337,6 +337,10 @@ namespace Photomatch_ProofOfConcept_WPF.Logic
 
 		public static Vector2 operator *(double value, Vector2 vector) => vector * value;
 
+		public static bool operator ==(Vector2 a, Vector2 b) => a.X == b.X && a.Y == b.Y;
+
+		public static bool operator !=(Vector2 a, Vector2 b) => !(a == b);
+
 		public static double Dot(Vector2 first, Vector2 second)
 		{
 			return first.X * second.X + first.Y * second.Y;
