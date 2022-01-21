@@ -5,6 +5,7 @@ using System.Text;
 using Photomatch_ProofOfConcept_WPF.Gui.GuiControls.Helper;
 using Photomatch_ProofOfConcept_WPF.Gui.GuiControls.ModelCreationToolHandlers;
 using Photomatch_ProofOfConcept_WPF.Logic;
+using Photomatch_ProofOfConcept_WPF.Utilities;
 
 namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls
 {
@@ -31,7 +32,7 @@ namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls
 		private ModelCreationTool ModelCreationTool;
 		private IModelCreationToolHandler[] ModelCreationToolHandlers;
 
-		public ModelCreationHandler(Model model, IWindow window, PerspectiveData perspective, ModelVisualization modelVisualization)
+		public ModelCreationHandler(Model model, IWindow window, PerspectiveData perspective, ModelVisualization modelVisualization, ILogger logger)
 		{
 			this.Model = model;
 			this.Perspective = perspective;
@@ -41,7 +42,7 @@ namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls
 				new ModelCreationEdgeHandler(Perspective, Model, ModelVisualization),
 				new ModelCreationDeleteHandler(ModelVisualization),
 				new ModelCreationTriangleFaceHandler(ModelVisualization, Model, window),
-				new ModelCreationComplexFaceHandler(ModelVisualization, Model, window)
+				new ModelCreationComplexFaceHandler(ModelVisualization, Model, window, logger)
 			}; 
 
 			this.Active = false;

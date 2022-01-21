@@ -1,5 +1,6 @@
 ﻿using Photomatch_ProofOfConcept_WPF.Gui.GuiControls.Helper;
 using Photomatch_ProofOfConcept_WPF.Logic;
+using Photomatch_ProofOfConcept_WPF.Utilities;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -13,15 +14,17 @@ namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls.ModelCreationToolHandler
 		private ModelVisualization ModelVisualization;
 		private Model Model;
 		private IWindow Window;
+		private ILogger Logger;
 
 		private List<ILine> Lines = new List<ILine>();
 		private List<Vertex> Vertices = new List<Vertex>();
 
-		public ModelCreationComplexFaceHandler(ModelVisualization modelVisualization, Model model, IWindow window)
+		public ModelCreationComplexFaceHandler(ModelVisualization modelVisualization, Model model, IWindow window, ILogger logger)
 		{
 			this.ModelVisualization = modelVisualization;
 			this.Model = model;
 			this.Window = window;
+			this.Logger = logger;
 
 			this.Active = false;
 			SetActive(Active);
@@ -33,6 +36,22 @@ namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls.ModelCreationToolHandler
 			{
 				if (button == MouseButton.Right)
 				{
+					if (Vertices.Count < 3)
+					{
+						Logger.Log("Complex Face Creation", "A face needs at least 3 vertices.", LogType.Warning);
+						return;
+					}
+
+					for (int i = 2; i < Lines.Count - 2; i++)
+					{
+						IntersectionPoint2D lineCountIntersection = Intersections2D.GetLineLineIntersection(new Line2D(Lines[i].Start, Lines[i].End), new Line2D(Lines[Lines.Count - 1].Start, Lines[1].Start));
+						if (lineCountIntersection.LineARelative >= 0 && lineCountIntersection.LineARelative <= 1 && lineCountIntersection.LineBRelative >= 0 && lineCountIntersection.LineBRelative <= 1)
+						{
+							Logger.Log("Complex Face Creation", "Face edges can not cross each other.", LogType.Warning);
+							return;
+						}
+					}
+
 					Model.AddFace(Vertices);
 					Clear();
 					return;
@@ -46,12 +65,40 @@ namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls.ModelCreationToolHandler
 
 				if (foundPoint != null)
 				{
+
+					for (int i = 1; i < Lines.Count - 2; i++)
+					{
+						IntersectionPoint2D lineCountIntersection = Intersections2D.GetLineLineIntersection(new Line2D(Lines[i].Start, Lines[i].End), new Line2D(Lines[Lines.Count - 1].Start, foundPosition));
+						if (lineCountIntersection.LineARelative >= 0 && lineCountIntersection.LineARelative <= 1 && lineCountIntersection.LineBRelative >= 0 && lineCountIntersection.LineBRelative <= 1)
+						{
+							Logger.Log("Complex Face Creation", "Face edges can not cross each other.", LogType.Warning);
+							return;
+						}
+					}
+
 					foreach (Vertex v in Vertices)
 					{
 						if (foundPoint == v)
 						{
+							if (Vertices.Count < 3)
+							{
+								Logger.Log("Complex Face Creation", "A face needs at least 3 vertices.", LogType.Warning);
+								return;
+							}
 							Model.AddFace(Vertices);
 							Clear();
+							return;
+						}
+					}
+
+					if (Vertices.Count >= 3)
+					{
+						Vector3 faceNormal = Vector3.Cross(Vertices[1].Position - Vertices[0].Position, Vertices[2].Position - Vertices[0].Position).Normalized();
+						RayPlaneIntersectionPoint intersectionPoint = Intersections3D.GetRayPlaneIntersection(new Ray3D(foundPoint.Position, faceNormal), new Plane3D(Vertices[0].Position, faceNormal));
+
+						if (Math.Abs(intersectionPoint.RayRelative) > 1e-6)
+						{
+							Logger.Log("Complex Face Creation", "Selected vertex does not lay on the same plane.", LogType.Warning);
 							return;
 						}
 					}
