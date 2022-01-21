@@ -70,6 +70,7 @@
                 <RadioButton Name="DeleteRadioButton" Checked="DeleteRadioButton_Checked" Content="Delete"/>
                 <Separator></Separator>
                 <RadioButton Name="TriangleFaceRadioButton" Checked="TriangleFaceRadioButton_Checked" Content="Triangle Face"/>
+                <RadioButton Name="ComplexFaceRadioButton" Checked="ComplexFaceRadioButton_Checked" Content="Complex Face"/>
             </ToolBar>
         </ToolBarTray>
 

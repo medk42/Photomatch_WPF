@@ -103,7 +103,7 @@ namespace Photomatch_ProofOfConcept_WPF.Logic
 
 		public Face(List<Vertex> vertices)
 		{
-			this.Vertices = vertices;
+			this.Vertices = new List<Vertex>(vertices);
 
 			for (int i = 0; i < Vertices.Count; i++)
 			{
