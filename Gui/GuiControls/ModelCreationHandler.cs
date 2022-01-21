@@ -40,7 +40,7 @@ namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls
 
 			ModelCreationToolHandlers = new IModelCreationToolHandler[] {
 				new ModelCreationEdgeHandler(Perspective, Model, ModelVisualization),
-				new ModelCreationDeleteHandler(ModelVisualization),
+				new ModelCreationDeleteHandler(ModelVisualization, Model),
 				new ModelCreationTriangleFaceHandler(ModelVisualization, Model, window),
 				new ModelCreationComplexFaceHandler(ModelVisualization, Model, window, logger)
 			}; 

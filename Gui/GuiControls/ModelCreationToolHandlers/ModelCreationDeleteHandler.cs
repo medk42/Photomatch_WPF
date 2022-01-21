@@ -11,20 +11,50 @@ namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls.ModelCreationToolHandler
 		public override ModelCreationTool ToolType => ModelCreationTool.Delete;
 
 		private ModelVisualization ModelVisualization;
+		private Model Model;
 
-		public ModelCreationDeleteHandler(ModelVisualization modelVisualization)
+		private ILine HoverEdge = null;
+
+		public ModelCreationDeleteHandler(ModelVisualization modelVisualization, Model model)
 		{
 			this.ModelVisualization = modelVisualization;
+			this.Model = model;
 
 			this.Active = false;
 			SetActive(Active);
+		}
+
+		private void ResetHoverEdge()
+		{
+			if (HoverEdge != null)
+			{
+				HoverEdge.Color = ApplicationColor.Model;
+				HoverEdge = null;
+			}
 		}
 
 		public override void MouseMove(Vector2 mouseCoord)
 		{
 			if (Active)
 			{
-				ModelVisualization.ModelHoverEllipse.MouseEvent(mouseCoord);
+				if (ModelVisualization.ModelHoverEllipse.MouseEvent(mouseCoord))
+				{
+					ResetHoverEdge();
+					return;
+				}
+
+				Tuple<Edge, ILine> foundEdge = ModelVisualization.GetEdgeUnderMouse(mouseCoord);
+				if (foundEdge != null)
+				{
+					if (foundEdge != HoverEdge)
+					{
+						ResetHoverEdge();
+						HoverEdge = foundEdge.Item2;
+						foundEdge.Item2.Color = ApplicationColor.Highlight;
+					}
+				}
+				else 
+					ResetHoverEdge();
 			}
 		}
 
@@ -38,15 +68,28 @@ namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls.ModelCreationToolHandler
 				Vertex foundPoint = ModelVisualization.GetVertexUnderMouse(mouseCoord).Item1;
 
 				if (foundPoint != null)
+				{
 					foundPoint.Remove();
+					ModelVisualization.ModelHoverEllipse.MouseEvent(mouseCoord);
+					return;
+				}
 
-				ModelVisualization.ModelHoverEllipse.MouseEvent(mouseCoord);
+				Tuple<Edge, ILine> foundEdge = ModelVisualization.GetEdgeUnderMouse(mouseCoord);
+				if (foundEdge != null)
+				{
+					ResetHoverEdge();
+					foundEdge.Item1.Remove();
+					return;
+				}
 			}
 		}
 
 		internal override void SetActive(bool active)
 		{
 			ModelVisualization.ModelHoverEllipse.Active = active;
+
+			if (!active)
+				ResetHoverEdge();
 		}
 	}
 }

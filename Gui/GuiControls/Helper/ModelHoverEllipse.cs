@@ -38,16 +38,16 @@ namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls.Helper
 			this.PointDrawRadius = pointDrawRadius;
 			this.Perspective = perspective;
 
-			this.Ellipse = Window.CreateEllipse(new Vector2(), PointDrawRadius, ApplicationColor.Model);
+			this.Ellipse = Window.CreateEllipse(new Vector2(), PointDrawRadius, ApplicationColor.Highlight);
 			this.Ellipse.Visible = false;
 		}
 
-		public void MouseEvent(Vector2 mouseCoord)
+		public bool MouseEvent(Vector2 mouseCoord)
 		{
 			this.LastMouse = mouseCoord;
 
 			if (!Active)
-				return;
+				return false;
 
 			Ellipse.Visible = false;
 			foreach (Vertex point in Model.Vertices)
@@ -57,9 +57,11 @@ namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls.Helper
 				{
 					Ellipse.Position = pointPos;
 					Ellipse.Visible = true;
-					break;
+					return true;
 				}
 			}
+
+			return false;
 		}
 
 		private void SetActive(bool active)

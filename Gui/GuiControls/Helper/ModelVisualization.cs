@@ -48,6 +48,19 @@ namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls.Helper
 			return new Tuple<Vertex, Vector2>(null, new Vector2());
 		}
 
+		public Tuple<Edge, ILine> GetEdgeUnderMouse(Vector2 mouseCoord)
+		{
+			foreach (var edgeTuple in ModelLines)
+			{
+				Line2D edgeLine = new Line2D(edgeTuple.Item1.Start, edgeTuple.Item1.End);
+				Vector2Proj proj = Intersections2D.ProjectVectorToRay(mouseCoord, edgeLine.AsRay());
+				if (proj.RayRelative >= 0 && proj.RayRelative <= edgeLine.Length && Window.ScreenDistance(mouseCoord, proj.Projection) < PointGrabRadius)
+					return new Tuple<Edge, ILine>(edgeTuple.Item2, edgeTuple.Item1);
+			}
+
+			return null;
+		}
+
 		public void ShowModel(bool show)
 		{
 			foreach (var lineTuple in ModelLines)
