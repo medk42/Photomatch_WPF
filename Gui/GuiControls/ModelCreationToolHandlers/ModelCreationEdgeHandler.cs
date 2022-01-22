@@ -13,6 +13,10 @@ namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls.ModelCreationToolHandler
 		private PerspectiveData Perspective;
 		private Model Model;
 		private ModelVisualization ModelVisualization;
+		private IWindow Window;
+
+		private double PointDrawRadius;
+		private double PointGrabRadius;
 
 		private Vector2 LastMouseCoord;
 		private Vertex ModelDraggingVertex = null;
@@ -21,14 +25,42 @@ namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls.ModelCreationToolHandler
 		private bool HoldDirection;
 		private Vector3 LastDirection = new Vector3(1, 0, 0);
 
-		public ModelCreationEdgeHandler(PerspectiveData perspective, Model model, ModelVisualization modelVisualization)
+		private IEllipse EdgeHoverEllipse;
+		private Edge FoundEdge;
+		private Vector3 FoundEdgeMidpoint;
+
+		public ModelCreationEdgeHandler(PerspectiveData perspective, Model model, ModelVisualization modelVisualization, IWindow window, double pointDrawRadius, double pointGrabRadius)
 		{
 			this.ModelVisualization = modelVisualization;
 			this.Perspective = perspective;
 			this.Model = model;
+			this.Window = window;
+
+			this.PointDrawRadius = pointDrawRadius;
+			this.PointGrabRadius = pointGrabRadius;
+
+			this.EdgeHoverEllipse = Window.CreateEllipse(new Vector2(), PointDrawRadius, ApplicationColor.Highlight);
+			this.EdgeHoverEllipse.Visible = false;
 
 			this.Active = false;
 			SetActive(Active);
+		}
+
+		private Tuple<Vector3, Edge> GetMidpointUnderMouse(Vector2 mouseCoord)
+		{
+			foreach (Edge edge in Model.Edges)
+			{
+				if (edge.Start == ModelDraggingVertex || edge.End == ModelDraggingVertex)
+					continue;
+
+				Vector3 midpoint = (edge.Start.Position + edge.End.Position) / 2;
+				Vector2 midpointScreen = Perspective.WorldToScreen(midpoint);
+
+				if (Window.ScreenDistance(mouseCoord, midpointScreen) < PointGrabRadius)
+					return new Tuple<Vector3, Edge>(midpoint, edge);
+			}
+
+			return null;
 		}
 
 		public override void MouseMove(Vector2 mouseCoord)
@@ -40,22 +72,35 @@ namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls.ModelCreationToolHandler
 				if (ModelDraggingVertex != null)
 				{
 					Vertex foundPoint = ModelVisualization.GetVertexUnderMouse(mouseCoord).Item1;
+					Vector3 foundPosition = (foundPoint != null && foundPoint != ModelDraggingVertex) ? foundPoint.Position : Vector3.InvalidInstance;
 
-					if (foundPoint != null && foundPoint != ModelDraggingVertex)
+					FoundEdge = null;
+					if (!foundPosition.Valid)
+					{
+						var foundTuple = GetMidpointUnderMouse(mouseCoord);
+						if (foundTuple != null)
+						{
+							foundPosition = foundTuple.Item1;
+							FoundEdge = foundTuple.Item2;
+							FoundEdgeMidpoint = foundTuple.Item1;
+						}
+					}
+
+					if (foundPosition.Valid)
 					{
 						if (HoldDirection)
 						{
-							Vector3Proj foundPointProj = Intersections3D.ProjectVectorToRay(foundPoint.Position, new Ray3D(ModelDraggingLineStart.Position, LastDirection));
-							ModelDraggingVertex.Position = foundPointProj.Projection;
+							Vector3Proj foundPositionProj = Intersections3D.ProjectVectorToRay(foundPosition, new Ray3D(ModelDraggingLineStart.Position, LastDirection));
+							ModelDraggingVertex.Position = foundPositionProj.Projection;
 						}
 						else
 						{
-							ModelDraggingVertex.Position = foundPoint.Position;
+							ModelDraggingVertex.Position = foundPosition;
 							ModelVisualization.ModelDraggingLine.Color = ApplicationColor.Model;
-							LastDirection = (foundPoint.Position - ModelDraggingLineStart.Position).Normalized();
+							LastDirection = (foundPosition - ModelDraggingLineStart.Position).Normalized();
 
 							Vector2 startScreen = Perspective.WorldToScreen(ModelDraggingLineStart.Position);
-							Vector2 endScreen = Perspective.WorldToScreen(foundPoint.Position);
+							Vector2 endScreen = Perspective.WorldToScreen(foundPosition);
 
 							LastRay = new Ray2D(startScreen, (endScreen - startScreen));
 						}
@@ -104,6 +149,16 @@ namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls.ModelCreationToolHandler
 						}
 					}
 				}
+				else
+				{
+					var foundTuple = GetMidpointUnderMouse(mouseCoord);
+					if (foundTuple != null)
+					{
+						Vector2 foundMidpointScreen = Perspective.WorldToScreen(foundTuple.Item1);
+						EdgeHoverEllipse.Position = foundMidpointScreen;
+					}
+					EdgeHoverEllipse.Visible = foundTuple != null;
+				}
 
 				ModelVisualization.ModelHoverEllipse.MouseEvent(mouseCoord);
 			}
@@ -128,11 +183,25 @@ namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls.ModelCreationToolHandler
 						Model.AddEdge(ModelDraggingLineStart, foundPoint);
 					}
 
+					if (FoundEdge != null)
+					{
+						ModelDraggingVertex.Remove();
+						Vertex edgeVertex = AddVertexToEdge(FoundEdgeMidpoint, FoundEdge);
+						Model.AddEdge(ModelDraggingLineStart, edgeVertex);
+					}
+
 					ModelDraggingVertex = null;
 					ModelVisualization.ModelDraggingLine.Color = ApplicationColor.Model;
 				}
 				else
 				{
+					if (foundPoint == null)
+					{
+						var foundTuple = GetMidpointUnderMouse(mouseCoord);
+						if (foundTuple != null)
+							foundPoint = AddVertexToEdge(foundTuple.Item1, foundTuple.Item2);
+					}
+
 					if (foundPoint != null)
 					{
 						Vector2 screenPos = Perspective.WorldToScreen(foundPoint.Position);
@@ -149,6 +218,18 @@ namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls.ModelCreationToolHandler
 
 				ModelVisualization.ModelHoverEllipse.MouseEvent(mouseCoord);
 			}
+		}
+
+		private Vertex AddVertexToEdge(Vector3 vertexPosition, Edge edge)
+		{
+			Vertex newVertex = Model.AddVertex(vertexPosition);
+			Vertex start = edge.Start;
+			Vertex end = edge.End;
+			edge.Remove();
+			Model.AddEdge(start, newVertex);
+			Model.AddEdge(newVertex, end);
+
+			return newVertex;
 		}
 
 		public override void MouseUp(Vector2 mouseCoord, MouseButton button)
@@ -195,6 +276,7 @@ namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls.ModelCreationToolHandler
 			if (!active)
 			{
 				CancelLineCreate();
+				EdgeHoverEllipse.Visible = false;
 			}
 		}
 

@@ -206,6 +206,7 @@ namespace Photomatch_ProofOfConcept_WPF.Logic
 
 	public struct Vector3 : ISafeSerializable<Vector3>
 	{
+		public static Vector3 InvalidInstance = new Vector3(double.NaN, double.NaN, double.NaN);
 		public Vector3(double X, double Y, double Z)
 		{
 			this.X = X;
