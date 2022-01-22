@@ -23,6 +23,7 @@ namespace Photomatch_ProofOfConcept_WPF.WPF.ViewModel
 	public class ImageViewModel : BaseViewModel, IWindow, IMouseHandler, IKeyboardHandler
 	{
 		private static readonly double DefaultLineStrokeThickness = 2;
+		private static readonly double ZoomAmount = 1.002;
 
 		public ICommand CloseCommand { get; }
 
@@ -88,14 +89,55 @@ namespace Photomatch_ProofOfConcept_WPF.WPF.ViewModel
 		public GeometryGroup HighlightLinesGeometry { get; } = new GeometryGroup();
 		public ICommand Viewbox_SizeChanged { get; private set; }
 		public ICommand Image_Loaded { get; private set; }
+		public ICommand MoveViewbox_Loaded { get; private set; }
+		public ICommand FixedGrid_Loaded { get; private set; }
 
 		private double _LineStrokeThickness = DefaultLineStrokeThickness;
-		public double LineStrokeThickness {
+		public double LineStrokeThickness
+		{
 			get => _LineStrokeThickness;
 			private set
 			{
 				_LineStrokeThickness = value;
 				OnPropertyChanged(nameof(LineStrokeThickness));
+			}
+		}
+
+		private double _Scale = 1;
+		public double Scale
+		{
+			get => _Scale;
+			private set
+			{
+				_Scale = value;
+				LineStrokeThickness = DefaultLineStrokeThickness / ViewboxImageScale / Scale; 
+				foreach (var scalable in scalables)
+				{
+					scalable.SetNewScale(ViewboxImageScale * Scale);
+				}
+				OnPropertyChanged(nameof(Scale));
+			}
+		}
+
+		private Vector2 _Translate = new Vector2();
+		public Vector2 Translate
+		{
+			get => _Translate;
+			private set
+			{
+				_Translate = value;
+				OnPropertyChanged(nameof(Translate));
+			}
+		}
+
+		private Cursor _Cursor = Cursors.Arrow;
+		public Cursor Cursor
+		{
+			get => _Cursor;
+			private set
+			{
+				_Cursor = value;
+				OnPropertyChanged(nameof(Cursor));
 			}
 		}
 
@@ -118,8 +160,31 @@ namespace Photomatch_ProofOfConcept_WPF.WPF.ViewModel
 		private double ViewboxImageScale = double.NaN;
 		private List<IScalable> scalables = new List<IScalable>();
 		private Image ImageView;
+		private Viewbox MoveViewbox;
+		private Grid FixedGrid;
 		private MainWindow MainWindow;
 		private HashSet<Key> PressedKeys = new HashSet<Key>();
+
+		private Vector2 OrigTranslate;
+		private Vector2 OrigScreen;
+		private bool Dragging;
+
+		private int ImageDrag_ = 0;
+		private bool ImageDrag
+		{
+			get => ImageDrag_ > 0;
+			set
+			{
+				if (value)
+					ImageDrag_++;
+				else
+					ImageDrag_--;
+
+				Cursor = ImageDrag ? Cursors.Hand : Cursors.Arrow;
+				if (!ImageDrag)
+					Dragging = false;
+			}
+		}
 
 		public ImageViewModel(ImageWindow imageWindow, ILogger logger, MainWindow mainWindow)
         {
@@ -132,6 +197,8 @@ namespace Photomatch_ProofOfConcept_WPF.WPF.ViewModel
 
 			this.Viewbox_SizeChanged = new RelayCommand(Viewbox_SizeChanged_);
 			this.Image_Loaded = new RelayCommand(Image_Loaded_);
+			this.MoveViewbox_Loaded = new RelayCommand(MoveViewbox_Loaded_);
+			this.FixedGrid_Loaded = new RelayCommand(FixedGrid_Loaded_);
 
 			SetupGeometry();
 		}
@@ -181,14 +248,14 @@ namespace Photomatch_ProofOfConcept_WPF.WPF.ViewModel
 			if (double.IsNaN(ViewboxImageScale))
 				return double.PositiveInfinity;
 			else
-				return ViewboxImageScale * (pointA - pointB).Magnitude;
+				return Scale * ViewboxImageScale * (pointA - pointB).Magnitude;
 		}
 
 		public ILine CreateLine(Vector2 start, Vector2 end, double endRadius, ApplicationColor color)
 		{
 			var wpfLine = new WpfLine(start.AsPoint(), end.AsPoint(), endRadius, this, color);
 
-			wpfLine.SetNewScale(ViewboxImageScale);
+			wpfLine.SetNewScale(ViewboxImageScale * Scale);
 			if (wpfLine.StartEllipse != null && wpfLine.EndEllipse != null)
 				scalables.Add(wpfLine);
 
@@ -199,7 +266,7 @@ namespace Photomatch_ProofOfConcept_WPF.WPF.ViewModel
 		{
 			var wpfEllipse = new WpfEllipse(position.AsPoint(), radius, this, color);
 
-			wpfEllipse.SetNewScale(ViewboxImageScale);
+			wpfEllipse.SetNewScale(ViewboxImageScale * Scale);
 			scalables.Add(wpfEllipse);				
 
 			return wpfEllipse;
@@ -243,15 +310,27 @@ namespace Photomatch_ProofOfConcept_WPF.WPF.ViewModel
 			if (!button.HasValue)
 				return;
 
-			if (ImageView == null)
-				return;
+			if (button.Value == Gui.MouseButton.Middle)
+				ImageDrag = true;
 
-			Point point = e.GetPosition(ImageView);
+			if (ImageDrag)
+			{
+				if (FixedGrid != null)
+				{
+					OrigScreen = e.GetPosition(FixedGrid).AsVector2();
+					OrigTranslate = Translate;
+					Dragging = true;
+				}
+			}
+			else if (ImageView != null)
+			{
+				Point point = e.GetPosition(ImageView);
 
-			if (point.X < 0 || point.Y < 0 || point.X >= Width || point.Y >= Height)
-				return;
+				if (point.X < 0 || point.Y < 0 || point.X >= Width || point.Y >= Height)
+					return;
 
-			ImageWindow.MouseDown(point.AsVector2(), button.Value);
+				ImageWindow.MouseDown(point.AsVector2(), button.Value);
+			}
 		}
 
 		public void MouseUp(object sender, MouseButtonEventArgs e)
@@ -260,43 +339,86 @@ namespace Photomatch_ProofOfConcept_WPF.WPF.ViewModel
 			if (!button.HasValue)
 				return;
 
-			if (ImageView == null)
-				return;
+			if (ImageDrag)
+			{
+				if (button.Value == Gui.MouseButton.Middle)
+					ImageDrag = false;
 
-			Point point = e.GetPosition(ImageView);
+				Dragging = false;
+			}
+			else if (ImageView != null)
+			{
+				Point point = e.GetPosition(ImageView);
 
-			if (point.X < 0 || point.Y < 0 || point.X >= Width || point.Y >= Height)
-				return;
+				if (point.X < 0 || point.Y < 0 || point.X >= Width || point.Y >= Height)
+					return;
 
-			ImageWindow.MouseUp(point.AsVector2(), button.Value);
+				ImageWindow.MouseUp(point.AsVector2(), button.Value);
+			}
 		}
 
 		public void MouseMove(object sender, MouseEventArgs e)
 		{
-			if (ImageView == null)
-				return;
+			if (ImageDrag)
+			{
+				if (Dragging && FixedGrid != null)
+				{
+					Vector2 v = OrigScreen - e.GetPosition(FixedGrid).AsVector2();
+					Translate = new Vector2(OrigTranslate.X - v.X, OrigTranslate.Y - v.Y);
+				}
+			}
+			else if (ImageView != null)
+			{
+				Point point = e.GetPosition(ImageView);
 
-			Point point = e.GetPosition(ImageView);
+				if (point.X < 0 || point.Y < 0 || point.X >= Width || point.Y >= Height)
+					return;
 
-			if (point.X < 0 || point.Y < 0 || point.X >= Width || point.Y >= Height)
-				return;
-
-			ImageWindow.MouseMove(point.AsVector2());
+				ImageWindow.MouseMove(point.AsVector2());
+			}
 		}
 
 		public void MouseEnter(object sender, MouseEventArgs e) { }
 
 		public void MouseLeave(object sender, MouseEventArgs e)
 		{
-			if (ImageView == null)
-				return;
+			if (ImageDrag)
+				Dragging = false;
+			else if (ImageView != null)
+			{
+				Point point = e.GetPosition(ImageView);
 
-			Point point = e.GetPosition(ImageView);
+				point = new Point(Math.Clamp(point.X, 0, Width - 1), Math.Clamp(point.X, 0, Height - 1));
+				ImageWindow.MouseUp(point.AsVector2(), Gui.MouseButton.Left);
+				ImageWindow.MouseUp(point.AsVector2(), Gui.MouseButton.Middle);
+				ImageWindow.MouseUp(point.AsVector2(), Gui.MouseButton.Right);
+			}
+		}
+		public void MouseWheel(object sender, MouseWheelEventArgs e)
+		{
+			if (MoveViewbox != null)
+			{
+				double zoom = Math.Pow(ZoomAmount, e.Delta);
 
-			point = new Point(Math.Clamp(point.X, 0, Width - 1), Math.Clamp(point.X, 0, Height - 1));
-			ImageWindow.MouseUp(point.AsVector2(), Gui.MouseButton.Left);
-			ImageWindow.MouseUp(point.AsVector2(), Gui.MouseButton.Middle);
-			ImageWindow.MouseUp(point.AsVector2(), Gui.MouseButton.Right);
+				Vector2 relative = e.GetPosition(MoveViewbox).AsVector2();
+				Vector2 absolute = relative * Scale + Translate;
+
+				Scale *= zoom;
+
+				Translate = absolute - relative * Scale;
+			}
+
+			if (!ImageDrag && ImageView != null)
+			{
+				Point point = e.GetPosition(ImageView);
+
+				if (point.X < 0 || point.Y < 0 || point.X >= Width || point.Y >= Height)
+					return;
+
+				ImageWindow.MouseMove(point.AsVector2());
+			}
+
+			
 		}
 
 		private void Viewbox_SizeChanged_(object args)
@@ -306,13 +428,14 @@ namespace Photomatch_ProofOfConcept_WPF.WPF.ViewModel
 			{
 				throw new ArgumentException("args is not of type SizeChangedEventArgs");
 			}
-
+			
 			Size viewboxSize = sizeArgs.NewSize;
 			ViewboxImageScale = viewboxSize.Height / ImageSource.Height;
+			LineStrokeThickness = DefaultLineStrokeThickness / ViewboxImageScale / Scale;
 
 			foreach (var scalable in scalables)
 			{
-				scalable.SetNewScale(ViewboxImageScale);
+				scalable.SetNewScale(ViewboxImageScale * Scale);
 			}
 		}
 
@@ -326,6 +449,10 @@ namespace Photomatch_ProofOfConcept_WPF.WPF.ViewModel
 			
 			ImageView = image;
 		}
+
+		private void FixedGrid_Loaded_(object obj) => FixedGrid = obj as Grid;
+
+		private void MoveViewbox_Loaded_(object obj) => MoveViewbox = obj as Viewbox;
 
 		public void DisplayCalibrationAxes(CalibrationAxes calibrationAxes)
 		{
@@ -358,9 +485,10 @@ namespace Photomatch_ProofOfConcept_WPF.WPF.ViewModel
 				case Key.LeftShift:
 					ImageWindow.KeyUp(KeyboardKey.LeftShift);
 					break;
+				case Key.LeftCtrl:
+					ImageDrag = false;
+					break;
 			}
-
-			Logger.Log($"Keyboard event ({Title})", $"Key Up: {e.Key}", LogType.Info);
 		}
 
 		public void KeyDown(object sender, KeyEventArgs e)
@@ -377,9 +505,10 @@ namespace Photomatch_ProofOfConcept_WPF.WPF.ViewModel
 					case Key.Escape:
 						ImageWindow.KeyDown(KeyboardKey.Escape);
 						break;
+					case Key.LeftCtrl:
+						ImageDrag = true;
+						break;
 				}
-
-				Logger.Log($"Keyboard event ({Title})", $"Key Down: {e.Key}", LogType.Info);
 			}
 		}
 	}

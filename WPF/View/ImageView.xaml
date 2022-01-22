@@ -7,10 +7,15 @@
              xmlns:behavior="clr-namespace:Photomatch_ProofOfConcept_WPF.WPF.Helper"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800"
-             SizeChanged="Control_SizeChanged"
-             behavior:ControlProperties.MouseHandler="{Binding MouseHandler}" >
-    <Grid>
-        <Viewbox x:Name="MainViewbox" behavior:ControlProperties.SizeChanged="{Binding Viewbox_SizeChanged}">
+             behavior:ControlProperties.MouseHandler="{Binding MouseHandler}">
+    <Grid ClipToBounds="True" Background="Gray" behavior:ControlProperties.Loaded="{Binding FixedGrid_Loaded}" Cursor="{Binding Cursor}">
+        <Viewbox RenderTransformOrigin="0,0" behavior:ControlProperties.Loaded="{Binding MoveViewbox_Loaded}" behavior:ControlProperties.SizeChanged="{Binding Viewbox_SizeChanged}">
+            <Viewbox.RenderTransform>
+                <TransformGroup>
+                    <ScaleTransform ScaleX="{Binding Scale}" ScaleY="{Binding Scale}"/>
+                    <TranslateTransform X="{Binding Translate.X}" Y="{Binding Translate.Y}"/>
+                </TransformGroup>
+            </Viewbox.RenderTransform>
             <Grid>
                 <Image x:Name="MainImage" Source="{Binding ImageSource}" behavior:ControlProperties.Loaded="{Binding Image_Loaded}"></Image>
                 <ItemsControl ItemsSource="{Binding Polygons}">
@@ -20,15 +25,15 @@
                         </ItemsPanelTemplate>
                     </ItemsControl.ItemsPanel>
                 </ItemsControl>
+
+                <Path x:Name="XAxisLines" Stroke="Red" Fill="Red" Data="{Binding XAxisLinesGeometry}" StrokeThickness="{Binding LineStrokeThickness}"/>
+                <Path x:Name="YAxisLines" Stroke="Green" Fill="Green" Data="{Binding YAxisLinesGeometry}" StrokeThickness="{Binding LineStrokeThickness}"/>
+                <Path x:Name="ZAxisLines" Stroke="Blue" Fill="Blue" Data="{Binding ZAxisLinesGeometry}" StrokeThickness="{Binding LineStrokeThickness}"/>
+                <Path x:Name="ModelLines" Stroke="Cyan" Fill="Cyan" Data="{Binding ModelLinesGeometry}" StrokeThickness="{Binding LineStrokeThickness}"/>
+                <Path x:Name="SelectedLines" Stroke="Orange" Fill="Orange" Data="{Binding SelectedLinesGeometry}" StrokeThickness="{Binding LineStrokeThickness}"/>
+                <Path x:Name="FaceLines" Stroke="#80FFFFFF" Fill="#80FFFFFF" Data="{Binding FaceLinesGeometry}" StrokeThickness="{Binding LineStrokeThickness}"/>
+                <Path x:Name="HighlightLines" Stroke="SpringGreen" Fill="SpringGreen" Data="{Binding HighlightLinesGeometry}" StrokeThickness="{Binding LineStrokeThickness}"/>
             </Grid>
         </Viewbox>
-
-        <Path x:Name="XAxisLines" Stroke="Red" Fill="Red" Data="{Binding XAxisLinesGeometry}" StrokeThickness="{Binding LineStrokeThickness}"/>
-        <Path x:Name="YAxisLines" Stroke="Green" Fill="Green" Data="{Binding YAxisLinesGeometry}" StrokeThickness="{Binding LineStrokeThickness}"/>
-        <Path x:Name="ZAxisLines" Stroke="Blue" Fill="Blue" Data="{Binding ZAxisLinesGeometry}" StrokeThickness="{Binding LineStrokeThickness}"/>
-        <Path x:Name="ModelLines" Stroke="Cyan" Fill="Cyan" Data="{Binding ModelLinesGeometry}" StrokeThickness="{Binding LineStrokeThickness}"/>
-        <Path x:Name="SelectedLines" Stroke="Orange" Fill="Orange" Data="{Binding SelectedLinesGeometry}" StrokeThickness="{Binding LineStrokeThickness}"/>
-        <Path x:Name="FaceLines" Stroke="#80FFFFFF" Fill="#80FFFFFF" Data="{Binding FaceLinesGeometry}" StrokeThickness="{Binding LineStrokeThickness}"/>
-        <Path x:Name="HighlightLines" Stroke="SpringGreen" Fill="SpringGreen" Data="{Binding HighlightLinesGeometry}" StrokeThickness="{Binding LineStrokeThickness}"/>
     </Grid>
 </UserControl>

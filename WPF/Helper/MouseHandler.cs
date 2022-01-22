@@ -12,5 +12,6 @@ namespace Photomatch_ProofOfConcept_WPF.WPF.Helper
 		void MouseMove(object sender, MouseEventArgs e);
 		void MouseEnter(object sender, MouseEventArgs e);
 		void MouseLeave(object sender, MouseEventArgs e);
+		void MouseWheel(object sender, MouseWheelEventArgs e);
 	}
 }
