@@ -167,22 +167,19 @@ namespace Photomatch_ProofOfConcept_WPF.WPF.ViewModel
 
 		private Vector2 OrigTranslate;
 		private Vector2 OrigScreen;
-		private bool Dragging;
 
-		private int ImageDrag_ = 0;
+		private bool ImageDrag_;
 		private bool ImageDrag
 		{
-			get => ImageDrag_ > 0;
+			get => ImageDrag_;
 			set
 			{
-				if (value)
-					ImageDrag_++;
-				else
-					ImageDrag_--;
+				if (ImageDrag_ != value)
+				{
+					ImageDrag_ = value;
 
-				Cursor = ImageDrag ? Cursors.Hand : Cursors.Arrow;
-				if (!ImageDrag)
-					Dragging = false;
+					Cursor = ImageDrag ? Cursors.Hand : Cursors.Arrow;
+				}
 			}
 		}
 
@@ -319,7 +316,6 @@ namespace Photomatch_ProofOfConcept_WPF.WPF.ViewModel
 				{
 					OrigScreen = e.GetPosition(FixedGrid).AsVector2();
 					OrigTranslate = Translate;
-					Dragging = true;
 				}
 			}
 			else if (ImageView != null)
@@ -340,12 +336,8 @@ namespace Photomatch_ProofOfConcept_WPF.WPF.ViewModel
 				return;
 
 			if (ImageDrag)
-			{
 				if (button.Value == Gui.MouseButton.Middle)
 					ImageDrag = false;
-
-				Dragging = false;
-			}
 			else if (ImageView != null)
 			{
 				Point point = e.GetPosition(ImageView);
@@ -361,7 +353,7 @@ namespace Photomatch_ProofOfConcept_WPF.WPF.ViewModel
 		{
 			if (ImageDrag)
 			{
-				if (Dragging && FixedGrid != null)
+				if (FixedGrid != null)
 				{
 					Vector2 v = OrigScreen - e.GetPosition(FixedGrid).AsVector2();
 					Translate = new Vector2(OrigTranslate.X - v.X, OrigTranslate.Y - v.Y);
@@ -383,7 +375,7 @@ namespace Photomatch_ProofOfConcept_WPF.WPF.ViewModel
 		public void MouseLeave(object sender, MouseEventArgs e)
 		{
 			if (ImageDrag)
-				Dragging = false;
+				ImageDrag = false;
 			else if (ImageView != null)
 			{
 				Point point = e.GetPosition(ImageView);
@@ -406,6 +398,12 @@ namespace Photomatch_ProofOfConcept_WPF.WPF.ViewModel
 				Scale *= zoom;
 
 				Translate = absolute - relative * Scale;
+
+				if (ImageDrag && FixedGrid != null)
+				{
+					OrigScreen = e.GetPosition(FixedGrid).AsVector2();
+					OrigTranslate = Translate;
+				}
 			}
 
 			if (!ImageDrag && ImageView != null)
@@ -485,9 +483,6 @@ namespace Photomatch_ProofOfConcept_WPF.WPF.ViewModel
 				case Key.LeftShift:
 					ImageWindow.KeyUp(KeyboardKey.LeftShift);
 					break;
-				case Key.LeftCtrl:
-					ImageDrag = false;
-					break;
 			}
 		}
 
@@ -504,9 +499,6 @@ namespace Photomatch_ProofOfConcept_WPF.WPF.ViewModel
 						break;
 					case Key.Escape:
 						ImageWindow.KeyDown(KeyboardKey.Escape);
-						break;
-					case Key.LeftCtrl:
-						ImageDrag = true;
 						break;
 				}
 			}
