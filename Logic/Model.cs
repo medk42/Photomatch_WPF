@@ -18,6 +18,8 @@ namespace Photomatch_ProofOfConcept_WPF.Logic
 		public event PositionChangedEventHandler PositionChangedEvent;
 		public event VertexRemovedEventHandler VertexRemovedEvent;
 
+		public List<Edge> ConnectedEdges { get; } = new List<Edge>();
+
 		private Vector3 Position_;
 		public Vector3 Position
 		{
@@ -208,6 +210,9 @@ namespace Photomatch_ProofOfConcept_WPF.Logic
 		{
 			Edge newEdge = new Edge(start, end);
 			newEdge.EdgeRemovedEvent += RemoveEdge;
+
+			start.ConnectedEdges.Add(newEdge);
+			end.ConnectedEdges.Add(newEdge);
 
 			Edges.Add(newEdge);
 			AddEdgeEvent?.Invoke(newEdge);
