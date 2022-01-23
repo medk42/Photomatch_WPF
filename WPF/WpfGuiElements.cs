@@ -81,6 +81,15 @@ namespace Photomatch_ProofOfConcept_WPF.WPF
 				case ApplicationColor.Highlight:
 					geometry = imageViewModel.HighlightLinesGeometry;
 					break;
+				case ApplicationColor.Vertex:
+					geometry = imageViewModel.VertexLinesGeometry;
+					break;
+				case ApplicationColor.Midpoint:
+					geometry = imageViewModel.MidpointLinesGeometry;
+					break;
+				case ApplicationColor.Edgepoint:
+					geometry = imageViewModel.EdgepointLinesGeometry;
+					break;
 				default:
 					throw new ArgumentException("Unknown application color.");
 			}
@@ -114,6 +123,12 @@ namespace Photomatch_ProofOfConcept_WPF.WPF
 					return FaceBrush;
 				case ApplicationColor.Highlight:
 					return Brushes.SpringGreen;
+				case ApplicationColor.Vertex:
+					return Brushes.Black;
+				case ApplicationColor.Midpoint:
+					return Brushes.Gold;
+				case ApplicationColor.Edgepoint:
+					return Brushes.White;
 				default:
 					throw new ArgumentException("Unknown application color.");
 			}

@@ -33,6 +33,9 @@
                 <Path x:Name="SelectedLines" Stroke="Orange" Fill="Orange" Data="{Binding SelectedLinesGeometry}" StrokeThickness="{Binding LineStrokeThickness}"/>
                 <Path x:Name="FaceLines" Stroke="#80FFFFFF" Fill="#80FFFFFF" Data="{Binding FaceLinesGeometry}" StrokeThickness="{Binding LineStrokeThickness}"/>
                 <Path x:Name="HighlightLines" Stroke="SpringGreen" Fill="SpringGreen" Data="{Binding HighlightLinesGeometry}" StrokeThickness="{Binding LineStrokeThickness}"/>
+                <Path x:Name="VertexLines" Stroke="Black" Fill="Black" Data="{Binding VertexLinesGeometry}" StrokeThickness="{Binding LineStrokeThickness}"/>
+                <Path x:Name="MidpointLines" Stroke="Gold" Fill="Gold" Data="{Binding MidpointLinesGeometry}" StrokeThickness="{Binding LineStrokeThickness}"/>
+                <Path x:Name="EdgepointLines" Stroke="White" Fill="White" Data="{Binding EdgepointLinesGeometry}" StrokeThickness="{Binding LineStrokeThickness}"/>
             </Grid>
         </Viewbox>
     </Grid>

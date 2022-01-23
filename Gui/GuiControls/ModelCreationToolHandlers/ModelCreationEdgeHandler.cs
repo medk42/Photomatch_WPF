@@ -99,14 +99,21 @@ namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls.ModelCreationToolHandler
 
 					Vertex foundPoint = ModelVisualization.GetVertexUnderMouse(mouseCoord).Item1;
 					Vector3 foundPosition = (foundPoint != null && foundPoint != ModelDraggingVertex) ? foundPoint.Position : Vector3.InvalidInstance;
+					ModelVisualization.ModelHoverEllipse.Ellipse.Color = ApplicationColor.Vertex;
 
 					FoundEdge = null;
 					if (!foundPosition.Valid)
 					{
 						var foundTuple = GetMidpointUnderMouse(mouseCoord);
+						if (foundTuple != null)
+							ModelVisualization.ModelHoverEllipse.Ellipse.Color = ApplicationColor.Midpoint;
 
 						if (foundTuple == null)
+						{
 							foundTuple = GetEdgePointUnderMouse(mouseCoord);
+							if (foundTuple != null)
+								ModelVisualization.ModelHoverEllipse.Ellipse.Color = ApplicationColor.Edgepoint;
+						}
 
 						if (foundTuple != null)
 						{
@@ -186,9 +193,13 @@ namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls.ModelCreationToolHandler
 					else
 					{
 						var foundTuple = GetMidpointUnderMouse(mouseCoord);
+						EdgeHoverEllipse.Color = ApplicationColor.Midpoint;
 
 						if (foundTuple == null)
+						{
 							foundTuple = GetEdgePointUnderMouse(mouseCoord);
+							EdgeHoverEllipse.Color = ApplicationColor.Edgepoint;
+						}
 
 						if (foundTuple != null)
 						{
@@ -216,6 +227,7 @@ namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls.ModelCreationToolHandler
 
 				if (ModelDraggingVertex != null)
 				{
+					ModelVisualization.ModelHoverEllipse.Ellipse.Color = ApplicationColor.Vertex;
 					if (foundPoint != null && foundPoint != ModelDraggingVertex && !HoldDirection)
 					{
 						ModelDraggingVertex.ConnectedEdges[0].RemoveVerticesOnRemove = false;
@@ -258,6 +270,8 @@ namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls.ModelCreationToolHandler
 						ModelDraggingLineStart = foundPoint;
 
 						Model.AddEdge(foundPoint, ModelDraggingVertex);
+
+						EdgeHoverEllipse.Visible = false;
 					}
 				}
 
@@ -328,6 +342,7 @@ namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls.ModelCreationToolHandler
 
 		private void CancelLineCreate()
 		{
+			ModelVisualization.ModelHoverEllipse.Ellipse.Color = ApplicationColor.Vertex;
 
 			if (ModelDraggingVertex != null)
 			{

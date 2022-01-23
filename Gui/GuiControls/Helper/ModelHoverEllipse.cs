@@ -38,7 +38,7 @@ namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls.Helper
 			this.PointDrawRadius = pointDrawRadius;
 			this.Perspective = perspective;
 
-			this.Ellipse = Window.CreateEllipse(new Vector2(), PointDrawRadius, ApplicationColor.Highlight);
+			this.Ellipse = Window.CreateEllipse(new Vector2(), PointDrawRadius, ApplicationColor.Vertex);
 			this.Ellipse.Visible = false;
 		}
 
