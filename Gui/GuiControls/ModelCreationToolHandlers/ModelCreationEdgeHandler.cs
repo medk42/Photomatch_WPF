@@ -71,6 +71,8 @@ namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls.ModelCreationToolHandler
 
 				if (ModelDraggingVertex != null)
 				{
+					ModelVisualization.ModelHoverEllipse.MouseEvent(mouseCoord);
+
 					Vertex foundPoint = ModelVisualization.GetVertexUnderMouse(mouseCoord).Item1;
 					Vector3 foundPosition = (foundPoint != null && foundPoint != ModelDraggingVertex) ? foundPoint.Position : Vector3.InvalidInstance;
 
@@ -151,16 +153,21 @@ namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls.ModelCreationToolHandler
 				}
 				else
 				{
-					var foundTuple = GetMidpointUnderMouse(mouseCoord);
-					if (foundTuple != null)
+					if (ModelVisualization.ModelHoverEllipse.MouseEvent(mouseCoord))
+						EdgeHoverEllipse.Visible = false;
+					else
 					{
-						Vector2 foundMidpointScreen = Perspective.WorldToScreen(foundTuple.Item1);
-						EdgeHoverEllipse.Position = foundMidpointScreen;
+						var foundTuple = GetMidpointUnderMouse(mouseCoord);
+						if (foundTuple != null)
+						{
+							Vector2 foundMidpointScreen = Perspective.WorldToScreen(foundTuple.Item1);
+							EdgeHoverEllipse.Position = foundMidpointScreen;
+						}
+						EdgeHoverEllipse.Visible = foundTuple != null;
 					}
-					EdgeHoverEllipse.Visible = foundTuple != null;
 				}
 
-				ModelVisualization.ModelHoverEllipse.MouseEvent(mouseCoord);
+				
 			}
 		}
 
