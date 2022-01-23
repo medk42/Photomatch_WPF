@@ -218,12 +218,14 @@ namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls.ModelCreationToolHandler
 				{
 					if (foundPoint != null && foundPoint != ModelDraggingVertex && !HoldDirection)
 					{
+						ModelDraggingVertex.ConnectedEdges[0].RemoveVerticesOnRemove = false;
 						ModelDraggingVertex.Remove();
 						Model.AddEdge(ModelDraggingLineStart, foundPoint);
 					}
 
 					if (FoundEdge != null)
 					{
+						ModelDraggingVertex.ConnectedEdges[0].RemoveVerticesOnRemove = false;
 						ModelDraggingVertex.Remove();
 						Vertex edgeVertex = AddVertexToEdge(FoundEdgeMidpoint, FoundEdge);
 						Model.AddEdge(ModelDraggingLineStart, edgeVertex);
@@ -268,6 +270,7 @@ namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls.ModelCreationToolHandler
 			Vertex newVertex = Model.AddVertex(vertexPosition);
 			Vertex start = edge.Start;
 			Vertex end = edge.End;
+			edge.RemoveVerticesOnRemove = false;
 			edge.Remove();
 			Model.AddEdge(start, newVertex);
 			Model.AddEdge(newVertex, end);

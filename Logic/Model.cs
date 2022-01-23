@@ -51,6 +51,7 @@ namespace Photomatch_ProofOfConcept_WPF.Logic
 
 		public Vertex Start { get; private set; }
 		public Vertex End { get; private set; }
+		public bool RemoveVerticesOnRemove { get; set; } = true;
 
 		public Edge(Vertex start, Vertex end)
 		{
@@ -208,6 +209,10 @@ namespace Photomatch_ProofOfConcept_WPF.Logic
 
 		public Edge AddEdge(Vertex start, Vertex end)
 		{
+			foreach (Edge e in start.ConnectedEdges)
+				if (e.Start == end || e.End == end)
+					return null;
+			
 			Edge newEdge = new Edge(start, end);
 			newEdge.EdgeRemovedEvent += RemoveEdge;
 
@@ -247,6 +252,28 @@ namespace Photomatch_ProofOfConcept_WPF.Logic
 			}					
 		}
 
+		private void CheckNoConnections(Vertex v)
+		{
+			if (v.ConnectedEdges.Count == 0)
+				v.Remove();
+		}
+
+		private void CheckTwoConnections(Vertex v)
+		{
+			if (v.ConnectedEdges.Count == 2)
+			{
+				Vertex start = v.ConnectedEdges[0].Start == v ? v.ConnectedEdges[0].End : v.ConnectedEdges[0].Start;
+				Vertex end = v.ConnectedEdges[1].Start == v ? v.ConnectedEdges[1].End : v.ConnectedEdges[1].Start;
+				Vector3 lineANormal = (start.Position - v.Position).Normalized();
+				Vector3 lineBNormal = (v.Position - end.Position).Normalized();
+				if ((lineANormal - lineBNormal).Magnitude < 1e-6)
+				{
+					AddEdge(start, end);
+					v.Remove();
+				}
+			}
+		}
+
 		private void RemoveVertex(Vertex v)
 		{
 			v.VertexRemovedEvent -= RemoveVertex;
@@ -256,9 +283,21 @@ namespace Photomatch_ProofOfConcept_WPF.Logic
 
 		private void RemoveEdge(Edge e)
 		{
+			e.Start.ConnectedEdges.Remove(e);
+			e.End.ConnectedEdges.Remove(e);
+
 			e.EdgeRemovedEvent -= RemoveEdge;
 			Edges.Remove(e);
+
 			e.Dispose();
+
+			if (e.RemoveVerticesOnRemove)
+			{
+				CheckNoConnections(e.Start);
+				CheckNoConnections(e.End);
+				CheckTwoConnections(e.Start);
+				CheckTwoConnections(e.End);
+			}
 		}
 
 		private void RemoveFace(Face f)
