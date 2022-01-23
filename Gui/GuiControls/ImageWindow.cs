@@ -12,7 +12,7 @@ namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls
 	{
 		public PerspectiveData Perspective;
 
-		private static readonly double PointGrabRadius = 8;
+		private static readonly double PointGrabRadius = 16;
 		private static readonly double PointDrawRadius = 4;
 
 		private MasterGUI Gui;

@@ -63,6 +63,30 @@ namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls.ModelCreationToolHandler
 			return null;
 		}
 
+		private Tuple<Vector3, Edge> GetEdgePointUnderMouse(Vector2 mouseCoord)
+		{
+			foreach (Edge edge in Model.Edges)
+			{
+				if (edge.Start == ModelDraggingVertex || edge.End == ModelDraggingVertex)
+					continue;
+
+				Ray3D mouseRay = Perspective.ScreenToWorldRay(mouseCoord);
+				Line3D edgeLine = new Line3D(edge.Start.Position, edge.End.Position);
+				ClosestPoint3D closest = Intersections3D.GetRayRayClosest(mouseRay, edgeLine.AsRay());
+
+				if (closest.RayBRelative >= 0 && closest.RayBRelative <= edgeLine.Length)
+				{
+					Vector3 edgeClosestPoint = closest.RayBClosest;
+					Vector2 edgeClosestPointScreen = Perspective.WorldToScreen(edgeClosestPoint);
+
+					if (Window.ScreenDistance(mouseCoord, edgeClosestPointScreen) < PointGrabRadius)
+						return new Tuple<Vector3, Edge>(edgeClosestPoint, edge);
+				}
+			}
+
+			return null;
+		}
+
 		public override void MouseMove(Vector2 mouseCoord)
 		{
 			if (Active)
@@ -80,6 +104,10 @@ namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls.ModelCreationToolHandler
 					if (!foundPosition.Valid)
 					{
 						var foundTuple = GetMidpointUnderMouse(mouseCoord);
+
+						if (foundTuple == null)
+							foundTuple = GetEdgePointUnderMouse(mouseCoord);
+
 						if (foundTuple != null)
 						{
 							foundPosition = foundTuple.Item1;
@@ -158,6 +186,10 @@ namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls.ModelCreationToolHandler
 					else
 					{
 						var foundTuple = GetMidpointUnderMouse(mouseCoord);
+
+						if (foundTuple == null)
+							foundTuple = GetEdgePointUnderMouse(mouseCoord);
+
 						if (foundTuple != null)
 						{
 							Vector2 foundMidpointScreen = Perspective.WorldToScreen(foundTuple.Item1);
@@ -205,6 +237,10 @@ namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls.ModelCreationToolHandler
 					if (foundPoint == null)
 					{
 						var foundTuple = GetMidpointUnderMouse(mouseCoord);
+
+						if (foundTuple == null)
+							foundTuple = GetEdgePointUnderMouse(mouseCoord);
+
 						if (foundTuple != null)
 							foundPoint = AddVertexToEdge(foundTuple.Item1, foundTuple.Item2);
 					}
