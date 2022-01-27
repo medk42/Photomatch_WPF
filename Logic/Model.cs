@@ -164,7 +164,7 @@ namespace Photomatch_ProofOfConcept_WPF.Logic
 
 			Triangulate();
 
-			FacePoint = (0.5 * Triangulated[0].A + 0.16 * Triangulated[0].B + 0.34 * Triangulated[0].C);
+			FacePoint = (0.5 * Triangulated[0].A.Position + 0.16 * Triangulated[0].B.Position + 0.34 * Triangulated[0].C.Position);
 		}
 
 		public void Remove()
@@ -201,13 +201,10 @@ namespace Photomatch_ProofOfConcept_WPF.Logic
 			earTips.Add(id);
 		}
 
-		private void InitializeTriangulate(List<Vector2> vertices, int[] verticesMap, int[] prevVertex, int[] nextVertex, HashSet<int> earTips, double[] angles, out Matrix3x3 inverseRotate, out double zCoord)
+		private void InitializeTriangulate(List<Vector2> vertices, int[] verticesMap, int[] prevVertex, int[] nextVertex, HashSet<int> earTips, double[] angles)
 		{
 			Matrix3x3 rotate = Camera.RotateAlign(Normal, new Vector3(0, 0, 1));
 			List<Vertex> uniqueVertices = new List<Vertex>();
-
-			inverseRotate = rotate.Transposed();
-			zCoord = (rotate * Vertices[0].Position).Z;
 
 			for (int i = 0; i < verticesMap.Length; i++)
 			{
@@ -254,10 +251,7 @@ namespace Photomatch_ProofOfConcept_WPF.Logic
 			double[] angles = new double[Vertices.Count];
 			HashSet<int> earTips = new HashSet<int>();
 
-			Matrix3x3 inverseRotate;
-			double zCoord;
-
-			InitializeTriangulate(vertices, verticesMap, prevVertex, nextVertex, earTips, angles, out inverseRotate, out zCoord);
+			InitializeTriangulate(vertices, verticesMap, prevVertex, nextVertex, earTips, angles);
 
 			for (int i = 0; i < angles.Length - 2; i++)
 			{
@@ -269,14 +263,11 @@ namespace Photomatch_ProofOfConcept_WPF.Logic
 				int prevId = prevVertex[smallestId];
 				int nextId = nextVertex[smallestId];
 
-				Vector2 prevVect = vertices[verticesMap[prevId]];
-				Vector2 actVect = vertices[verticesMap[smallestId]];
-				Vector2 nextVect = vertices[verticesMap[nextId]];
-
-				Triangulated.Add(new Triangle() { 
-					A = inverseRotate * new Vector3(prevVect.X, prevVect.Y, zCoord), 
-					B = inverseRotate * new Vector3(actVect.X, actVect.Y, zCoord), 
-					C = inverseRotate * new Vector3(nextVect.X, nextVect.Y, zCoord)
+				Triangulated.Add(new Triangle()
+				{
+					A = Vertices[prevId],
+					B = Vertices[smallestId],
+					C = Vertices[nextId]
 				});
 
 				earTips.Remove(smallestId);
@@ -287,6 +278,8 @@ namespace Photomatch_ProofOfConcept_WPF.Logic
 				prevVertex[nextId] = prevId;
 
 				Vector2 prevPrevVect = vertices[verticesMap[prevVertex[prevId]]];
+				Vector2 prevVect = vertices[verticesMap[prevId]];
+				Vector2 nextVect = vertices[verticesMap[nextId]];
 				Vector2 nextNextVect = vertices[verticesMap[nextVertex[nextId]]];
 
 				angles[prevId] = CalculateAngleOfVertex(prevPrevVect, prevVect, nextVect);
@@ -302,9 +295,9 @@ namespace Photomatch_ProofOfConcept_WPF.Logic
 
 	public struct Triangle
 	{
-		public Vector3 A { get; set; }
-		public Vector3 B { get; set; }
-		public Vector3 C { get; set; }
+		public Vertex A { get; set; }
+		public Vertex B { get; set; }
+		public Vertex C { get; set; }
 	}
 
 	public class Model : ISafeSerializable<Model>
