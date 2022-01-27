@@ -272,6 +272,24 @@ namespace Photomatch_ProofOfConcept_WPF.Logic
 				return IsRight(a, c, point) && IsRight(c, b, point) && IsRight(b, a, point);
 			}
 		}
+
+		/// <summary>
+		/// Returns whether a polygon defined by vertices is clockwise. Supports non-convex polygons.
+		/// Based on https://stackoverflow.com/questions/1165647/how-to-determine-if-a-list-of-polygon-points-are-in-clockwise-order.
+		/// </summary>
+		public static bool IsClockwise(List<Vector2> vertices)
+		{
+			double sum = 0;
+			for (int i = 0; i < vertices.Count; i++)
+			{
+				Vector2 start = vertices[i > 0 ? i - 1 : vertices.Count - 1];
+				Vector2 end = vertices[i];
+
+				sum += (end.X - start.X) * (end.Y + start.Y);
+			}
+
+			return sum > 0;
+		}
 	}
 
 	public struct Line3D : ISafeSerializable<Line3D>

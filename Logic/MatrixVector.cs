@@ -214,6 +214,13 @@ namespace Photomatch_ProofOfConcept_WPF.Logic
 			this.Z = Z;
 		}
 
+		public Vector3(Vector2 vect, double z)
+		{
+			this.X = vect.X;
+			this.Y = vect.Y;
+			this.Z = z;
+		}
+
 		public double X { get; set; }
 		public double Y { get; set; }
 		public double Z { get; set; }
@@ -299,6 +306,12 @@ namespace Photomatch_ProofOfConcept_WPF.Logic
 		{
 			this.X = X;
 			this.Y = Y;
+		}
+
+		public Vector2(Vector3 vect)
+		{
+			this.X = vect.X;
+			this.Y = vect.Y;
 		}
 
 		public double X { get; set; }

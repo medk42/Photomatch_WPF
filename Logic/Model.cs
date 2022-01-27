@@ -113,17 +113,12 @@ namespace Photomatch_ProofOfConcept_WPF.Logic
 				Vertex v = Vertices[i];
 				v.VertexRemovedEvent += (v) => Remove();
 
-				if (i < 3)
+				int iCopy = i;
+				v.PositionChangedEvent += (position) =>
 				{
-					int iCopy = i;
-					v.PositionChangedEvent += (position) =>
-					{
-						RecalculateProperties();
-						VertexPositionChangedEvent?.Invoke(position, iCopy);
-					};
-				}
-				else
-					v.PositionChangedEvent += (position) => VertexPositionChangedEvent?.Invoke(position, i);
+					RecalculateProperties();
+					VertexPositionChangedEvent?.Invoke(position, iCopy);
+				};
 			}
 
 			RecalculateProperties();
@@ -159,6 +154,14 @@ namespace Photomatch_ProofOfConcept_WPF.Logic
 		private void RecalculateProperties()
 		{
 			Normal_ = Vector3.Cross(Vertices[1].Position - Vertices[0].Position, Vertices[2].Position - Vertices[0].Position).Normalized();
+
+			Matrix3x3 rotate = Camera.RotateAlign(Normal_, new Vector3(0, 0, 1));
+			List<Vector2> vertices = new List<Vector2>();
+			foreach (Vertex v in Vertices)
+				vertices.Add(new Vector2(rotate * v.Position));
+			if (Intersections2D.IsClockwise(vertices))
+				Normal_ = -Normal_;
+
 			FacePoint_ = (0.5 * Vertices[0].Position +  0.16 * Vertices[1].Position +  0.34 * Vertices[2].Position);
 		}
 
