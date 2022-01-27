@@ -201,7 +201,7 @@ namespace Photomatch_ProofOfConcept_WPF.Logic
 
 		private void InitializeTriangulate(List<Vector2> vertices, int[] verticesMap, int[] prevVertex, int[] nextVertex, HashSet<int> earTips, double[] angles, out Matrix3x3 inverseRotate, out double zCoord)
 		{
-			Matrix3x3 rotate = Camera.RotateAlign(Reversed ? -Normal : Normal, new Vector3(0, 0, 1));
+			Matrix3x3 rotate = Camera.RotateAlign(Normal, new Vector3(0, 0, 1));
 			List<Vertex> uniqueVertices = new List<Vertex>();
 
 			inverseRotate = rotate.Transposed();
