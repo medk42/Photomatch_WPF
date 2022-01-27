@@ -48,6 +48,9 @@ namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls.ModelCreationToolHandler
 
 			for (int i = ((position == Lines[1].Start) ? 2 : 1); i < Lines.Count - 2; i++)
 			{
+				if (position == Lines[i].Start || position == Lines[i].End || Lines[Lines.Count - 1].Start == Lines[i].Start || Lines[Lines.Count - 1].Start == Lines[i].End)
+					continue;
+
 				IntersectionPoint2D lineCountIntersection = Intersections2D.GetLineLineIntersection(new Line2D(Lines[i].Start, Lines[i].End), new Line2D(Lines[Lines.Count - 1].Start, position));
 				if (lineCountIntersection.LineARelative >= 0 && lineCountIntersection.LineARelative <= 1 && lineCountIntersection.LineBRelative >= 0 && lineCountIntersection.LineBRelative <= 1)
 				{
@@ -103,9 +106,9 @@ namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls.ModelCreationToolHandler
 					if (!CheckLineCross(foundPosition))
 						return;
 
-					foreach (Vertex v in Vertices)
+					if (Vertices.Count > 0)
 					{
-						if (foundPoint == v)
+						if (foundPoint == Vertices[0])
 						{
 							if (!CheckCount())
 								return;

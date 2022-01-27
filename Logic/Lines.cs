@@ -242,6 +242,36 @@ namespace Photomatch_ProofOfConcept_WPF.Logic
 
 			return crossings % 2 == 1;
 		}
+
+		/// <summary>
+		/// Returns whether is a specified point on the right side of a line (specified by its endpoints).
+		/// </summary>
+		private static bool IsRight(Vector2 lineStart, Vector2 lineEnd, Vector2 point)
+		{
+			Vector2 startEnd = lineEnd - lineStart;
+			Vector2 startPoint = point -  lineStart;
+
+			double cross = startEnd.X * startPoint.Y - startEnd.Y * startPoint.X;
+
+			return cross <= 0;
+		}
+
+		/// <summary>
+		/// Return whether a point is inside a triangle (without potential issues at vertices which might happen with IsPointInsidePolygon).
+		/// "point" defines point and "a", "b", "c" are triangle vertices.
+		/// </summary>
+		public static bool IsPointInsideTriangle(Vector2 point, Vector2 a, Vector2 b, Vector2 c)
+		{
+			bool leftHanded = IsRight(a, b, c);
+			if (leftHanded)
+			{
+				return IsRight(a, b, point) && IsRight(b, c, point) && IsRight(c, a, point);
+			}
+			else
+			{
+				return IsRight(a, c, point) && IsRight(c, b, point) && IsRight(b, a, point);
+			}
+		}
 	}
 
 	public struct Line3D : ISafeSerializable<Line3D>
