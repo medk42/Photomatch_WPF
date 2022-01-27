@@ -95,11 +95,11 @@ namespace Photomatch_ProofOfConcept_WPF.Logic
 			get => FacesFront.Count % 2 == 1;
 		}
 
-		private Vector3 Normal_;
-		public Vector3 Normal { get => Normal_; }
+		public Vector3 Normal { get; private set; }
 
-		private Vector3 FacePoint_;
-		public Vector3 FacePoint { get => FacePoint_; }
+		public Vector3 FacePoint { get; private set; }
+
+		public List<Triangle> Triangulated { get; } = new List<Triangle>();
 
 		private List<Vertex> Vertices = new List<Vertex>();
 		private List<Face> FacesFront = new List<Face>();
@@ -153,16 +153,18 @@ namespace Photomatch_ProofOfConcept_WPF.Logic
 
 		private void RecalculateProperties()
 		{
-			Normal_ = Vector3.Cross(Vertices[1].Position - Vertices[0].Position, Vertices[2].Position - Vertices[0].Position).Normalized();
+			Normal = Vector3.Cross(Vertices[1].Position - Vertices[0].Position, Vertices[2].Position - Vertices[0].Position).Normalized();
 
-			Matrix3x3 rotate = Camera.RotateAlign(Normal_, new Vector3(0, 0, 1));
+			Matrix3x3 rotate = Camera.RotateAlign(Normal, new Vector3(0, 0, 1));
 			List<Vector2> vertices = new List<Vector2>();
 			foreach (Vertex v in Vertices)
 				vertices.Add(new Vector2(rotate * v.Position));
 			if (Intersections2D.IsClockwise(vertices))
-				Normal_ = -Normal_;
+				Normal = -Normal;
 
-			FacePoint_ = (0.5 * Vertices[0].Position +  0.16 * Vertices[1].Position +  0.34 * Vertices[2].Position);
+			Triangulate();
+
+			FacePoint = (0.5 * Triangulated[0].A + 0.16 * Triangulated[0].B + 0.34 * Triangulated[0].C);
 		}
 
 		public void Remove()
@@ -240,9 +242,9 @@ namespace Photomatch_ProofOfConcept_WPF.Logic
 			}
 		}
 
-		public List<Triangle> Triangulate()
+		private void Triangulate()
 		{
-			List<Triangle> triangles = new List<Triangle>();
+			Triangulated.Clear();
 
 			List<Vector2> vertices = new List<Vector2>();
 			int[] verticesMap = new int[Vertices.Count];
@@ -271,7 +273,7 @@ namespace Photomatch_ProofOfConcept_WPF.Logic
 				Vector2 actVect = vertices[verticesMap[smallestId]];
 				Vector2 nextVect = vertices[verticesMap[nextId]];
 
-				triangles.Add(new Triangle() { 
+				Triangulated.Add(new Triangle() { 
 					A = inverseRotate * new Vector3(prevVect.X, prevVect.Y, zCoord), 
 					B = inverseRotate * new Vector3(actVect.X, actVect.Y, zCoord), 
 					C = inverseRotate * new Vector3(nextVect.X, nextVect.Y, zCoord)
@@ -295,8 +297,6 @@ namespace Photomatch_ProofOfConcept_WPF.Logic
 				if (angles[nextId] >= 0)
 					AddEartip(prevVect, nextVect, nextNextVect, vertices, earTips, nextId);
 			}
-
-			return triangles;
 		}
 	}
 
