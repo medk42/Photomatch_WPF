@@ -10,6 +10,7 @@ using Photomatch_ProofOfConcept_WPF.Gui;
 using Photomatch_ProofOfConcept_WPF.Gui.GuiControls;
 using Photomatch_ProofOfConcept_WPF.Utilities;
 using Photomatch_ProofOfConcept_WPF.Logic;
+using System.ComponentModel;
 
 namespace Photomatch_ProofOfConcept_WPF
 {
@@ -28,6 +29,20 @@ namespace Photomatch_ProofOfConcept_WPF
 		private ILogger Logger = null;
 		private MainViewModel MainViewModel;
 		private bool InvertedAxesCheckboxIgnore = false;
+		private BackgroundWorker CurrentBackgroundWorker = null;
+
+		private bool Active_ = true;
+		private bool Active
+		{
+			get => Active_;
+			set {
+				if (Active_ != value)
+				{
+					Active_ = value;
+					SetActive(value);
+				}
+			}
+		}
 
 		public MainWindow()
 		{
@@ -55,7 +70,17 @@ namespace Photomatch_ProofOfConcept_WPF
 
 		public void Log(string title, string message, LogType type)
 		{
-			Logger.Log(title, message, type);
+			if (CurrentBackgroundWorker != null)
+				CurrentBackgroundWorker.ReportProgress(0, new Tuple<string, string, LogType>(title, message, type));
+			else
+				Logger.Log(title, message, type);
+		}
+
+		private void SetActive(bool active)
+		{
+			MainToolbar.IsEnabled = active;
+			MainMenu.IsEnabled = active;
+			MainDockMgr.IsEnabled = active;
 		}
 
 		private string GetFilePath(string filter)
@@ -113,7 +138,7 @@ namespace Photomatch_ProofOfConcept_WPF
 		private void SaveProject_Click(object sender, RoutedEventArgs e) => ActionListener?.SaveProject_Pressed();
 		private void SaveProjectAs_Click(object sender, RoutedEventArgs e) => ActionListener?.SaveProjectAs_Pressed();
 		private void LoadProject_Click(object sender, RoutedEventArgs e) => ActionListener?.LoadProject_Pressed();
-		private void ExportModel_Click(object sender, RoutedEventArgs e) => ActionListener?.ExportModel_Pressed();
+		private void ExportModel_Click(object sender, RoutedEventArgs e) => RunAtBackground(() => ActionListener?.ExportModel_Pressed());
 		private void CameraRadioButton_Checked(object sender, RoutedEventArgs e) => ActionListener?.DesignTool_Changed(DesignTool.CameraCalibration);
 		private void CameraModelRadioButton_Checked(object sender, RoutedEventArgs e) => ActionListener?.DesignTool_Changed(DesignTool.CameraModelCalibration);
 		private void ModelRadioButton_Checked(object sender, RoutedEventArgs e) => ActionListener?.DesignTool_Changed(DesignTool.ModelCreation);
@@ -124,11 +149,30 @@ namespace Photomatch_ProofOfConcept_WPF
 		private void CalibrateOriginRadioButton_Checked(object sender, RoutedEventArgs e) => ActionListener?.CameraModelCalibrationTool_Changed(CameraModelCalibrationTool.CalibrateOrigin);
 		private void CalibrateScaleRadioButton_Checked(object sender, RoutedEventArgs e) => ActionListener?.CameraModelCalibrationTool_Changed(CameraModelCalibrationTool.CalibrateScale);
 
+		private void RunAtBackground(Action action)
+		{
+			CurrentBackgroundWorker = new BackgroundWorker() { WorkerReportsProgress = true };
+			CurrentBackgroundWorker.DoWork += (sender, e) => action();
+			CurrentBackgroundWorker.ProgressChanged += (sender, e) =>
+			{
+				var tuple = e.UserState as Tuple<string, string, LogType>;
+				Logger.Log(tuple.Item1, tuple.Item2, tuple.Item3);
+			};
+			CurrentBackgroundWorker.RunWorkerCompleted += (sender, e) =>
+			{
+				CurrentBackgroundWorker = null;
+				Active = true;
+			};
+
+			Active = false;
+			CurrentBackgroundWorker.RunWorkerAsync();
+		}
+
 		private void MainDockMgr_ActiveContentChanged(object sender, EventArgs e)
 		{
 			if (MainDockMgr.ActiveContent != null)
 			{
-				Toolbar.IsEnabled = true;
+				MainToolbar.IsEnabled = true;
 
 				ImageViewModel imageViewModel = MainDockMgr.ActiveContent as ImageViewModel;
 				if (imageViewModel == null)
@@ -139,7 +183,7 @@ namespace Photomatch_ProofOfConcept_WPF
 			}
 			else
 			{
-				Toolbar.IsEnabled = false;
+				MainToolbar.IsEnabled = false;
 			}
 		}
 

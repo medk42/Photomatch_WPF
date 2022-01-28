@@ -17,7 +17,7 @@
         mc:Ignorable="d"
         Title="Photomatcher" Height="450" Width="800">
     <DockPanel>
-        <Menu DockPanel.Dock="Top">
+        <Menu Name="MainMenu" DockPanel.Dock="Top">
             <MenuItem Header="File">
                 <MenuItem Header="New Project" Click="NewProject_Click"/>
                 <MenuItem Header="Save Project" Click="SaveProject_Click"/>
@@ -34,7 +34,7 @@
             </StatusBarItem>
         </StatusBar>
 
-        <ToolBarTray Name="Toolbar" DockPanel.Dock="Top" IsEnabled="False">
+        <ToolBarTray Name="MainToolbar" DockPanel.Dock="Top" IsEnabled="False">
             <ToolBar>
                 <RadioButton Name="CameraRadioButton" Checked="CameraRadioButton_Checked" Content="Camera" IsChecked="True"/>
                 <RadioButton Name="CameraModelRadioButton" Checked="CameraModelRadioButton_Checked" Content="Model Calibration"/>

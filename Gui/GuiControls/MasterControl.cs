@@ -452,6 +452,8 @@ namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls
 				{
 					ImageWindow selectedWindow = GetFaceWindow(Model.Faces[i]);
 
+					Logger.Log("Export Model", $"Exporting texture {i + 1}/{Model.Faces.Count}...", LogType.Info);
+
 					if (selectedWindow != null)
 					{
 						int width, height;
@@ -465,7 +467,10 @@ namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls
 					}
 				}
 
+				Logger.Log("Export Model", $"Generating .mtl file...", LogType.Info);
 				GenerateMtlFile(Path.Combine(newFolderPath, fileNameNoExtension + ".mtl"), invalidFaces);
+
+				Logger.Log("Export Model", $"Generating .obj file...", LogType.Info);
 				GenerateObjFile(Path.Combine(newFolderPath, fileName), fileNameNoExtension, uvCoordinates, invalidFaces);
 			}
 			catch (Exception ex)
