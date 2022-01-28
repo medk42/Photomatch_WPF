@@ -103,8 +103,6 @@ namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls
 				default:
 					throw new NotImplementedException("Unknown ProjectState");
 			}
-
-			Logger.Log("Save Project", "Successfully saved project.", LogType.Info);
 		}
 
 		public void SaveProjectAs_Pressed()
@@ -133,8 +131,6 @@ namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls
 				default:
 					throw new NotImplementedException("Unknown ProjectState");
 			}
-
-			Logger.Log("Save Project", "Successfully saved project.", LogType.Info);
 		}
 
 		private bool SaveProject(string fileName)
@@ -145,14 +141,18 @@ namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls
 				using (var writer = new BinaryWriter(fileStream))
 				{
 					writer.Write(ProjectFileChecksum);
+					Logger.Log("Save Project", "Saving model.", LogType.Progress);
 					Model.Serialize(writer);
 					writer.Write((int)DesignTool);
 					writer.Write(Windows.Count);
 					foreach (ImageWindow window in Windows)
 					{
+						Logger.Log("Save Project", $"Saving window {Windows.IndexOf(window) + 1}/{Windows.Count}.", LogType.Progress);
 						window.Perspective.Serialize(writer);
 					}
 				}
+
+				Logger.Log("Save Project", "Successfully saved project.", LogType.Info);
 			}
 			catch (Exception ex)
 			{
@@ -452,7 +452,7 @@ namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls
 				{
 					ImageWindow selectedWindow = GetFaceWindow(Model.Faces[i]);
 
-					Logger.Log("Export Model", $"Exporting texture {i + 1}/{Model.Faces.Count}...", LogType.Info);
+					Logger.Log("Export Model", $"Exporting texture {i + 1}/{Model.Faces.Count}...", LogType.Progress);
 
 					if (selectedWindow != null)
 					{
@@ -467,10 +467,10 @@ namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls
 					}
 				}
 
-				Logger.Log("Export Model", $"Generating .mtl file...", LogType.Info);
+				Logger.Log("Export Model", $"Generating .mtl file...", LogType.Progress);
 				GenerateMtlFile(Path.Combine(newFolderPath, fileNameNoExtension + ".mtl"), invalidFaces);
 
-				Logger.Log("Export Model", $"Generating .obj file...", LogType.Info);
+				Logger.Log("Export Model", $"Generating .obj file...", LogType.Progress);
 				GenerateObjFile(Path.Combine(newFolderPath, fileName), fileNameNoExtension, uvCoordinates, invalidFaces);
 			}
 			catch (Exception ex)

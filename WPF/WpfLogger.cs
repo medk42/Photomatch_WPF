@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Windows;
 using System.Windows.Controls;
-
+using System.Windows.Media;
 using Photomatch_ProofOfConcept_WPF.Utilities;
 
 namespace Photomatch_ProofOfConcept_WPF.WPF
@@ -19,6 +19,8 @@ namespace Photomatch_ProofOfConcept_WPF.WPF
 					MessageBox.Show(message, title, MessageBoxButton.OK, MessageBoxImage.Warning);
 					break;
 				case LogType.Info:
+					break;
+				case LogType.Progress:
 					break;
 				default:
 					throw new Exception("Unknown enum type");
@@ -41,6 +43,9 @@ namespace Photomatch_ProofOfConcept_WPF.WPF
 
 		public void Log(string title, string message, LogType type)
 		{
+			StatusLabel.Foreground = Brushes.Black;
+			StatusLabel.FontWeight = FontWeights.Normal;
+
 			switch (type)
 			{
 				case LogType.Error:
@@ -52,13 +57,20 @@ namespace Photomatch_ProofOfConcept_WPF.WPF
 				case LogType.Info:
 					message = $"INFO ({title}): {message}";
 					break;
+				case LogType.Progress:
+					message = $"PROGRESS ({title}): {message}";
+					StatusLabel.Foreground = Brushes.Red;
+					StatusLabel.FontWeight = FontWeights.Bold;
+					break;
 				default:
 					throw new Exception("Unknown enum type");
 			}
 
 			StatusLabel.Text = message;
 			timer.Stop();
-			timer.Start();
+
+			if (type != LogType.Progress)
+				timer.Start();
 		}
 
 		private void Timer_Tick(object sender, EventArgs e)

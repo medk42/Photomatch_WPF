@@ -4,7 +4,7 @@ namespace Photomatch_ProofOfConcept_WPF.Utilities
 {
 	public enum LogType
 	{
-		Error, Warning, Info
+		Error, Warning, Info, Progress
 	}
 
 	public interface ILogger
