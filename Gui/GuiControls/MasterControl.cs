@@ -313,10 +313,9 @@ namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls
 
 		private void GenerateFaceWindowUVCoordinates(Face face, ImageWindow window, Matrix3x3 project, List<Vector2> uvCoordinatesList, int width, int height)
 		{
-			for (int i = 0; i < face.Count; i++)
+			foreach (Vertex v in face.UniqueVertices)
 			{
-				int vertexID = face.Reversed ? (face.Count - i - 1) : i;
-				Vector2 screenPosition = window.Perspective.WorldToScreen(face[vertexID].Position);
+				Vector2 screenPosition = window.Perspective.WorldToScreen(v.Position);
 				Vector3 scaledNewPosition = project * new Vector3(screenPosition.X, screenPosition.Y, 1);
 				scaledNewPosition /= scaledNewPosition.Z;
 				uvCoordinatesList.Add(new Vector2(scaledNewPosition.X / (width - 1), 1 - scaledNewPosition.Y / (height - 1)));
@@ -400,19 +399,30 @@ namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls
 					if (!invalidFaces.Contains(i))
 						writer.WriteLine($"usemtl face{i}");
 
-					writer.Write('f');
-
-					for (int j = 0; j < face.Count; j++)
+					foreach (Triangle triangle in face.Triangulated)
 					{
-						int faceVertexId = (face.Reversed) ? face.Count - j - 1 : j;
-						int vertexId = Model.Vertices.IndexOf(face[faceVertexId]) + 1;
+						int aId = Model.Vertices.IndexOf(triangle.A) + 1;
+						int bId = Model.Vertices.IndexOf(triangle.B) + 1;
+						int cId = Model.Vertices.IndexOf(triangle.C) + 1;
+
+						int aUV = uvID + face.UniqueVertices.IndexOf(triangle.A);
+						int bUV = uvID + face.UniqueVertices.IndexOf(triangle.B);
+						int cUV = uvID + face.UniqueVertices.IndexOf(triangle.C);
+
+						if (face.Reversed)
+						{
+							(aId, bId) = (bId, aId);
+							(aUV, bUV) = (bUV, aUV);
+						}
+
 						if (invalidFaces.Contains(i))
-							writer.Write($" {vertexId}");
+							writer.WriteLine($"f {aId} {bId} {cId}");
 						else
-							writer.Write($" {vertexId}/{uvID++}");
+							writer.WriteLine($"f {aId}/{aUV} {bId}/{bUV} {cId}/{cUV}");
 					}
 
-					writer.WriteLine();
+					if (!invalidFaces.Contains(i))
+						uvID += face.UniqueVertices.Count;
 				}
 			}
 		}

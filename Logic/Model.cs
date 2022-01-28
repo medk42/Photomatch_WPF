@@ -101,6 +101,8 @@ namespace Photomatch_ProofOfConcept_WPF.Logic
 
 		public List<Triangle> Triangulated { get; } = new List<Triangle>();
 
+		public List<Vertex> UniqueVertices { get; } = new List<Vertex>();
+
 		private List<Vertex> Vertices = new List<Vertex>();
 		private List<Face> FacesFront = new List<Face>();
 
@@ -119,6 +121,9 @@ namespace Photomatch_ProofOfConcept_WPF.Logic
 					RecalculateProperties();
 					VertexPositionChangedEvent?.Invoke(position, iCopy);
 				};
+
+				if (!UniqueVertices.Contains(v))
+					UniqueVertices.Add(v);
 			}
 
 			RecalculateProperties();
@@ -204,18 +209,13 @@ namespace Photomatch_ProofOfConcept_WPF.Logic
 		private void InitializeTriangulate(List<Vector2> vertices, int[] verticesMap, int[] prevVertex, int[] nextVertex, HashSet<int> earTips, double[] angles)
 		{
 			Matrix3x3 rotate = Camera.RotateAlign(Normal, new Vector3(0, 0, 1));
-			List<Vertex> uniqueVertices = new List<Vertex>();
+
+			foreach (Vertex v in UniqueVertices)
+				vertices.Add(new Vector2(rotate * v.Position));
 
 			for (int i = 0; i < verticesMap.Length; i++)
 			{
-				if (!uniqueVertices.Contains(Vertices[i]))
-				{
-					Vector3 rotated = rotate * Vertices[i].Position;
-					vertices.Add(new Vector2(rotated.X, rotated.Y));
-					uniqueVertices.Add(Vertices[i]);
-				}
-
-				verticesMap[i] = uniqueVertices.IndexOf(Vertices[i]);
+				verticesMap[i] = UniqueVertices.IndexOf(Vertices[i]);
 
 				int iAddOne = i + 1 < verticesMap.Length ? i + 1 : 0;
 				nextVertex[i] = iAddOne;
