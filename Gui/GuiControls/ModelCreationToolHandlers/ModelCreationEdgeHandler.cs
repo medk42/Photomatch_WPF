@@ -27,7 +27,7 @@ namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls.ModelCreationToolHandler
 
 		private IEllipse EdgeHoverEllipse;
 		private Edge FoundEdge;
-		private Vector3 FoundEdgeMidpoint;
+		private Vector3 FoundEdgePoint;
 
 		public ModelCreationEdgeHandler(PerspectiveData perspective, Model model, ModelVisualization modelVisualization, IWindow window, double pointDrawRadius, double pointGrabRadius)
 		{
@@ -106,21 +106,48 @@ namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls.ModelCreationToolHandler
 					{
 						var foundTuple = GetMidpointUnderMouse(mouseCoord);
 						if (foundTuple != null)
+						{
 							ModelVisualization.ModelHoverEllipse.Ellipse.Color = ApplicationColor.Midpoint;
+							EdgeHoverEllipse.Color = ApplicationColor.Midpoint;
+						}
 
 						if (foundTuple == null)
 						{
 							foundTuple = GetEdgePointUnderMouse(mouseCoord);
 							if (foundTuple != null)
+							{
 								ModelVisualization.ModelHoverEllipse.Ellipse.Color = ApplicationColor.Edgepoint;
+								EdgeHoverEllipse.Color = ApplicationColor.Edgepoint;
+							}
 						}
 
 						if (foundTuple != null)
 						{
-							foundPosition = foundTuple.Item1;
 							FoundEdge = foundTuple.Item2;
-							FoundEdgeMidpoint = foundTuple.Item1;
+							foundPosition = foundTuple.Item1;
+							FoundEdgePoint = foundTuple.Item1;
+
+							if (HoldDirection)
+							{
+								Ray3D holdRay = new Ray3D(ModelDraggingLineStart.Position, LastDirection);
+								Line3D edge = new Line3D(FoundEdge.Start.Position, FoundEdge.End.Position);
+								ClosestPoint3D closestPoint = Intersections3D.GetRayRayClosest(holdRay, edge.AsRay());
+
+								if (closestPoint.Distance < 1e-6 && closestPoint.RayBRelative >= 0 && closestPoint.RayBRelative <= edge.Length)
+								{
+									foundPosition = closestPoint.RayBClosest;
+									FoundEdgePoint = closestPoint.RayBClosest;
+									EdgeHoverEllipse.Color = ApplicationColor.Edgepoint;
+								}
+							}
+
+							EdgeHoverEllipse.Position = Perspective.WorldToScreen(FoundEdgePoint);
 						}
+						EdgeHoverEllipse.Visible = foundTuple != null;
+					}
+					else
+					{
+						EdgeHoverEllipse.Visible = false;
 					}
 
 					if (foundPosition.Valid)
@@ -237,10 +264,27 @@ namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls.ModelCreationToolHandler
 
 					if (FoundEdge != null)
 					{
-						ModelDraggingVertex.ConnectedEdges[0].RemoveVerticesOnRemove = false;
-						ModelDraggingVertex.Remove();
-						Vertex edgeVertex = AddVertexToEdge(FoundEdgeMidpoint, FoundEdge);
-						Model.AddEdge(ModelDraggingLineStart, edgeVertex);
+						if (HoldDirection)
+						{
+							Ray3D holdRay = new Ray3D(ModelDraggingLineStart.Position, LastDirection);
+							Line3D edge = new Line3D(FoundEdge.Start.Position, FoundEdge.End.Position);
+							ClosestPoint3D closestPoint = Intersections3D.GetRayRayClosest(holdRay, edge.AsRay());
+
+							if (closestPoint.Distance < 1e-6 && closestPoint.RayBRelative >= 0 && closestPoint.RayBRelative <= edge.Length)
+							{
+								ModelDraggingVertex.ConnectedEdges[0].RemoveVerticesOnRemove = false;
+								ModelDraggingVertex.Remove();
+								Vertex edgeVertex = AddVertexToEdge(closestPoint.RayBClosest, FoundEdge);
+								Model.AddEdge(ModelDraggingLineStart, edgeVertex);
+							}
+						}
+						else
+						{
+							ModelDraggingVertex.ConnectedEdges[0].RemoveVerticesOnRemove = false;
+							ModelDraggingVertex.Remove();
+							Vertex edgeVertex = AddVertexToEdge(FoundEdgePoint, FoundEdge);
+							Model.AddEdge(ModelDraggingLineStart, edgeVertex);
+						}
 					}
 
 					ModelDraggingVertex = null;
@@ -270,8 +314,6 @@ namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls.ModelCreationToolHandler
 						ModelDraggingLineStart = foundPoint;
 
 						Model.AddEdge(foundPoint, ModelDraggingVertex);
-
-						EdgeHoverEllipse.Visible = false;
 					}
 				}
 
