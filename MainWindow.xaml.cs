@@ -11,6 +11,7 @@ using Photomatch_ProofOfConcept_WPF.Gui.GuiControls;
 using Photomatch_ProofOfConcept_WPF.Utilities;
 using Photomatch_ProofOfConcept_WPF.Logic;
 using System.ComponentModel;
+using System.Threading;
 
 namespace Photomatch_ProofOfConcept_WPF
 {
@@ -30,6 +31,7 @@ namespace Photomatch_ProofOfConcept_WPF
 		private MainViewModel MainViewModel;
 		private bool InvertedAxesCheckboxIgnore = false;
 		private BackgroundWorker CurrentBackgroundWorker = null;
+		private AutoResetEvent CurrentBackgroundWorkerResetEvent = new AutoResetEvent(false);
 
 		private bool Active_ = true;
 		private bool Active
@@ -161,7 +163,11 @@ namespace Photomatch_ProofOfConcept_WPF
 		private void RunAtBackground(Action action)
 		{
 			CurrentBackgroundWorker = new BackgroundWorker() { WorkerReportsProgress = true };
-			CurrentBackgroundWorker.DoWork += (sender, e) => action();
+			CurrentBackgroundWorker.DoWork += (sender, e) =>
+			{
+				action();
+				CurrentBackgroundWorkerResetEvent.Set();
+			};
 			CurrentBackgroundWorker.ProgressChanged += (sender, e) => (e.UserState as Action)();
 			CurrentBackgroundWorker.RunWorkerCompleted += (sender, e) =>
 			{
@@ -421,6 +427,8 @@ namespace Photomatch_ProofOfConcept_WPF
 
 		private void MyMainWindow_Closing(object sender, CancelEventArgs e)
 		{
+			if (CurrentBackgroundWorker != null)
+				CurrentBackgroundWorkerResetEvent.WaitOne();					
 			ActionListener.Exit_Pressed();
 		}
 	}
