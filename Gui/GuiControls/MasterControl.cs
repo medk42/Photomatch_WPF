@@ -30,6 +30,34 @@ namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls
 		private ModelCreationTool ModelCreationTool;
 		private CameraModelCalibrationTool CameraModelCalibrationTool;
 
+		private bool Dirty_;
+		private bool Dirty
+		{
+			get => Dirty_;
+			set
+			{
+				if (Dirty_ != value)
+				{
+					Dirty_ = value;
+					DisplayProjectName();
+				}
+			}
+		}
+
+		private string ProjectName_;
+		private string ProjectName
+		{
+			get => ProjectName_;
+			set
+			{
+				if (ProjectName_ != value)
+				{
+					ProjectName_ = value;
+					DisplayProjectName();
+				}
+			}
+		}
+
 		public MasterControl(MasterGUI gui)
 		{
 			this.Gui = gui;
@@ -43,10 +71,26 @@ namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls
 			this.ModelCreationTool = ModelCreationTool.Edge;
 			this.CameraModelCalibrationTool = CameraModelCalibrationTool.CalibrateOrigin;
 
-			Gui.DisplayProjectName(NewProjectName);
+			this.Model.ModelChangedEvent += () => Dirty = true;
+
+			ProjectName = NewProjectName;
 		}
 
-		public void NewProject_Pressed() => Reset();
+		private void CheckDirty()
+		{
+			if (Dirty)
+			{
+				string message = "Do you want to save the current project before continuing?";
+				if (Gui.DisplayWarningProceedMessage("Save...", message))
+					SaveProject_Pressed();
+			}
+		}
+
+		public void NewProject_Pressed()
+		{
+			CheckDirty();
+			Reset();
+		}
 
 		public void LoadImage_Pressed()
 		{
@@ -75,7 +119,9 @@ namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls
 			if (image != null)
 			{
 				Logger.Log("Load Image", "File loaded successfully.", LogType.Info);
-				Windows.Add(new ImageWindow(new PerspectiveData(image, filePath), Gui, Logger, Model, DesignTool, ModelCreationTool, CameraModelCalibrationTool));
+				Windows.Add(new ImageWindow(new PerspectiveData(image, filePath), Gui, this, Logger, Model, DesignTool, ModelCreationTool, CameraModelCalibrationTool));
+				Dirty = true;
+				Windows[Windows.Count - 1].Perspective.PerspectiveChangedEvent += () => Dirty = true;
 
 				if (State == ProjectState.None)
 					State = ProjectState.NewProject;
@@ -125,8 +171,7 @@ namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls
 					State = ProjectState.NamedProject;
 					ProjectPath = filePath;
 
-					string projectName = Path.GetFileName(filePath);
-					Gui.DisplayProjectName(projectName);
+					ProjectName = Path.GetFileName(filePath);
 					break;
 				default:
 					throw new NotImplementedException("Unknown ProjectState");
@@ -153,6 +198,7 @@ namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls
 				}
 
 				Logger.Log("Save Project", "Successfully saved project.", LogType.Info);
+				Dirty = false;
 			}
 			catch (Exception ex)
 			{
@@ -174,6 +220,8 @@ namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls
 
 		public void LoadProject_Pressed()
 		{
+			CheckDirty();
+
 			string filePath = Gui.GetLoadProjectFilePath();
 			if (filePath == null)
 			{
@@ -197,6 +245,7 @@ namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls
 					}
 
 					Model = ISafeSerializable<Model>.CreateDeserialize(reader);
+					Model.ModelChangedEvent += () => Dirty = true;
 
 					DesignTool = (DesignTool)reader.ReadInt32();
 					Gui.DisplayDesignTool(DesignTool);
@@ -205,12 +254,13 @@ namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls
 					for (int i = 0; i < windowCount; i++)
 					{
 						PerspectiveData perspective = ISafeSerializable<PerspectiveData>.CreateDeserialize(reader);
-						Windows.Add(new ImageWindow(perspective, Gui, Logger, Model, DesignTool, ModelCreationTool, CameraModelCalibrationTool));
+						Windows.Add(new ImageWindow(perspective, Gui, this, Logger, Model, DesignTool, ModelCreationTool, CameraModelCalibrationTool));
+						Windows[i].Perspective.PerspectiveChangedEvent += () => Dirty = true;
 					}
 				}
 
 				string projectName = Path.GetFileName(filePath);
-				Gui.DisplayProjectName(projectName);
+				ProjectName = projectName;
 
 				State = ProjectState.NamedProject;
 				ProjectPath = filePath;
@@ -536,8 +586,9 @@ namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls
 			ProjectPath = null;
 			Model.Dispose();
 			Model.AddVertex(new Vector3());
+			Model.ModelChangedEvent += () => Dirty = true;
 
-			Gui.DisplayProjectName(NewProjectName);
+			ProjectName = NewProjectName;
 
 			DesignTool = DesignTool.CameraCalibration;
 			ModelCreationTool = ModelCreationTool.Edge;
@@ -545,6 +596,24 @@ namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls
 			Gui.DisplayModelCreationTool(ModelCreationTool);
 			Gui.DisplayCameraModelCalibrationTool(CameraModelCalibrationTool);
 			Gui.DisplayDesignTool(DesignTool);
+
+			Dirty = false;
+		}
+
+		public void WindowRemoved(ImageWindow imageWindow)
+		{
+			Windows.Remove(imageWindow);
+			Dirty = true;
+		}
+
+		private void DisplayProjectName()
+		{
+			Gui.DisplayProjectName(Dirty ? $"{ProjectName}*" : ProjectName);
+		}
+
+		public void Exit_Pressed()
+		{
+			CheckDirty();
 		}
 	}
 }

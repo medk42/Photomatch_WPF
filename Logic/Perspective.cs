@@ -32,6 +32,9 @@ namespace Photomatch_ProofOfConcept_WPF.Logic
 
 	public class PerspectiveData : ISafeSerializable<PerspectiveData>
 	{
+		public delegate void PerspectiveChangedEventHandler();
+		public event PerspectiveChangedEventHandler PerspectiveChangedEvent;
+
 		public Image<Rgb24> Image { get; private set; }
 
 		private Camera _camera = new Camera();
@@ -51,6 +54,7 @@ namespace Photomatch_ProofOfConcept_WPF.Logic
 			{
 				_origin = value;
 				RecalculateProjection();
+				PerspectiveChangedEvent?.Invoke();
 			}
 		}
 
@@ -61,6 +65,7 @@ namespace Photomatch_ProofOfConcept_WPF.Logic
 			{
 				_lineA1 = value;
 				RecalculateProjection();
+				PerspectiveChangedEvent?.Invoke();
 			}
 		}
 
@@ -71,6 +76,7 @@ namespace Photomatch_ProofOfConcept_WPF.Logic
 			{
 				_lineA2 = value;
 				RecalculateProjection();
+				PerspectiveChangedEvent?.Invoke();
 			}
 		}
 
@@ -81,6 +87,7 @@ namespace Photomatch_ProofOfConcept_WPF.Logic
 			{
 				_lineB1 = value;
 				RecalculateProjection();
+				PerspectiveChangedEvent?.Invoke();
 			}
 		}
 
@@ -91,6 +98,7 @@ namespace Photomatch_ProofOfConcept_WPF.Logic
 			{
 				_lineB2 = value;
 				RecalculateProjection();
+				PerspectiveChangedEvent?.Invoke();
 			}
 		}
 
@@ -103,6 +111,7 @@ namespace Photomatch_ProofOfConcept_WPF.Logic
 				{
 					_calibrationAxes = value;
 					RecalculateProjection();
+					PerspectiveChangedEvent?.Invoke();
 				}
 			}
 		}
@@ -114,6 +123,7 @@ namespace Photomatch_ProofOfConcept_WPF.Logic
 			{
 				_invertedAxes = value;
 				RecalculateProjection();
+				PerspectiveChangedEvent?.Invoke();
 			}
 		}
 
@@ -124,6 +134,7 @@ namespace Photomatch_ProofOfConcept_WPF.Logic
 			{
 				_scale = value;
 				_camera.UpdateScale(value);
+				PerspectiveChangedEvent?.Invoke();
 			}
 		}
 

@@ -68,12 +68,19 @@ namespace Photomatch_ProofOfConcept_WPF
 			ZInvertedCheckbox.Unchecked += AnyInvertedCheckbox_Changed;
 		}
 
-		public void Log(string title, string message, LogType type)
+		private void RunBackgroundChecked(Action action)
 		{
 			if (CurrentBackgroundWorker != null)
-				CurrentBackgroundWorker.ReportProgress(0, new Tuple<string, string, LogType>(title, message, type));
+				CurrentBackgroundWorker.ReportProgress(0, action);
 			else
+				action();
+		}
+
+		public void Log(string title, string message, LogType type)
+		{
+			RunBackgroundChecked(() => {
 				Logger.Log(title, message, type);
+			});
 		}
 
 		private void SetActive(bool active)
@@ -130,7 +137,9 @@ namespace Photomatch_ProofOfConcept_WPF
 
 		public void DisplayProjectName(string projectName)
 		{
-			MyMainWindow.Title = $"{MainTitle} - {projectName}";
+			RunBackgroundChecked(() => {
+				MyMainWindow.Title = $"{MainTitle} - {projectName}";
+			});
 		}
 
 		private void LoadImage_Click(object sender, RoutedEventArgs e) => ActionListener?.LoadImage_Pressed();
@@ -153,11 +162,7 @@ namespace Photomatch_ProofOfConcept_WPF
 		{
 			CurrentBackgroundWorker = new BackgroundWorker() { WorkerReportsProgress = true };
 			CurrentBackgroundWorker.DoWork += (sender, e) => action();
-			CurrentBackgroundWorker.ProgressChanged += (sender, e) =>
-			{
-				var tuple = e.UserState as Tuple<string, string, LogType>;
-				Logger.Log(tuple.Item1, tuple.Item2, tuple.Item3);
-			};
+			CurrentBackgroundWorker.ProgressChanged += (sender, e) => (e.UserState as Action)();
 			CurrentBackgroundWorker.RunWorkerCompleted += (sender, e) =>
 			{
 				CurrentBackgroundWorker = null;
@@ -349,6 +354,11 @@ namespace Photomatch_ProofOfConcept_WPF
 			}
 		}
 
+		public bool DisplayWarningProceedMessage(string title, string message)
+		{
+			return MessageBox.Show(message, title, MessageBoxButton.YesNo, MessageBoxImage.Warning) == MessageBoxResult.Yes;
+		}
+
 		private void AnyInvertedCheckbox_Changed(object sender, RoutedEventArgs e)
 		{
 			if (MainDockMgr.ActiveContent != null && !InvertedAxesCheckboxIgnore)
@@ -407,6 +417,11 @@ namespace Photomatch_ProofOfConcept_WPF
 					throw new Exception("Active window doesn't implement " + nameof(IKeyboardHandler));
 				keyboardHandler.KeyUp(sender, e);
 			}
+		}
+
+		private void MyMainWindow_Closing(object sender, CancelEventArgs e)
+		{
+			ActionListener.Exit_Pressed();
 		}
 	}
 }

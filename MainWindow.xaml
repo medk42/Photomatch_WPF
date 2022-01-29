@@ -15,7 +15,8 @@
         KeyUp="MyMainWindow_KeyUp"
         
         mc:Ignorable="d"
-        Title="Photomatcher" Height="450" Width="800">
+        Title="Photomatcher" Height="450" Width="800"
+        Closing="MyMainWindow_Closing">
     <DockPanel>
         <Menu Name="MainMenu" DockPanel.Dock="Top">
             <MenuItem Header="File">

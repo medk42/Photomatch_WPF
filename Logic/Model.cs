@@ -311,6 +311,9 @@ namespace Photomatch_ProofOfConcept_WPF.Logic
 		public delegate void AddFaceEventHandler(Face face);
 		public event AddFaceEventHandler AddFaceEvent;
 
+		public delegate void ModelChangedEventHandler();
+		public event ModelChangedEventHandler ModelChangedEvent;
+
 		public List<Vertex> Vertices { get; } = new List<Vertex>();
 		public List<Edge> Edges { get; } = new List<Edge>();
 		public List<Face> Faces { get; } = new List<Face>();
@@ -327,8 +330,12 @@ namespace Photomatch_ProofOfConcept_WPF.Logic
 			if (Vertices.Count > 0)
 				newPoint.VertexRemovedEvent += RemoveVertex;
 
+			newPoint.PositionChangedEvent += (newPos) => ModelChangedEvent?.Invoke();
+
 			Vertices.Add(newPoint);
 			AddVertexEvent?.Invoke(newPoint);
+
+			ModelChangedEvent?.Invoke();
 
 			return newPoint;
 		}
@@ -348,6 +355,8 @@ namespace Photomatch_ProofOfConcept_WPF.Logic
 			Edges.Add(newEdge);
 			AddEdgeEvent?.Invoke(newEdge);
 
+			ModelChangedEvent?.Invoke();
+
 			return newEdge;
 		}
 
@@ -365,6 +374,8 @@ namespace Photomatch_ProofOfConcept_WPF.Logic
 
 			Faces.Add(newFace);
 			AddFaceEvent?.Invoke(newFace);
+
+			ModelChangedEvent?.Invoke();
 
 			return newFace;
 		}
@@ -405,6 +416,8 @@ namespace Photomatch_ProofOfConcept_WPF.Logic
 			v.VertexRemovedEvent -= RemoveVertex;
 			Vertices.Remove(v);
 			v.Dispose();
+
+			ModelChangedEvent?.Invoke();
 		}
 
 		private void RemoveEdge(Edge e)
@@ -424,6 +437,8 @@ namespace Photomatch_ProofOfConcept_WPF.Logic
 				CheckTwoConnections(e.Start);
 				CheckTwoConnections(e.End);
 			}
+
+			ModelChangedEvent?.Invoke();
 		}
 
 		private void RemoveFace(Face f)
@@ -435,6 +450,8 @@ namespace Photomatch_ProofOfConcept_WPF.Logic
 				face.FaceRemoved(f);
 
 			f.Dispose();
+
+			ModelChangedEvent?.Invoke();
 		}
 
 		public void Serialize(BinaryWriter writer)
@@ -489,6 +506,8 @@ namespace Photomatch_ProofOfConcept_WPF.Logic
 			Vertices.Clear();
 			Edges.Clear();
 			Faces.Clear();
+
+			ModelChangedEvent = null;
 		}
 	}
 }

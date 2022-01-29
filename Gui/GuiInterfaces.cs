@@ -47,6 +47,7 @@ namespace Photomatch_ProofOfConcept_WPF.Gui
 		void DisplayDesignTool(DesignTool designTool);
 		void DisplayModelCreationTool(ModelCreationTool modelCreationTool);
 		void DisplayCameraModelCalibrationTool(CameraModelCalibrationTool cameraModelCalibrationTool);
+		bool DisplayWarningProceedMessage(string title, string message);
 	}
 
 	public interface IWindow
@@ -74,5 +75,6 @@ namespace Photomatch_ProofOfConcept_WPF.Gui
 		void DesignTool_Changed(DesignTool newDesignTool);
 		void ModelCreationTool_Changed(ModelCreationTool newModelCreationTool);
 		void CameraModelCalibrationTool_Changed(CameraModelCalibrationTool newCameraModelCalibrationTool);
+		void Exit_Pressed();
 	}
 }

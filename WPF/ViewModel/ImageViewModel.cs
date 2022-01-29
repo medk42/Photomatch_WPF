@@ -355,8 +355,10 @@ namespace Photomatch_ProofOfConcept_WPF.WPF.ViewModel
 				return;
 
 			if (ImageDrag)
+			{
 				if (button.Value == Gui.MouseButton.Middle)
 					ImageDrag = false;
+			}
 			else if (ImageView != null)
 			{
 				Point point = e.GetPosition(ImageView);

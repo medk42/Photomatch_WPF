@@ -16,6 +16,7 @@ namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls
 		private static readonly double PointDrawRadius = 4;
 
 		private MasterGUI Gui;
+		private MasterControl Control;
 		private ILogger Logger;
 		private IWindow Window { get; }
 		private ModelVisualization ModelVisualization;
@@ -26,9 +27,10 @@ namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls
 
 		private bool Initialized = false;
 
-		public ImageWindow(PerspectiveData perspective, MasterGUI gui, ILogger logger, Model model, DesignTool currentDesignTool, ModelCreationTool currentModelCreationTool, CameraModelCalibrationTool currentCameraModelCalibrationTool)
+		public ImageWindow(PerspectiveData perspective, MasterGUI gui, MasterControl control, ILogger logger, Model model, DesignTool currentDesignTool, ModelCreationTool currentModelCreationTool, CameraModelCalibrationTool currentCameraModelCalibrationTool)
 		{
 			this.Gui = gui;
+			this.Control = control;
 			this.Logger = logger;
 			this.Window = Gui.CreateImageWindow(this, Path.GetFileName(perspective.ImagePath));
 			this.Perspective = perspective;
@@ -141,7 +143,10 @@ namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls
 		{
 			string message = "Do you really want to close this image? All corresponding calibration data will be lost!";
 			if (Window.DisplayWarningProceedMessage("Close Window", message))
+			{
 				Window.Close();
+				Control.WindowRemoved(this);
+			}
 		}
 	}
 }
