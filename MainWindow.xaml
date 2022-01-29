@@ -27,6 +27,10 @@
                 <MenuItem Header="Load Image" Click="LoadImage_Click"/>
                 <MenuItem Header="Export Model" Click="ExportModel_Click"/>
             </MenuItem>
+            <MenuItem Header="Edit">
+                <MenuItem Header="Undo" Click="Undo_Click"/>
+                <MenuItem Header="Redo" Click="Redo_Click"/>
+            </MenuItem>
         </Menu>
 
         <StatusBar DockPanel.Dock="Bottom">

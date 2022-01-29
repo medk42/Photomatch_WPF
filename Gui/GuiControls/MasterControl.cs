@@ -30,6 +30,10 @@ namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls
 		private ModelCreationTool ModelCreationTool;
 		private CameraModelCalibrationTool CameraModelCalibrationTool;
 
+		private List<byte[]> History = new List<byte[]>();
+		private List<byte[]> Future = new List<byte[]>();
+		private bool HoldingControl = false;
+
 		private bool Dirty_;
 		private bool Dirty
 		{
@@ -41,6 +45,25 @@ namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls
 					Dirty_ = value;
 					DisplayProjectName();
 				}
+			}
+		}
+
+		private bool HistoryDirtyEnabled { get; set; } = true;
+
+		private bool HistoryDirty_;
+		private bool HistoryDirty
+		{
+			get => HistoryDirty_;
+			set
+			{
+				if (!HistoryDirtyEnabled)
+					return;
+
+				if (HistoryDirty_ != value)
+					HistoryDirty_ = value;
+
+				if (value)
+					Future.Clear();
 			}
 		}
 
@@ -72,8 +95,11 @@ namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls
 			this.CameraModelCalibrationTool = CameraModelCalibrationTool.CalibrateOrigin;
 
 			this.Model.ModelChangedEvent += () => Dirty = true;
+			this.Model.ModelChangedEvent += () => HistoryDirty = true;
 
 			ProjectName = NewProjectName;
+
+			AddHistory();
 		}
 
 		private void CheckDirty()
@@ -90,6 +116,7 @@ namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls
 		{
 			CheckDirty();
 			Reset();
+			AddHistory();
 		}
 
 		public void LoadImage_Pressed()
@@ -122,6 +149,7 @@ namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls
 				Windows.Add(new ImageWindow(new PerspectiveData(image, filePath), Gui, this, Logger, Model, DesignTool, ModelCreationTool, CameraModelCalibrationTool));
 				Dirty = true;
 				Windows[Windows.Count - 1].Perspective.PerspectiveChangedEvent += () => Dirty = true;
+				Windows[Windows.Count - 1].Perspective.PerspectiveChangedEvent += () => HistoryDirty = true;
 
 				if (State == ProjectState.None)
 					State = ProjectState.NewProject;
@@ -143,8 +171,9 @@ namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls
 					SaveProjectAs_Pressed();
 					break;
 				case ProjectState.NamedProject:
-					if (!SaveProject(ProjectPath))
-						return;
+					if (Dirty)
+						if (!SaveProject(ProjectPath))
+							return;
 					break;
 				default:
 					throw new NotImplementedException("Unknown ProjectState");
@@ -246,6 +275,7 @@ namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls
 
 					Model = ISafeSerializable<Model>.CreateDeserialize(reader);
 					Model.ModelChangedEvent += () => Dirty = true;
+					this.Model.ModelChangedEvent += () => HistoryDirty = true;
 
 					DesignTool = (DesignTool)reader.ReadInt32();
 					Gui.DisplayDesignTool(DesignTool);
@@ -256,6 +286,7 @@ namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls
 						PerspectiveData perspective = ISafeSerializable<PerspectiveData>.CreateDeserialize(reader);
 						Windows.Add(new ImageWindow(perspective, Gui, this, Logger, Model, DesignTool, ModelCreationTool, CameraModelCalibrationTool));
 						Windows[i].Perspective.PerspectiveChangedEvent += () => Dirty = true;
+						Windows[i].Perspective.PerspectiveChangedEvent += () => HistoryDirty = true;
 					}
 				}
 
@@ -265,6 +296,8 @@ namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls
 				State = ProjectState.NamedProject;
 				ProjectPath = filePath;
 				Logger.Log("Load Project", $"Successfully loaded project {projectName}.", LogType.Info);
+
+				AddHistory();
 			}
 			catch (Exception ex)
 			{
@@ -541,6 +574,136 @@ namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls
 			Logger.Log("Export Model", "Successfully exported model.", LogType.Info);
 		}
 
+		public void Exit_Pressed()
+		{
+			CheckDirty();
+		}
+
+		private void DeserializeUndoRedo(byte[] data)
+		{
+			HistoryDirtyEnabled = false;
+
+			using (MemoryStream stream = new MemoryStream(data))
+			using (BinaryReader reader = new BinaryReader(stream))
+			{
+				int count = reader.ReadInt32();
+				for (int i = 0; i < count; i++)
+				{
+					Windows[i].Perspective.DeserializeWithoutImage(reader);
+					Windows[i].UpdateDisplayedGeometry();
+				}
+			}
+
+			HistoryDirtyEnabled = true;
+
+		}
+
+		public void Undo_Pressed()
+		{
+			if (History.Count >= 2)
+			{
+				Future.Add(History[History.Count - 1]);
+				History.RemoveAt(History.Count - 1);
+				byte[] data = History[History.Count - 1];
+
+				DeserializeUndoRedo(data);
+
+				HistoryDirty = false;
+			}
+		}
+
+		public void Redo_Pressed()
+		{
+			if (Future.Count >= 1)
+			{
+				History.Add(Future[Future.Count - 1]);
+				byte[] data = Future[Future.Count - 1];
+				Future.RemoveAt(Future.Count - 1);
+
+				DeserializeUndoRedo(data);
+			}
+		}
+
+		public void MouseUp()
+		{
+			if (HistoryDirty)
+			{
+				AddHistory();
+			}
+		}
+
+		public void KeyDown(KeyboardKey key)
+		{
+			switch (key)
+			{
+				case KeyboardKey.LeftCtrl:
+					HoldingControl = true;
+					break;
+				case KeyboardKey.Y:
+					if (HoldingControl)
+						Redo_Pressed();
+					break;
+				case KeyboardKey.Z:
+					if (HoldingControl)
+						Undo_Pressed();
+					break;
+				case KeyboardKey.S:
+					if (HoldingControl)
+						SaveProject_Pressed();
+					break;
+			}
+		}
+
+		public void KeyUp(KeyboardKey key)
+		{
+			switch (key)
+			{
+				case KeyboardKey.LeftCtrl:
+					HoldingControl = false;
+					break;
+			}
+		}
+
+		private void AddHistory()
+		{
+			byte[] data;
+
+			using (MemoryStream stream = new MemoryStream())
+			using (BinaryWriter writer = new BinaryWriter(stream))
+			{
+				writer.Write(Windows.Count);
+				foreach (ImageWindow window in Windows)
+					window.Perspective.SerializeWithoutImage(writer);
+
+				data = stream.ToArray();
+			}
+
+			if (History.Count > 0)
+			{
+				byte[] other = History[History.Count - 1];
+				if (other.Length == data.Length)
+				{
+					bool same = true;
+					for (int i = 0; i < data.Length; i++)
+					{
+						if (other[i] != data[i])
+						{
+							same = false;
+							break;
+						}
+					}
+					if (!same)
+						History.Add(data);
+				}
+				else
+					History.Add(data);
+			}
+			else
+				History.Add(data);
+
+			HistoryDirty = false;
+		}
+
 		public void DesignTool_Changed(DesignTool newDesignTool)
 		{
 			if (this.DesignTool != newDesignTool)
@@ -598,22 +761,21 @@ namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls
 			Gui.DisplayDesignTool(DesignTool);
 
 			Dirty = false;
+			History.Clear();
+			Future.Clear();
 		}
 
 		public void WindowRemoved(ImageWindow imageWindow)
 		{
 			Windows.Remove(imageWindow);
 			Dirty = true;
+			History.Clear();
+			Future.Clear();
 		}
 
 		private void DisplayProjectName()
 		{
 			Gui.DisplayProjectName(Dirty ? $"{ProjectName}*" : ProjectName);
-		}
-
-		public void Exit_Pressed()
-		{
-			CheckDirty();
 		}
 	}
 }

@@ -177,6 +177,11 @@ namespace Photomatch_ProofOfConcept_WPF.Logic
 
 			writer.Write(ImagePath);
 
+			SerializeWithoutImage(writer);
+		}
+
+		public void SerializeWithoutImage(BinaryWriter writer)
+		{
 			_origin.Serialize(writer);
 			_lineA1.Serialize(writer);
 			_lineA2.Serialize(writer);
@@ -200,6 +205,11 @@ namespace Photomatch_ProofOfConcept_WPF.Logic
 
 			ImagePath = reader.ReadString();
 
+			DeserializeWithoutImage(reader);
+		}
+
+		public void DeserializeWithoutImage(BinaryReader reader)
+		{
 			_origin = ISafeSerializable<Vector2>.CreateDeserialize(reader);
 			_lineA1 = ISafeSerializable<Line2D>.CreateDeserialize(reader);
 			_lineA2 = ISafeSerializable<Line2D>.CreateDeserialize(reader);

@@ -7,6 +7,7 @@ using Photomatch_ProofOfConcept_WPF.Logic;
 namespace Photomatch_ProofOfConcept_WPF.Gui
 {
 	public delegate void UpdateValue<T>(T value);
+	public delegate T GetValue<T>();
 
 	public interface IPoint
 	{
@@ -21,17 +22,27 @@ namespace Photomatch_ProofOfConcept_WPF.Gui
 			get => position_;
 			set
 			{
-				position_ = value;
-				UpdateValue(position_);
+				if (position_ != value)
+				{
+					position_ = value;
+					UpdateValue(position_);
+				}
 			}
 		}
 
 		private UpdateValue<Vector2> UpdateValue;
+		private GetValue<Vector2> GetValue;
 
-		public ActionPoint(Vector2 position, UpdateValue<Vector2> updateValue)
+		public ActionPoint(Vector2 position, UpdateValue<Vector2> updateValue, GetValue<Vector2> getValue)
 		{
 			this.UpdateValue = updateValue;
+			this.GetValue = getValue;
 			this.Position = position;
+		}
+
+		public void UpdateSelf()
+		{
+			Position = GetValue();
 		}
 	}
 

@@ -72,6 +72,8 @@ namespace Photomatch_ProofOfConcept_WPF.Gui
 		void SaveProjectAs_Pressed();
 		void LoadProject_Pressed();
 		void ExportModel_Pressed();
+		void Undo_Pressed();
+		void Redo_Pressed();
 		void DesignTool_Changed(DesignTool newDesignTool);
 		void ModelCreationTool_Changed(ModelCreationTool newModelCreationTool);
 		void CameraModelCalibrationTool_Changed(CameraModelCalibrationTool newCameraModelCalibrationTool);

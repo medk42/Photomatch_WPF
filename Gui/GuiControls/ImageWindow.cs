@@ -25,6 +25,8 @@ namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls
 		private CameraCalibrationHandler CameraCalibrationHandler;
 		private CameraModelCalibrationHandler CameraModelCalibrationHandler;
 
+		private DesignTool CurrentDesignTool;
+
 		private bool Initialized = false;
 
 		public ImageWindow(PerspectiveData perspective, MasterGUI gui, MasterControl control, ILogger logger, Model model, DesignTool currentDesignTool, ModelCreationTool currentModelCreationTool, CameraModelCalibrationTool currentCameraModelCalibrationTool)
@@ -69,16 +71,20 @@ namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls
 			CameraCalibrationHandler.MouseUp(mouseCoord, button);
 			ModelCreationHandler.MouseUp(mouseCoord, button);
 			CameraModelCalibrationHandler.MouseUp(mouseCoord, button);
+
+			Control.MouseUp();
 		}
 
 		public void KeyDown(KeyboardKey key)
 		{
 			ModelCreationHandler.KeyDown(key);
+			Control.KeyDown(key);
 		}
 
 		public void KeyUp(KeyboardKey key)
 		{
 			ModelCreationHandler.KeyUp(key);
+			Control.KeyUp(key);
 		}
 
 		public void Dispose()
@@ -109,6 +115,8 @@ namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls
 
 		public void DesignTool_Changed(DesignTool newDesignTool)
 		{
+			CurrentDesignTool = newDesignTool;
+
 			CameraCalibrationHandler.Active = false;
 			ModelCreationHandler.Active = false;
 			CameraModelCalibrationHandler.Active = false;
@@ -141,12 +149,21 @@ namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls
 
 		public void Close_Clicked()
 		{
-			string message = "Do you really want to close this image? All corresponding calibration data will be lost!";
+			string message = "Do you really want to close this image? All corresponding calibration data and undo history will be lost!";
 			if (Window.DisplayWarningProceedMessage("Close Window", message))
 			{
 				Window.Close();
 				Control.WindowRemoved(this);
 			}
+		}
+
+		public void UpdateDisplayedGeometry()
+		{
+			ModelVisualization.UpdateDisplayedGeometry();
+			CameraCalibrationHandler.UpdateDisplayedGeometry();
+
+			// reset active on all handlers to reset handlers to default state.
+			DesignTool_Changed(CurrentDesignTool);
 		}
 	}
 }

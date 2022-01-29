@@ -150,6 +150,8 @@ namespace Photomatch_ProofOfConcept_WPF
 		private void SaveProjectAs_Click(object sender, RoutedEventArgs e) => RunAtBackground(() => ActionListener?.SaveProjectAs_Pressed());
 		private void LoadProject_Click(object sender, RoutedEventArgs e) => ActionListener?.LoadProject_Pressed();
 		private void ExportModel_Click(object sender, RoutedEventArgs e) => RunAtBackground(() => ActionListener?.ExportModel_Pressed());
+		private void Undo_Click(object sender, RoutedEventArgs e) => ActionListener?.Undo_Pressed();
+		private void Redo_Click(object sender, RoutedEventArgs e) => ActionListener?.Redo_Pressed();
 		private void CameraRadioButton_Checked(object sender, RoutedEventArgs e) => ActionListener?.DesignTool_Changed(DesignTool.CameraCalibration);
 		private void CameraModelRadioButton_Checked(object sender, RoutedEventArgs e) => ActionListener?.DesignTool_Changed(DesignTool.CameraModelCalibration);
 		private void ModelRadioButton_Checked(object sender, RoutedEventArgs e) => ActionListener?.DesignTool_Changed(DesignTool.ModelCreation);

@@ -80,17 +80,17 @@ namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls
 			LineB2 = Window.CreateLine(Perspective.LineB2.Start, Perspective.LineB2.End, PointDrawRadius, colors.Item2);
 
 			AddDraggablePointsForPerspectiveLine(LineA1,
-				(value) => Perspective.LineA1 = Perspective.LineA1.WithStart(value),
-				(value) => Perspective.LineA1 = Perspective.LineA1.WithEnd(value));
+				(value) => Perspective.LineA1 = Perspective.LineA1.WithStart(value), () => Perspective.LineA1.Start,
+				(value) => Perspective.LineA1 = Perspective.LineA1.WithEnd(value), () => Perspective.LineA1.End);
 			AddDraggablePointsForPerspectiveLine(LineA2,
-				(value) => Perspective.LineA2 = Perspective.LineA2.WithStart(value),
-				(value) => Perspective.LineA2 = Perspective.LineA2.WithEnd(value));
+				(value) => Perspective.LineA2 = Perspective.LineA2.WithStart(value), () => Perspective.LineA2.Start,
+				(value) => Perspective.LineA2 = Perspective.LineA2.WithEnd(value), () => Perspective.LineA2.End);
 			AddDraggablePointsForPerspectiveLine(LineB1,
-				(value) => Perspective.LineB1 = Perspective.LineB1.WithStart(value),
-				(value) => Perspective.LineB1 = Perspective.LineB1.WithEnd(value));
+				(value) => Perspective.LineB1 = Perspective.LineB1.WithStart(value), () => Perspective.LineB1.Start,
+				(value) => Perspective.LineB1 = Perspective.LineB1.WithEnd(value), () => Perspective.LineB1.End);
 			AddDraggablePointsForPerspectiveLine(LineB2,
-				(value) => Perspective.LineB2 = Perspective.LineB2.WithStart(value),
-				(value) => Perspective.LineB2 = Perspective.LineB2.WithEnd(value));
+				(value) => Perspective.LineB2 = Perspective.LineB2.WithStart(value), () => Perspective.LineB2.Start,
+				(value) => Perspective.LineB2 = Perspective.LineB2.WithEnd(value), () => Perspective.LineB2.End);
 		}
 
 		private Tuple<ApplicationColor, ApplicationColor> GetColorsFromCalibrationAxes(CalibrationAxes axes)
@@ -130,20 +130,20 @@ namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls
 			return new Tuple<ApplicationColor, ApplicationColor>(colorA, colorB);
 		}
 
-		private void AddDraggablePointsForPerspectiveLine(ILine line, UpdateValue<Vector2> updateValueStart, UpdateValue<Vector2> updateValueEnd)
+		private void AddDraggablePointsForPerspectiveLine(ILine line, UpdateValue<Vector2> updateValueStart, GetValue<Vector2> getValueStart, UpdateValue<Vector2> updateValueEnd, GetValue<Vector2> getValueEnd)
 		{
 			DraggablePoints.Points.Add(new ActionPoint(line.Start, (value) =>
 			{
 				line.Start = value;
 				updateValueStart(value);
 				UpdateCoordSystemLines();
-			}));
+			}, getValueStart));
 			DraggablePoints.Points.Add(new ActionPoint(line.End, (value) =>
 			{
 				line.End = value;
 				updateValueEnd(value);
 				UpdateCoordSystemLines();
-			}));
+			}, getValueEnd));
 		}
 
 		private void CreateCoordSystemLines()
@@ -157,12 +157,12 @@ namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls
 			{
 				Perspective.Origin = value;
 				UpdateCoordSystemLines();
-			}));
+			}, () => Perspective.Origin));
 
 			UpdateCoordSystemLines();
 		}
 
-		private void UpdateCoordSystemLines()
+		internal void UpdateDisplayedGeometry()
 		{
 			Vector2 dirX = Perspective.GetXDirAt(Perspective.Origin);
 			Vector2 dirY = Perspective.GetYDirAt(Perspective.Origin);
@@ -191,6 +191,13 @@ namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls
 				LineZ.End = LineZ.Start;
 			}
 
+			foreach (IPoint point in DraggablePoints.Points)
+				((ActionPoint)point).UpdateSelf();
+		}
+
+		private void UpdateCoordSystemLines()
+		{
+			UpdateDisplayedGeometry();
 			CoordSystemUpdateEvent?.Invoke();
 		}
 

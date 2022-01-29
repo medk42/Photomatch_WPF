@@ -505,6 +505,21 @@ namespace Photomatch_ProofOfConcept_WPF.WPF.ViewModel
 				case Key.LeftShift:
 					ImageWindow.KeyUp(KeyboardKey.LeftShift);
 					break;
+				case Key.Escape:
+					ImageWindow.KeyUp(KeyboardKey.Escape);
+					break;
+				case Key.LeftCtrl:
+					ImageWindow.KeyUp(KeyboardKey.LeftCtrl);
+					break;
+				case Key.Z:
+					ImageWindow.KeyUp(KeyboardKey.Z);
+					break;
+				case Key.Y:
+					ImageWindow.KeyUp(KeyboardKey.Y);
+					break;
+				case Key.S:
+					ImageWindow.KeyUp(KeyboardKey.S);
+					break;
 			}
 		}
 
@@ -521,6 +536,18 @@ namespace Photomatch_ProofOfConcept_WPF.WPF.ViewModel
 						break;
 					case Key.Escape:
 						ImageWindow.KeyDown(KeyboardKey.Escape);
+						break;
+					case Key.LeftCtrl:
+						ImageWindow.KeyDown(KeyboardKey.LeftCtrl);
+						break;
+					case Key.Z:
+						ImageWindow.KeyDown(KeyboardKey.Z);
+						break;
+					case Key.Y:
+						ImageWindow.KeyDown(KeyboardKey.Y);
+						break;
+					case Key.S:
+						ImageWindow.KeyDown(KeyboardKey.S);
 						break;
 				}
 			}
