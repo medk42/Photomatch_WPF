@@ -59,6 +59,8 @@ namespace Photomatch_ProofOfConcept_WPF.Gui
 		void DisposeAll();
 		void DisplayCalibrationAxes(CalibrationAxes calibrationAxes);
 		void DisplayInvertedAxes(CalibrationAxes calibrationAxes, InvertedAxes invertedAxes);
+		bool DisplayWarningProceedMessage(string title, string message);
+		void Close();
 	}
 
 	public interface Actions

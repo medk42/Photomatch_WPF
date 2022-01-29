@@ -136,5 +136,12 @@ namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls
 		{
 			CameraModelCalibrationHandler.CalibrationTool_Changed(newCameraModelCalibrationTool);
 		}
+
+		public void Close_Clicked()
+		{
+			string message = "Do you really want to close this image? All corresponding calibration data will be lost!";
+			if (Window.DisplayWarningProceedMessage("Close Window", message))
+				Window.Close();
+		}
 	}
 }

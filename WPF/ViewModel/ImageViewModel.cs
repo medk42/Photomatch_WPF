@@ -219,13 +219,19 @@ namespace Photomatch_ProofOfConcept_WPF.WPF.ViewModel
 
         public void Close()
         {
-			string message = "Do you really want to close this image? All corresponding calibration data will be lost!";
-			if (MessageBox.Show(message, "Close Window", MessageBoxButton.YesNo, MessageBoxImage.Warning) == MessageBoxResult.Yes)
-			{
-				ImageWindow.Dispose();
-				this.IsClosed = true;
-			}
+			ImageWindow.Close_Clicked();
         }
+
+		void IWindow.Close()
+		{
+			ImageWindow.Dispose();
+			this.IsClosed = true;
+		}
+
+		public bool DisplayWarningProceedMessage(string title, string message)
+		{
+			return MessageBox.Show(message, title, MessageBoxButton.YesNo, MessageBoxImage.Warning) == MessageBoxResult.Yes;
+		}
 
 		public void SetImage(SixLabors.ImageSharp.Image image)
 		{
