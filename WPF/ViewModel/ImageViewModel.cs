@@ -407,6 +407,7 @@ namespace Photomatch_ProofOfConcept_WPF.WPF.ViewModel
 				ImageWindow.MouseUp(point.AsVector2(), Gui.MouseButton.Right);
 			}
 		}
+
 		public void MouseWheel(object sender, MouseWheelEventArgs e)
 		{
 			if (MoveViewbox != null)
