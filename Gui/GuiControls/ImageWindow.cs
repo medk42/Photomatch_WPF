@@ -166,5 +166,13 @@ namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls
 			// reset active on all handlers to reset handlers to default state.
 			DesignTool_Changed(CurrentDesignTool);
 		}
+
+		public void UpdateModel(Model model)
+		{
+
+			ModelVisualization.UpdateModel(model);
+			CameraModelCalibrationHandler.UpdateModel(model);
+			ModelCreationHandler.UpdateModel(model);
+		}
 	}
 }

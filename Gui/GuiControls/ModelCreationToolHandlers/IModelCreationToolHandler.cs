@@ -15,5 +15,6 @@ namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls.ModelCreationToolHandler
 		void KeyDown(KeyboardKey key);
 		void KeyUp(KeyboardKey key);
 		void Dispose();
+		void UpdateModel(Model model);
 	}
 }

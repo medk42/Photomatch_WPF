@@ -11,15 +11,13 @@ namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls.ModelCreationToolHandler
 		public override ModelCreationTool ToolType => ModelCreationTool.Delete;
 
 		private ModelVisualization ModelVisualization;
-		private Model Model;
 
 		private ILine HoverEdge = null;
 		private IPolygon HoverFace = null;
 
-		public ModelCreationDeleteHandler(ModelVisualization modelVisualization, Model model)
+		public ModelCreationDeleteHandler(ModelVisualization modelVisualization)
 		{
 			this.ModelVisualization = modelVisualization;
-			this.Model = model;
 
 			this.Active = false;
 			SetActive(Active);

@@ -40,7 +40,7 @@ namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls
 
 			ModelCreationToolHandlers = new IModelCreationToolHandler[] {
 				new ModelCreationEdgeHandler(Perspective, Model, ModelVisualization, window, pointDrawRadius, pointGrabRadius),
-				new ModelCreationDeleteHandler(ModelVisualization, Model),
+				new ModelCreationDeleteHandler(ModelVisualization),
 				new ModelCreationTriangleFaceHandler(ModelVisualization, Model, window),
 				new ModelCreationComplexFaceHandler(ModelVisualization, Model, window, logger)
 			}; 
@@ -131,6 +131,12 @@ namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls
 					handler.Active = true;
 				}
 			}
+		}
+
+		public void UpdateModel(Model model)
+		{
+			foreach (IModelCreationToolHandler handler in ModelCreationToolHandlers)
+				handler.UpdateModel(model);
 		}
 	}
 }

@@ -71,5 +71,10 @@ namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls.Helper
 			else
 				Ellipse.Visible = false;
 		}
+
+		public void UpdateModel(Model model)
+		{
+			Model = model;
+		}
 	}
 }

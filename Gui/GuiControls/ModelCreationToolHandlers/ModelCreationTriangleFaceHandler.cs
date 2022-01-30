@@ -145,5 +145,10 @@ namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls.ModelCreationToolHandler
 			if (!active)
 				CancelFaceCreate();
 		}
+
+		public override void UpdateModel(Model model)
+		{
+			Model = model;
+		}
 	}
 }

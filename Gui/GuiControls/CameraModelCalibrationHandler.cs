@@ -195,9 +195,17 @@ namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls
 			}
 		}
 
+		public void UpdateModel(Model model)
+		{
+			Model = model;
+			FixedVertex = Model.Vertices[0];
+			SelectedEllipse.Position = Perspective.WorldToScreen(FixedVertex.Position);
+		}
+
 		public void UpdateDisplayedGeometry()
 		{
-			SelectedEllipse.Position = Perspective.WorldToScreen(FixedVertex.Position);
+			if (FixedVertex != null)
+				SelectedEllipse.Position = Perspective.WorldToScreen(FixedVertex.Position);
 		}
 	}
 }

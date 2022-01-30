@@ -592,6 +592,14 @@ namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls
 					Windows[i].Perspective.DeserializeWithoutImage(reader);
 					Windows[i].UpdateDisplayedGeometry();
 				}
+
+				Model.Dispose();
+				Model = ISafeSerializable<Model>.CreateDeserialize(reader);
+				Model.ModelChangedEvent += () => Dirty = true;
+				this.Model.ModelChangedEvent += () => HistoryDirty = true;
+
+				foreach (ImageWindow window in Windows)
+					window.UpdateModel(Model);
 			}
 
 			HistoryDirtyEnabled = true;
@@ -675,6 +683,8 @@ namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls
 				foreach (ImageWindow window in Windows)
 					window.Perspective.SerializeWithoutImage(writer);
 
+				Model.Serialize(writer);
+
 				data = stream.ToArray();
 			}
 
@@ -750,6 +760,7 @@ namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls
 			Model.Dispose();
 			Model.AddVertex(new Vector3());
 			Model.ModelChangedEvent += () => Dirty = true;
+			Model.ModelChangedEvent += () => HistoryDirty = true;
 
 			ProjectName = NewProjectName;
 
@@ -761,6 +772,7 @@ namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls
 			Gui.DisplayDesignTool(DesignTool);
 
 			Dirty = false;
+			HistoryDirty = false;
 			History.Clear();
 			Future.Clear();
 		}
@@ -769,8 +781,10 @@ namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls
 		{
 			Windows.Remove(imageWindow);
 			Dirty = true;
+			HistoryDirty = false;
 			History.Clear();
 			Future.Clear();
+			AddHistory();
 		}
 
 		private void DisplayProjectName()

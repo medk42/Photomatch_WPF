@@ -20,6 +20,8 @@ namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls.Helper
 		private List<Tuple<ILine, Edge, EdgeEventListener>> ModelLines = new List<Tuple<ILine, Edge, EdgeEventListener>>();
 		private List<Tuple<IPolygon, Face, FaceEventListener>> ModelFaces = new List<Tuple<IPolygon, Face, FaceEventListener>>();
 
+		private bool Show = true;
+
 		public ModelVisualization(PerspectiveData perspective, IWindow window, Model model, double pointGrabRadius, double pointDrawRadius)
 		{
 			this.Perspective = perspective;
@@ -78,6 +80,8 @@ namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls.Helper
 
 		public void ShowModel(bool show)
 		{
+			Show = show;
+
 			foreach (var lineTuple in ModelLines)
 				lineTuple.Item1.Visible = show;
 
@@ -177,8 +181,20 @@ namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls.Helper
 			}
 
 			ModelLines.Clear();
+			ModelFaces.Clear();
 
 			Model.AddEdgeEvent -= EdgeAdderHelper;
+			Model.AddFaceEvent -= FaceAdderHelper;
+		}
+
+		public void UpdateModel(Model model)
+		{
+			Dispose();
+			Model = model;
+			CreateModelLines();
+			ShowModel(Show);
+
+			ModelHoverEllipse.UpdateModel(model);
 		}
 	}
 }

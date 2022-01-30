@@ -398,5 +398,10 @@ namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls.ModelCreationToolHandler
 		{
 			Perspective = null;
 		}
+
+		public override void UpdateModel(Model model)
+		{
+			Model = model;
+		}
 	}
 }

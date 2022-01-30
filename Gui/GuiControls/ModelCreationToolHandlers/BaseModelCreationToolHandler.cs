@@ -36,5 +36,7 @@ namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls.ModelCreationToolHandler
 		public virtual void MouseUp(Vector2 mouseCoord, MouseButton button) { }
 
 		internal virtual void SetActive(bool active) { }
+
+		public virtual void UpdateModel(Model model) { }
 	}
 }
