@@ -194,5 +194,10 @@ namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls
 					break;
 			}
 		}
+
+		public void UpdateDisplayedGeometry()
+		{
+			SelectedEllipse.Position = Perspective.WorldToScreen(FixedVertex.Position);
+		}
 	}
 }

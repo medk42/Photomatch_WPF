@@ -161,6 +161,7 @@ namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls
 		{
 			ModelVisualization.UpdateDisplayedGeometry();
 			CameraCalibrationHandler.UpdateDisplayedGeometry();
+			CameraModelCalibrationHandler.UpdateDisplayedGeometry();
 
 			// reset active on all handlers to reset handlers to default state.
 			DesignTool_Changed(CurrentDesignTool);
