@@ -386,7 +386,7 @@ namespace Photomatch_ProofOfConcept_WPF.WPF
 
 	public class WpfEllipse : WpfGuiElement, IEllipse, IScalable
 	{
-		public EllipseGeometry Ellipse { get; }
+		public EllipseGeometry Ellipse { get; private set; }
 
 		private double Radius;
 		private ImageViewModel ImageViewModel;
@@ -427,6 +427,12 @@ namespace Photomatch_ProofOfConcept_WPF.WPF
 		{
 			GeometryGroup geometry = GetGeometry(color, ImageViewModel);
 			geometry.Children.Add(Ellipse);
+		}
+
+		public void Dispose()
+		{
+			RemoveOldColor(Color);
+			Ellipse = null;
 		}
 	}
 }

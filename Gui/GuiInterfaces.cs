@@ -23,6 +23,7 @@ namespace Photomatch_ProofOfConcept_WPF.Gui
 		Vector2 Position { get; set; }
 		ApplicationColor Color { get; set; }
 		bool Visible { get; set; }
+		void Dispose();
 	}
 
 	public interface IPolygon

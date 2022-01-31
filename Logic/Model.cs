@@ -340,6 +340,19 @@ namespace Photomatch_ProofOfConcept_WPF.Logic
 			return newPoint;
 		}
 
+		public Vertex AddVertexToEdge(Vector3 vertexPosition, Edge edge)
+		{
+			Vertex newVertex = AddVertex(vertexPosition);
+			Vertex start = edge.Start;
+			Vertex end = edge.End;
+			edge.RemoveVerticesOnRemove = false;
+			edge.Remove();
+			AddEdge(start, newVertex);
+			AddEdge(newVertex, end);
+
+			return newVertex;
+		}
+
 		public Edge AddEdge(Vertex start, Vertex end)
 		{
 			foreach (Edge e in start.ConnectedEdges)
