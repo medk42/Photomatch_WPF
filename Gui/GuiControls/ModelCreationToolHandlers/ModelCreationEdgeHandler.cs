@@ -1,249 +1,9 @@
 ﻿using Photomatch_ProofOfConcept_WPF.Gui.GuiControls.Helper;
+using Photomatch_ProofOfConcept_WPF.Gui.GuiControls.ModelCreationToolHandlers.ModelCreationToolEdgeHandlerHelpers;
 using Photomatch_ProofOfConcept_WPF.Logic;
 
 namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls.ModelCreationToolHandlers
 {
-	public interface IModelCreationEdgeHandlerSelector
-	{
-		ApplicationColor VertexColor { get; }
-		IModelCreationEdgeHandlerVertex GetVertex(Vector2 mouseCoord);
-		void UpdateModel(Model model);
-	}
-
-	public interface IModelCreationEdgeHandlerVertex
-	{
-		Vector2 ScreenPosition { get; }
-		Vector3 WorldPosition { get; }
-		Vertex ModelVertex { get; }
-		bool UpdateToHoldRay(Ray3D holdRay);
-	}
-
-	public interface IModelCreationEdgeHandlerDirection
-	{
-		ApplicationColor EdgeColor { get; }
-		ModelCreationEdgeHandlerDirectionProjection Project(Vector3 from, Vector2 mouseCoord);
-	}
-
-	public class ModelCreationEdgeHandlerDirectionProjection
-	{
-		public Vector3 ProjectedWorld { get; set; }
-		public Vector2 ProjectedScreen { get; set; }
-		public double DistanceWorld { get; set; }
-		public double DistanceScreen { get; set; }
-		public Vector3 Direction { get; set; }
-	}
-
-	public class MainAxis : IModelCreationEdgeHandlerDirection
-	{
-		public ApplicationColor EdgeColor { get; private set; }
-
-		private Vector3 Direction;
-		private PerspectiveData Perspetive;
-
-		public MainAxis(Vector3 direction, PerspectiveData perspetive, ApplicationColor axisColor)
-		{
-			this.Direction = direction;
-			this.Perspetive = perspetive;
-			this.EdgeColor = axisColor;
-		}
-
-		public ModelCreationEdgeHandlerDirectionProjection Project(Vector3 from, Vector2 mouseCoord)
-		{
-			Ray2D screenRay = new Line2D(Perspetive.WorldToScreen(from), Perspetive.WorldToScreen(from + Direction)).AsRay();
-			Vector2Proj screenProject = Intersections2D.ProjectVectorToRay(mouseCoord, screenRay);
-
-			ClosestPoint3D worldClosestPoint = Intersections3D.GetRayRayClosest(new Ray3D(from, Direction), Perspetive.ScreenToWorldRay(mouseCoord));
-
-			return new ModelCreationEdgeHandlerDirectionProjection()
-			{
-				ProjectedScreen = screenProject.Projection,
-				DistanceScreen = screenProject.Distance,
-				ProjectedWorld = worldClosestPoint.RayAClosest,
-				DistanceWorld = worldClosestPoint.Distance,
-				Direction = Direction
-			};
-		}
-	}
-
-	public class ModelCreationEdgeHandlerVertexSelector : IModelCreationEdgeHandlerSelector
-	{
-		private class SelectedVertex : IModelCreationEdgeHandlerVertex
-		{
-			public Vector2 ScreenPosition { get; set; }
-
-			public Vector3 WorldPosition { get; set; }
-
-			public Vertex ModelVertex { get; set; }
-
-			public bool UpdateToHoldRay(Ray3D holdRay)
-			{
-				Vector3Proj worldPosProject = Intersections3D.ProjectVectorToRay(WorldPosition, holdRay);
-
-				if (worldPosProject.Distance <= 1e-6)
-				{
-					return true;
-				}
-
-				return false;
-			}
-		}
-		public ApplicationColor VertexColor => ApplicationColor.Vertex;
-
-		private ModelVisualization ModelVisualization;
-
-		public ModelCreationEdgeHandlerVertexSelector(ModelVisualization modelVisualization)
-		{
-			this.ModelVisualization = modelVisualization;
-		}
-
-		public IModelCreationEdgeHandlerVertex GetVertex(Vector2 mouseCoord)
-		{
-			var vertexTuple = ModelVisualization.GetVertexUnderMouse(mouseCoord);
-			if (vertexTuple.Item1 != null)
-				return new SelectedVertex()
-				{
-					ScreenPosition = vertexTuple.Item2,
-					WorldPosition = vertexTuple.Item1.Position,
-					ModelVertex = vertexTuple.Item1
-				};
-			else
-				return null;
-		}
-
-		public void UpdateModel(Model model) { }
-	}
-
-	public class SelectedEdgepoint : IModelCreationEdgeHandlerVertex
-	{
-		private Model Model;
-		private PerspectiveData Perspective;
-
-		private Edge Edge;
-		private Vector3 Edgepoint;
-		private Vertex Vertex;
-
-		public SelectedEdgepoint(Edge edge, Vector3 edgepoint, Model model, PerspectiveData perspective)
-		{
-			this.Edge = edge;
-			this.Edgepoint = edgepoint;
-			this.Model = model;
-			this.Perspective = perspective;
-		}
-
-		public Vector2 ScreenPosition => Perspective.WorldToScreen(Edgepoint);
-
-		public Vector3 WorldPosition => Edgepoint;
-
-		public Vertex ModelVertex
-		{
-			get
-			{
-				if (Vertex == null)
-					Vertex = Model.AddVertexToEdge(Edgepoint, Edge);
-				return Vertex;
-			}
-		}
-
-		public bool UpdateToHoldRay(Ray3D holdRay)
-		{
-			Line3D edge = new Line3D(Edge.Start.Position, Edge.End.Position);
-			ClosestPoint3D closestPoint = Intersections3D.GetRayRayClosest(holdRay, edge.AsRay());
-
-			if (closestPoint.Distance < 1e-6 && closestPoint.RayBRelative >= 0 && closestPoint.RayBRelative <= edge.Length)
-			{
-				Edgepoint = closestPoint.RayBClosest;
-				return true;
-			}
-
-			return false;
-		}
-	}
-
-	public class ModelCreationEdgeHandlerMidpointSelector : IModelCreationEdgeHandlerSelector
-	{
-		public ApplicationColor VertexColor => ApplicationColor.Midpoint;
-
-		private ModelVisualization ModelVisualization;
-		private Model Model;
-		private PerspectiveData Perspective;
-		private IWindow Window;
-
-		private double PointGrabRadius;
-
-		public ModelCreationEdgeHandlerMidpointSelector(ModelVisualization modelVisualization, Model model, PerspectiveData perspective, IWindow window, double pointGrabRadius)
-		{
-			this.ModelVisualization = modelVisualization;
-			this.Model = model;
-			this.Perspective = perspective;
-			this.Window = window;
-			this.PointGrabRadius = pointGrabRadius;
-		}
-
-		public IModelCreationEdgeHandlerVertex GetVertex(Vector2 mouseCoord)
-		{
-			var edgeTuple = ModelVisualization.GetEdgeUnderMouse(mouseCoord);
-			if (edgeTuple != null)
-			{
-				Edge edge = edgeTuple.Item1;
-				Vector3 midpoint = (edge.Start.Position + edge.End.Position) / 2;
-				if (Window.ScreenDistance(mouseCoord, Perspective.WorldToScreen(midpoint)) < PointGrabRadius)
-					return new SelectedEdgepoint(edge, midpoint, Model, Perspective);
-				else
-					return null;
-			}
-			else
-			{
-				return null;
-			}
-		}
-
-		public void UpdateModel(Model model)
-		{
-			this.Model = model;
-		}
-	}
-
-	public class ModelCreationEdgeHandlerEdgepointSelector : IModelCreationEdgeHandlerSelector
-	{
-		public ApplicationColor VertexColor => ApplicationColor.Edgepoint;
-
-		private ModelVisualization ModelVisualization;
-		private Model Model;
-		private PerspectiveData Perspective;
-
-		public ModelCreationEdgeHandlerEdgepointSelector(ModelVisualization modelVisualization, Model model, PerspectiveData perspective)
-		{
-			this.ModelVisualization = modelVisualization;
-			this.Model = model;
-			this.Perspective = perspective;
-		}
-
-		public IModelCreationEdgeHandlerVertex GetVertex(Vector2 mouseCoord)
-		{
-			var edgeTuple = ModelVisualization.GetEdgeUnderMouse(mouseCoord);
-			if (edgeTuple != null)
-			{
-				Edge edge = edgeTuple.Item1;
-
-				Ray3D mouseRay = Perspective.ScreenToWorldRay(mouseCoord);
-				Line3D edgeLine = new Line3D(edge.Start.Position, edge.End.Position);
-				ClosestPoint3D closest = Intersections3D.GetRayRayClosest(mouseRay, edgeLine.AsRay());
-				Vector3 edgeClosestPoint = closest.RayBClosest;
-
-				return new SelectedEdgepoint(edge, edgeClosestPoint, Model, Perspective);
-			}
-			else
-			{
-				return null;
-			}
-		}
-
-		public void UpdateModel(Model model)
-		{
-			this.Model = model;
-		}
-	}
-
 	public class ModelCreationEdgeHandler : BaseModelCreationToolHandler
 	{
 		public override ModelCreationTool ToolType => ModelCreationTool.Edge;
@@ -291,9 +51,9 @@ namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls.ModelCreationToolHandler
 
 			this.DirectionSelectors = new IModelCreationEdgeHandlerDirection[]
 			{
-				new MainAxis(new Vector3(1, 0, 0), Perspective, ApplicationColor.XAxis),
-				new MainAxis(new Vector3(0, 1, 0), Perspective, ApplicationColor.YAxis),
-				new MainAxis(new Vector3(0, 0, 1), Perspective, ApplicationColor.ZAxis)
+				new VectorDirection(new Vector3(1, 0, 0), Perspective, ApplicationColor.XAxis),
+				new VectorDirection(new Vector3(0, 1, 0), Perspective, ApplicationColor.YAxis),
+				new VectorDirection(new Vector3(0, 0, 1), Perspective, ApplicationColor.ZAxis)
 			};
 
 			this.Active = false;
@@ -419,9 +179,9 @@ namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls.ModelCreationToolHandler
 				{
 					case KeyboardKey.LeftShift:
 						if (CurrentDirection != null)
-							HoldDirectionSelector = new MainAxis(CurrentDirection.Direction, Perspective, ApplicationColor.Highlight);
+							HoldDirectionSelector = new VectorDirection(CurrentDirection.Direction, Perspective, ApplicationColor.Highlight);
 						else if (FirstVertex != null && CurrentVertex != null)
-							HoldDirectionSelector = new MainAxis((CurrentVertex.WorldPosition - FirstVertex.WorldPosition).Normalized(), Perspective, ApplicationColor.Highlight);
+							HoldDirectionSelector = new VectorDirection((CurrentVertex.WorldPosition - FirstVertex.WorldPosition).Normalized(), Perspective, ApplicationColor.Highlight);
 						break;
 					case KeyboardKey.Escape:
 						CancelLineCreate();
