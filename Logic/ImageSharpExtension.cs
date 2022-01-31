@@ -1,10 +1,9 @@
-﻿using Photomatch_ProofOfConcept_WPF.Logic;
-using SixLabors.ImageSharp.PixelFormats;
+﻿using SixLabors.ImageSharp.PixelFormats;
 using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls.Helper
+namespace Photomatch_ProofOfConcept_WPF.Logic
 {
 	public static class ImageSharpExtension
 	{
