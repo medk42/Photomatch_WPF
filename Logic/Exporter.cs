@@ -9,10 +9,23 @@ using System.Text;
 
 namespace Photomatch_ProofOfConcept_WPF.Logic
 {
+
+	/// <summary>
+	/// Class for exporting model in .obj format.
+	/// </summary>
 	public static class Exporter
 	{
+		/// <summary>
+		/// Texture resolution is selected by finding a bounding box of a polygon and then width is the highest horizontal distance 
+		/// on model image and height is the highest vertical distance on model image. Then both are multiplied by ExportTextureResolutionMultiplier.
+		/// </summary>
 		private static readonly double ExportTextureResolutionMultiplier = 1.5;
 
+		/// <summary>
+		/// Get intersection between a ray and a face. Wrapper for Intersections3D.GetRayPolygonIntersection since that method
+		/// requires Vector3 vertices.
+		/// </summary>
+		/// <returns>Intersection point between a ray and a face.</returns>
 		private static RayPolygonIntersectionPoint GetRayFaceIntersection(Ray3D ray, Face face)
 		{
 			List<Vector3> vertices = new List<Vector3>();
@@ -22,6 +35,14 @@ namespace Photomatch_ProofOfConcept_WPF.Logic
 			return Intersections3D.GetRayPolygonIntersection(ray, vertices, face.Normal);
 		}
 
+		/// <summary>
+		/// Find and return the best perspective for specified face. 
+		/// 
+		/// Essentially the first perspective for which the ray from camera to Face.FacePoint of the face
+		/// doesn't intersect any other face first. In other words, the first perspective that has FacePoint
+		/// visible.
+		/// </summary>
+		/// <returns>Best perspective for specified face.</returns>
 		private static PerspectiveData GetFacePerspective(Face face, List<PerspectiveData> perspectives, Model model)
 		{
 			foreach (PerspectiveData perspective in perspectives)
@@ -51,6 +72,13 @@ namespace Photomatch_ProofOfConcept_WPF.Logic
 			return null;
 		}
 
+		/// <summary>
+		/// Calculate and return output texture resolution and perspective projection matrix for correction 
+		/// of the perspective distortion of the texture for specified face and perspective.
+		/// </summary>
+		/// <param name="width">render width of the face texture</param>
+		/// <param name="height">render height of the face texture</param>
+		/// <returns>Perspective projection matrix for correction of the perspective distortion.</returns>
 		private static Matrix3x3 GetFacePerspectiveProjectMatrix(Face face, PerspectiveData perspective, out int width, out int height)
 		{
 			Matrix3x3 rotate = Camera.RotateAlign(face.Normal, new Vector3(0, 0, 1));
@@ -89,6 +117,13 @@ namespace Photomatch_ProofOfConcept_WPF.Logic
 			);
 		}
 
+		/// <summary>
+		/// Generate UV coordinates for a specified face and perspective.
+		/// </summary>
+		/// <param name="project">matrix for perspective distortion correction of the texture</param>
+		/// <param name="uvCoordinatesList">list to which generated UV coordinates will be added</param>
+		/// <param name="width">render width of the face texture</param>
+		/// <param name="height">render height of the face texture</param>
 		private static void GenerateFacePerspectiveUVCoordinates(Face face, PerspectiveData perspective, Matrix3x3 project, List<Vector2> uvCoordinatesList, int width, int height)
 		{
 			foreach (Vertex v in face.UniqueVertices)
@@ -100,6 +135,14 @@ namespace Photomatch_ProofOfConcept_WPF.Logic
 			}
 		}
 
+		/// <summary>
+		/// Export perspective corrected texture for face with original image coordinates specified by project matrix, width and height.
+		/// </summary>
+		/// <param name="image">source image</param>
+		/// <param name="project">perspective correction matrix</param>
+		/// <param name="path">path to export texture to</param>
+		/// <param name="width">texture width</param>
+		/// <param name="height">texture height</param>
 		private static void ExportProjectPerspectiveTexture(Image<Rgb24> image, Matrix3x3 project, string path, int width, int height)
 		{
 			using (var canvas = new Image<Rgb24>(width, height))
@@ -134,6 +177,12 @@ namespace Photomatch_ProofOfConcept_WPF.Logic
 			}
 		}
 
+		/// <summary>
+		/// Create .mtl file containing materials for face textures for the .obj export. 
+		/// </summary>
+		/// <param name="path">path to which export the .mtl file</param>
+		/// <param name="invalidFaces">materials will not be exported for faces with specified indices</param>
+		/// <param name="model">model from which the faces are being exported</param>
 		private static void GenerateMtlFile(string path, List<int> invalidFaces, Model model)
 		{
 			using (var fileStream = File.Create(path))
@@ -151,6 +200,14 @@ namespace Photomatch_ProofOfConcept_WPF.Logic
 			}
 		}
 
+		/// <summary>
+		/// Create .obj file containing vertices, UV coordinates and face mappings for both.
+		/// </summary>
+		/// <param name="path">path to which export the .obj file</param>
+		/// <param name="fileNameNoExtension">export file name, so that .mtl file can be referenced</param>
+		/// <param name="uvCoordinates">UV coordinates to export</param>
+		/// <param name="invalidFaces">UV coordinates/textures will not be mapped for faces with specified indices</param>
+		/// <param name="model">model which is being exported</param>
 		private static void GenerateObjFile(string path, string fileNameNoExtension, List<Vector2> uvCoordinates, List<int> invalidFaces, Model model)
 		{
 			using (var fileStream = File.Create(path))
@@ -205,6 +262,14 @@ namespace Photomatch_ProofOfConcept_WPF.Logic
 			}
 		}
 
+		/// <summary>
+		/// Export specified model to specified path. New folder with the same name as the .obj in filePath
+		/// will be created and textures, .mtl file and .obj file will be stored there.
+		/// </summary>
+		/// <param name="model">model to export</param>
+		/// <param name="filePath">file path to export model to containing .obj</param>
+		/// <param name="logger">logger for logging progress</param>
+		/// <param name="perspectives">existing perspectives from which we can project textures</param>
 		public static void Export(Model model, string filePath, ILogger logger, List<PerspectiveData> perspectives)
 		{
 			try
