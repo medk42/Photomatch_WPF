@@ -7,20 +7,60 @@ using Photomatch_ProofOfConcept_WPF.Utilities;
 
 namespace Photomatch_ProofOfConcept_WPF.Logic
 {
+	/// <summary>
+	/// Event handler for Vector3 position change.
+	/// </summary>
+	/// <param name="position">new position</param>
 	public delegate void PositionChangedEventHandler(Vector3 position);
+
+	/// <summary>
+	/// Event handler for vertex removal.
+	/// </summary>
+	/// <param name="vertex">removed vertex</param>
 	public delegate void VertexRemovedEventHandler(Vertex vertex);
+
+	/// <summary>
+	/// Event handler for edge removal.
+	/// </summary>
+	/// <param name="edge">removed edge</param>
 	public delegate void EdgeRemovedEventHandler(Edge edge);
+
+	/// <summary>
+	/// Event handler for face removal.
+	/// </summary>
+	/// <param name="face">removed face</param>
 	public delegate void FaceRemovedEventHandler(Face face);
+
+	/// <summary>
+	/// Event handler for position change of vertex with specified ID (for Face).
+	/// </summary>
+	/// <param name="position">new position</param>
+	/// <param name="id">id of changed vertex</param>
 	public delegate void VertexPositionChangedEventHandler(Vector3 position, int id);
 
+	/// <summary>
+	/// Class containing data about 3D model vertex.
+	/// </summary>
 	public class Vertex
 	{
+		/// <summary>
+		/// Event called on vertex position change.
+		/// </summary>
 		public event PositionChangedEventHandler PositionChangedEvent;
+
+		/// <summary>
+		/// Event called on vertex removal.
+		/// </summary>
 		public event VertexRemovedEventHandler VertexRemovedEvent;
 
+		/// <summary>
+		/// List of edges connected to this vertex.
+		/// </summary>
 		public List<Edge> ConnectedEdges { get; } = new List<Edge>();
 
-		private Vector3 Position_;
+		/// <summary>
+		/// Position of the vertex.
+		/// </summary>
 		public Vector3 Position
 		{
 			get => Position_;
@@ -30,12 +70,19 @@ namespace Photomatch_ProofOfConcept_WPF.Logic
 				PositionChangedEvent?.Invoke(value);
 			}
 		}
+		private Vector3 Position_;
 
+		/// <summary>
+		/// Remove the vertex from the model.
+		/// </summary>
 		public void Remove()
 		{
 			VertexRemovedEvent?.Invoke(this);
 		}
 
+		/// <summary>
+		/// Dispose of vertex events.
+		/// </summary>
 		public void Dispose()
 		{
 			VertexRemovedEvent = null;
@@ -43,84 +90,176 @@ namespace Photomatch_ProofOfConcept_WPF.Logic
 		}
 	}
 
+	/// <summary>
+	/// Class containing data about 3D model edge.
+	/// </summary>
 	public class Edge
 	{
+		/// <summary>
+		/// Event called on start vertex position change.
+		/// </summary>
 		public event PositionChangedEventHandler StartPositionChangedEvent;
+
+		/// <summary>
+		/// Event called on end vertex position change.
+		/// </summary>
 		public event PositionChangedEventHandler EndPositionChangedEvent;
+
+		/// <summary>
+		/// Event called on edge removal.
+		/// </summary>
 		public event EdgeRemovedEventHandler EdgeRemovedEvent;
 
+		/// <summary>
+		/// Start vertex of the edge.
+		/// </summary>
 		public Vertex Start { get; private set; }
+
+		/// <summary>
+		/// End vertex of the edge.
+		/// </summary>
 		public Vertex End { get; private set; }
+
+		/// <summary>
+		/// True if, after this edge is removed, vertices with 0 edges or vertices splitting another edge should be removed, false otherwise.
+		/// </summary>
 		public bool RemoveVerticesOnRemove { get; set; } = true;
 
+		private PositionChangedEventHandler StartPositionChangedEventHandler, EndPositionChangedEventHandler;
+		private VertexRemovedEventHandler VertexRemovedEventHandler;
+
+		/// <summary>
+		/// Create edge with start and end vertices.
+		/// </summary>
 		public Edge(Vertex start, Vertex end)
 		{
 			this.Start = start;
 			this.End = end;
 
-			Start.PositionChangedEvent += (position) => StartPositionChangedEvent?.Invoke(position);
-			End.PositionChangedEvent += (position) => EndPositionChangedEvent?.Invoke(position);
+			this.StartPositionChangedEventHandler = (position) => StartPositionChangedEvent?.Invoke(position);
+			this.EndPositionChangedEventHandler = (position) => EndPositionChangedEvent?.Invoke(position);
+			this.VertexRemovedEventHandler = (vertex) => Remove();
 
-			Start.VertexRemovedEvent += (vertex) => Remove();
-			End.VertexRemovedEvent += (vetex) => Remove();
+			Start.PositionChangedEvent += StartPositionChangedEventHandler;
+			End.PositionChangedEvent += EndPositionChangedEventHandler;
+
+			Start.VertexRemovedEvent += VertexRemovedEventHandler;
+			End.VertexRemovedEvent += VertexRemovedEventHandler;
 		}
 
+		/// <summary>
+		/// Remove the edge from the model. Also called if either of the vertices is removed.
+		/// </summary>
 		public void Remove()
 		{
 			EdgeRemovedEvent?.Invoke(this);
 		}
 
+		/// <summary>
+		/// Dispose of edge events and event registrations on vertices.
+		/// </summary>
 		public void Dispose()
 		{
 			EdgeRemovedEvent = null;
 			StartPositionChangedEvent = null;
 			EndPositionChangedEvent = null;
+
+			Start.PositionChangedEvent -= StartPositionChangedEventHandler;
+			End.PositionChangedEvent -= EndPositionChangedEventHandler;
+
+			Start.VertexRemovedEvent -= VertexRemovedEventHandler;
+			End.VertexRemovedEvent -= VertexRemovedEventHandler;
 		}
 	}
 
+	/// <summary>
+	/// Class containing data about 3D model face.
+	/// </summary>
 	public class Face
 	{
+		/// <summary>
+		/// Event called on any vertex position change - with the new position and id of the changed vertex.
+		/// </summary>
 		public event VertexPositionChangedEventHandler VertexPositionChangedEvent;
+
+		/// <summary>
+		/// Event called on face removal.
+		/// </summary>
 		public event FaceRemovedEventHandler FaceRemovedEvent;
 
+		/// <summary>
+		/// Get vertex with ID i.
+		/// </summary>
+		/// <param name="i">ID of vertex to return</param>
+		/// <returns>Vertex with ID i.</returns>
 		public Vertex this[int i]
 		{
 			get => Vertices[i];
 		}
 
+		/// <summary>
+		/// Get the number of vertices.
+		/// </summary>
 		public int Count => Vertices.Count;
 
+		/// <summary>
+		/// True if user drew the face reversed (in clockwise direction, looking from outside).
+		/// Necessary for face exporting, since we need to export in anti-clockwise direction.
+		/// If the face is reversed, triangulation is also reversed!
+		/// </summary>
 		public bool Reversed
 		{
 			get => FacesFront.Count % 2 == 1;
 		}
 
+		/// <summary>
+		/// Face normal. Calculated from first 3 vertices and reversed if the normal is facing the wrong way. 
+		/// If the face is correctly designed by user (in anti-clockwise direction), normal should be pointing 
+		/// out of the model. Cached.
+		/// </summary>
 		public Vector3 Normal { get; private set; }
 
+		/// <summary>
+		/// A vector that is guaranteed to be inside the face (calculated as some position inside the first triangulated triangle). Cached.
+		/// </summary>
 		public Vector3 FacePoint { get; private set; }
 
+		/// <summary>
+		/// Triangulation of the face. Cashed.
+		/// </summary>
 		public List<Triangle> Triangulated { get; } = new List<Triangle>();
 
+		/// <summary>
+		/// Unique vertices of the face. Cashed.
+		/// </summary>
 		public List<Vertex> UniqueVertices { get; } = new List<Vertex>();
 
 		private List<Vertex> Vertices = new List<Vertex>();
 		private List<Face> FacesFront = new List<Face>();
+		private VertexRemovedEventHandler VertexRemovedEventHandler;
+		private List<PositionChangedEventHandler> PositionChangedEventHandlers = new List<PositionChangedEventHandler>();
 
+		/// <summary>
+		/// Create a face with a list of vertices and recalculate properties.
+		/// </summary>
 		public Face(List<Vertex> vertices)
 		{
 			this.Vertices = new List<Vertex>(vertices);
+			this.VertexRemovedEventHandler = (v) => Remove();
 
 			for (int i = 0; i < Vertices.Count; i++)
 			{
 				Vertex v = Vertices[i];
-				v.VertexRemovedEvent += (v) => Remove();
+				v.VertexRemovedEvent += VertexRemovedEventHandler;
 
 				int iCopy = i;
-				v.PositionChangedEvent += (position) =>
+				PositionChangedEventHandler handler = (position) =>
 				{
 					RecalculateProperties();
 					VertexPositionChangedEvent?.Invoke(position, iCopy);
 				};
+				PositionChangedEventHandlers.Add(handler);
+				v.PositionChangedEvent += handler;
 
 				if (!UniqueVertices.Contains(v))
 					UniqueVertices.Add(v);
@@ -129,6 +268,10 @@ namespace Photomatch_ProofOfConcept_WPF.Logic
 			RecalculateProperties();
 		}
 
+		/// <summary>
+		/// Update faces in front of this face, when a face is added (to calculate which side of the face is looking in/out of the model).
+		/// </summary>
+		/// <param name="other">added face</param>
 		internal void FaceAdded(Face other)
 		{
 			if (other == this)
@@ -145,17 +288,28 @@ namespace Photomatch_ProofOfConcept_WPF.Logic
 				FacesFront.Add(other);
 		}
 
+		/// <summary>
+		/// Update faces in front of this face, when a face is updated (to calculate which side of the face is looking in/out of the model).
+		/// </summary>
+		/// <param name="other">updated face</param>
 		internal void FaceChanged(Face other)
 		{
 			if (FacesFront.Remove(other))
 				FaceAdded(other);
 		}
 
+		/// <summary>
+		/// Update faces in front of this face, when a face is removed (to calculate which side of the face is looking in/out of the model).
+		/// </summary>
+		/// <param name="other">removed face</param>
 		internal void FaceRemoved(Face other)
 		{
 			FacesFront.Remove(other);
 		}
 
+		/// <summary>
+		/// Recalculate Normal, FacePoint and Triangulate properties.
+		/// </summary>
 		private void RecalculateProperties()
 		{
 			Normal = Vector3.Cross(Vertices[1].Position - Vertices[0].Position, Vertices[2].Position - Vertices[0].Position).Normalized();
@@ -172,17 +326,36 @@ namespace Photomatch_ProofOfConcept_WPF.Logic
 			FacePoint = (0.5 * Triangulated[0].A.Position + 0.16 * Triangulated[0].B.Position + 0.34 * Triangulated[0].C.Position);
 		}
 
+		/// <summary>
+		/// Remove the face from the model. Also called if any of the vertices is removed.
+		/// </summary>
 		public void Remove()
 		{
 			FaceRemovedEvent?.Invoke(this);
 		}
 
+		/// <summary>
+		/// Dispose of face events and event registrations on vertices.
+		/// </summary>
 		public void Dispose()
 		{
 			FaceRemovedEvent = null;
 			VertexPositionChangedEvent = null;
+
+			for (int i = 0; i < Count; i++)
+			{
+				Vertices[i].VertexRemovedEvent -= VertexRemovedEventHandler;
+				Vertices[i].PositionChangedEvent -= PositionChangedEventHandlers[i];
+			}
 		}
 
+		/// <summary>
+		/// Calculate angle at current vertex (considering anti-clockwise vertex order).
+		/// </summary>
+		/// <param name="prev">previous vertex</param>
+		/// <param name="act">current vertex</param>
+		/// <param name="next">next vertex</param>
+		/// <returns>The angle at current vertex.</returns>
 		private double CalculateAngleOfVertex(Vector2 prev, Vector2 act, Vector2 next)
 		{
 			Vector2 ab = prev - act;
@@ -193,6 +366,15 @@ namespace Photomatch_ProofOfConcept_WPF.Logic
 			return angle;
 		}
 
+		/// <summary>
+		/// Add current vertex as eartip if no other vertex is inside a triangle created by previous, current and next vertex.
+		/// </summary>
+		/// <param name="prev">previous vertex</param>
+		/// <param name="act">current vertex</param>
+		/// <param name="next">next vertex</param>
+		/// <param name="vertices">list of face vertices</param>
+		/// <param name="earTips">list of eartips to add to</param>
+		/// <param name="id">id of the vertex</param>
 		private void AddEartip(Vector2 prev, Vector2 act, Vector2 next, List<Vector2> vertices, HashSet<int> earTips, int id)
 		{
 			foreach (Vector2 vertex in vertices)
@@ -206,6 +388,18 @@ namespace Photomatch_ProofOfConcept_WPF.Logic
 			earTips.Add(id);
 		}
 
+		/// <summary>
+		/// Initialize ear-clipping triangulation.
+		/// </summary>
+		/// <param name="vertices">face vertices</param>
+		/// <param name="verticesMap">initialize a map from an id of face vertex to an id of unique vertex (since vertices can repeat)</param>
+		/// <param name="prevVertex">initialize an array containing id of previous vertex ([i]=i-1)</param>
+		/// <param name="nextVertex">initialize an array containing id of next vertex ([i]=i+1)</param>
+		/// <param name="earTips">
+		/// fill a list with all found eartips - vertices with less than 180° angles which (with their neighbors) form a triangle
+		/// that doesn't contain any other vertex. In other words, vertices that form a triangle that is inside the face.
+		/// </param>
+		/// <param name="angles">initialize an array containing the inner angle at each vertex</param>
 		private void InitializeTriangulate(List<Vector2> vertices, int[] verticesMap, int[] prevVertex, int[] nextVertex, HashSet<int> earTips, double[] angles)
 		{
 			Matrix3x3 rotate = Camera.RotateAlign(Normal, new Vector3(0, 0, 1));
@@ -239,6 +433,10 @@ namespace Photomatch_ProofOfConcept_WPF.Logic
 			}
 		}
 
+		/// <summary>
+		/// Use ear-clipping triangulation to triangulate this face.
+		/// Using https://arxiv.org/ftp/arxiv/papers/1212/1212.6038.pdf.
+		/// </summary>
 		private void Triangulate()
 		{
 			Triangulated.Clear();
@@ -293,6 +491,9 @@ namespace Photomatch_ProofOfConcept_WPF.Logic
 		}
 	}
 
+	/// <summary>
+	/// Struct representing a triangle, containing 3 vertices, for face triangulation.
+	/// </summary>
 	public struct Triangle
 	{
 		public Vertex A { get; set; }
@@ -300,29 +501,78 @@ namespace Photomatch_ProofOfConcept_WPF.Logic
 		public Vertex C { get; set; }
 	}
 
+	/// <summary>
+	/// Class containing data about a 3D model.
+	/// </summary>
 	public class Model : ISafeSerializable<Model>
 	{
+		/// <summary>
+		/// Event handler for when edge is added.
+		/// </summary>
+		/// <param name="edge">added edge</param>
 		public delegate void AddEdgeEventHandler(Edge edge);
+
+		/// <summary>
+		/// Event called when edge is added.
+		/// </summary>
 		public event AddEdgeEventHandler AddEdgeEvent;
 
+
+		/// <summary>
+		/// Event handler for when vertex is added.
+		/// </summary>
+		/// <param name="vertex">added vertex</param>
 		public delegate void AddVertexEventHandler(Vertex vertex);
+
+		/// <summary>
+		/// Event called when vertex is added.
+		/// </summary>
 		public event AddVertexEventHandler AddVertexEvent;
 
+
+		/// <summary>
+		/// Event handler for when face is added.
+		/// </summary>
+		/// <param name="face">added face</param>
 		public delegate void AddFaceEventHandler(Face face);
+
+		/// <summary>
+		/// Event called when face is added.
+		/// </summary>
 		public event AddFaceEventHandler AddFaceEvent;
 
+
+		/// <summary>
+		/// Event handler for when model is changed in any way.
+		/// </summary>
 		public delegate void ModelChangedEventHandler();
+
+		/// <summary>
+		/// Event called when model is changed in any way.
+		/// </summary>
 		public event ModelChangedEventHandler ModelChangedEvent;
 
+
+
+		/// <summary>
+		/// Model vertices - only for enumeration, use AddVertex for adding and Vertex.Remove for removal.
+		/// </summary>
 		public List<Vertex> Vertices { get; } = new List<Vertex>();
+
+		/// <summary>
+		/// Model edges - only for enumeration, use AddEdge for adding and Edge.Remove for removal.
+		/// </summary>
 		public List<Edge> Edges { get; } = new List<Edge>();
+
+		/// <summary>
+		/// Model faces - only for enumeration, use AddFace for adding and Face.Remove for removal.
+		/// </summary>
 		public List<Face> Faces { get; } = new List<Face>();
 
 		/// <summary>
-		/// First added vertex will be protected against removal.
+		/// Add vertex with specified position. First added vertex will be protected against removal.
 		/// </summary>
-		/// <param name="position"></param>
-		/// <returns></returns>
+		/// <returns>Added vertex.</returns>
 		public Vertex AddVertex(Vector3 position)
 		{
 			Vertex newPoint = new Vertex() { Position = position };
@@ -340,6 +590,12 @@ namespace Photomatch_ProofOfConcept_WPF.Logic
 			return newPoint;
 		}
 
+		/// <summary>
+		/// Split the edge and add a new vertex with specified position in the middle.
+		/// </summary>
+		/// <param name="vertexPosition">new vertex position</param>
+		/// <param name="edge">edge to add to</param>
+		/// <returns>Added vertex.</returns>
 		public Vertex AddVertexToEdge(Vector3 vertexPosition, Edge edge)
 		{
 			Vertex newVertex = AddVertex(vertexPosition);
@@ -353,6 +609,11 @@ namespace Photomatch_ProofOfConcept_WPF.Logic
 			return newVertex;
 		}
 
+		/// <summary>
+		/// Add edge with specified start and end vertices. If an edge with specified vertices already exists or start == end,
+		/// do not create an edge and return null.
+		/// </summary>
+		/// <returns>Added edge or null if edge already exists or start == end.</returns>
 		public Edge AddEdge(Vertex start, Vertex end)
 		{
 			foreach (Edge e in start.ConnectedEdges)
@@ -373,11 +634,15 @@ namespace Photomatch_ProofOfConcept_WPF.Logic
 			return newEdge;
 		}
 
+		/// <summary>
+		/// Add face with specified vertices.
+		/// </summary>
+		/// <returns>Added face.</returns>
 		public Face AddFace(List<Vertex> vertices)
 		{
 			Face newFace = new Face(vertices);
 			newFace.FaceRemovedEvent += RemoveFace;
-			newFace.VertexPositionChangedEvent += (position, id) => FaceUpdated(newFace, id, position);
+			newFace.VertexPositionChangedEvent += (position, id) => FaceUpdated(newFace);
 
 			foreach (Face face in Faces)
 			{
@@ -393,7 +658,11 @@ namespace Photomatch_ProofOfConcept_WPF.Logic
 			return newFace;
 		}
 
-		private void FaceUpdated(Face face, int vertexId, Vector3 position)
+		/// <summary>
+		/// Notify all faces about an updated face. Notify updated face about all other faces (since they all changed from its perspective).
+		/// </summary>
+		/// <param name="face">updated face</param>
+		private void FaceUpdated(Face face)
 		{
 			foreach (Face f in Faces)
 			{
@@ -402,12 +671,21 @@ namespace Photomatch_ProofOfConcept_WPF.Logic
 			}					
 		}
 
+		/// <summary>
+		/// Remove a specified vertex if it has no edges connected.
+		/// </summary>
+		/// <param name="v">specified vertex</param>
 		private void CheckNoConnections(Vertex v)
 		{
 			if (v.ConnectedEdges.Count == 0)
 				v.Remove();
 		}
 
+		/// <summary>
+		/// Remove a specified vertex if it lies on an edge (has two edges connected that have very similar direction)
+		/// and re-create the edge.
+		/// </summary>
+		/// <param name="v">specified vertex</param>
 		private void CheckTwoConnections(Vertex v)
 		{
 			if (v.ConnectedEdges.Count == 2)
@@ -424,6 +702,10 @@ namespace Photomatch_ProofOfConcept_WPF.Logic
 			}
 		}
 
+		/// <summary>
+		/// Remove a specified vertex when Vertex.Remove is called. 
+		/// </summary>
+		/// <param name="v">specified vertex</param>
 		private void RemoveVertex(Vertex v)
 		{
 			v.VertexRemovedEvent -= RemoveVertex;
@@ -433,6 +715,10 @@ namespace Photomatch_ProofOfConcept_WPF.Logic
 			ModelChangedEvent?.Invoke();
 		}
 
+		/// <summary>
+		/// Remove a specified edge when Edge.Remove is called. Remove edge vertices if they have no other edges or lie on another edge.
+		/// </summary>
+		/// <param name="e">specified edge</param>
 		private void RemoveEdge(Edge e)
 		{
 			e.Start.ConnectedEdges.Remove(e);
@@ -454,6 +740,10 @@ namespace Photomatch_ProofOfConcept_WPF.Logic
 			ModelChangedEvent?.Invoke();
 		}
 
+		/// <summary>
+		/// Remove a specified face when Face.Remove is called.
+		/// </summary>
+		/// <param name="f">specified face</param>
 		private void RemoveFace(Face f)
 		{
 			f.FaceRemovedEvent -= RemoveFace;
@@ -514,13 +804,27 @@ namespace Photomatch_ProofOfConcept_WPF.Logic
 			}
 		}
 
+		/// <summary>
+		/// Dispose of model events. Dispose of all vertices, edges and faces.
+		/// </summary>
 		public void Dispose()
 		{
+			foreach (Vertex vertex in Vertices)
+				vertex.Dispose();
 			Vertices.Clear();
+
+			foreach (Edge edge in Edges)
+				edge.Dispose();
 			Edges.Clear();
+
+			foreach (Face face in Faces)
+				face.Dispose();
 			Faces.Clear();
 
 			ModelChangedEvent = null;
+			AddVertexEvent = null;
+			AddEdgeEvent = null;
+			AddFaceEvent = null;
 		}
 	}
 }
