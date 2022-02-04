@@ -5,6 +5,9 @@ using Photomatch_ProofOfConcept_WPF.Utilities;
 
 namespace Photomatch_ProofOfConcept_WPF.Logic
 {
+	/// <summary>
+	/// Struct representing 3x3 matrix with double values.
+	/// </summary>
 	public struct Matrix3x3 : ISafeSerializable<Matrix3x3>
 	{
 		public double A00 { get; set; }
@@ -17,6 +20,9 @@ namespace Photomatch_ProofOfConcept_WPF.Logic
 		public double A21 { get; set; }
 		public double A22 { get; set; }
 
+		/// <summary>
+		/// First row.
+		/// </summary>
 		public Vector3 A0_
 		{
 			get => new Vector3(A00, A01, A02);
@@ -28,6 +34,9 @@ namespace Photomatch_ProofOfConcept_WPF.Logic
 			}
 		}
 
+		/// <summary>
+		/// Second row.
+		/// </summary>
 		public Vector3 A1_
 		{
 			get => new Vector3(A10, A11, A12);
@@ -39,6 +48,9 @@ namespace Photomatch_ProofOfConcept_WPF.Logic
 			}
 		}
 
+		/// <summary>
+		/// Third row.
+		/// </summary>
 		public Vector3 A2_
 		{
 			get => new Vector3(A20, A21, A22);
@@ -50,6 +62,9 @@ namespace Photomatch_ProofOfConcept_WPF.Logic
 			}
 		}
 
+		/// <summary>
+		/// First column.
+		/// </summary>
 		public Vector3 A_0
 		{
 			get => new Vector3(A00, A10, A20);
@@ -61,6 +76,9 @@ namespace Photomatch_ProofOfConcept_WPF.Logic
 			}
 		}
 
+		/// <summary>
+		/// Second column.
+		/// </summary>
 		public Vector3 A_1
 		{
 			get => new Vector3(A01, A11, A21);
@@ -72,6 +90,9 @@ namespace Photomatch_ProofOfConcept_WPF.Logic
 			}
 		}
 
+		/// <summary>
+		/// Third column.
+		/// </summary>
 		public Vector3 A_2
 		{
 			get => new Vector3(A02, A12, A22);
@@ -83,11 +104,18 @@ namespace Photomatch_ProofOfConcept_WPF.Logic
 			}
 		}
 
+		/// <summary>
+		/// Create unit matrix - matrix containing ones on the diagonal and zeros everywhere else.
+		/// </summary>
+		/// <returns>Unit matrix.</returns>
 		public static Matrix3x3 CreateUnitMatrix()
 		{
 			return new Matrix3x3() { A00 = 1, A11 = 1, A22 = 1 };
 		}
 
+		/// <summary>
+		/// Standard matrix-vector multiplication.
+		/// </summary>
 		public static Vector3 operator *(Matrix3x3 matrix, Vector3 vector)
 		{
 			Vector3 result = new Vector3();
@@ -99,6 +127,9 @@ namespace Photomatch_ProofOfConcept_WPF.Logic
 			return result;
 		}
 
+		/// <summary>
+		/// Standard matrix-matrix multiplication.
+		/// </summary>
 		public static Matrix3x3 operator *(Matrix3x3 matrixA, Matrix3x3 matrixB)
 		{
 			Matrix3x3 result = new Matrix3x3();
@@ -118,6 +149,9 @@ namespace Photomatch_ProofOfConcept_WPF.Logic
 			return result;
 		}
 
+		/// <summary>
+		/// Return transposed matrix.
+		/// </summary>
 		public Matrix3x3 Transposed()
 		{
 			Matrix3x3 result = new Matrix3x3();
@@ -137,6 +171,9 @@ namespace Photomatch_ProofOfConcept_WPF.Logic
 			return result;
 		}
 
+		/// <summary>
+		/// Return adjugate matrix.
+		/// </summary>
 		public Matrix3x3 Adjugate()
 		{
 			return new Matrix3x3()
@@ -153,6 +190,11 @@ namespace Photomatch_ProofOfConcept_WPF.Logic
 			};
 		}
 
+		/// <summary>
+		/// Add specified vector to a row.
+		/// </summary>
+		/// <param name="row">row to add to: 0,1,2 (other values will cause exception)</param>
+		/// <param name="vector">vector to add</param>
 		public void AddToRow(int row, Vector3 vector)
 		{
 			switch(row)
@@ -204,9 +246,19 @@ namespace Photomatch_ProofOfConcept_WPF.Logic
 		}
 	}
 
+	/// <summary>
+	/// Struct representing a vector with 3 double values.
+	/// </summary>
 	public struct Vector3 : ISafeSerializable<Vector3>
 	{
-		public static Vector3 InvalidInstance = new Vector3(double.NaN, double.NaN, double.NaN);
+		/// <summary>
+		/// Invalid instance of a Vector3.
+		/// </summary>
+		public static readonly Vector3 InvalidInstance = new Vector3(double.NaN, double.NaN, double.NaN);
+
+		/// <summary>
+		/// Create a vector with X,Y,Z coordinates.
+		/// </summary>
 		public Vector3(double X, double Y, double Z)
 		{
 			this.X = X;
@@ -214,6 +266,11 @@ namespace Photomatch_ProofOfConcept_WPF.Logic
 			this.Z = Z;
 		}
 
+		/// <summary>
+		/// Create a vector with a Z coordinate and Vector2 specifying X and Y coordinates.
+		/// </summary>
+		/// <param name="vect">vector representing X and Y coordinates</param>
+		/// <param name="z">Z coordinate</param>
 		public Vector3(Vector2 vect, double z)
 		{
 			this.X = vect.X;
@@ -225,52 +282,107 @@ namespace Photomatch_ProofOfConcept_WPF.Logic
 		public double Y { get; set; }
 		public double Z { get; set; }
 
+		/// <summary>
+		/// Calculate the squared magnitude of the vector (not cached).
+		/// </summary>
 		public double MagnitudeSquared => X * X + Y * Y + Z * Z;
 
+		/// <summary>
+		/// Calculate the magnitude of the vector (not cached).
+		/// </summary>
 		public double Magnitude => Math.Sqrt(MagnitudeSquared);
 
+		/// <summary>
+		/// True if vector is valid - does not contain a NaN value.
+		/// </summary>
 		public bool Valid => !(double.IsNaN(X) || double.IsNaN(Y) || double.IsNaN(Z));
 
+		/// <summary>
+		/// Return a new vector that is normalized.
+		/// </summary>
 		public Vector3 Normalized()
 		{
 			double mag = this.Magnitude;
 			return new Vector3() { X = this.X / mag, Y = this.Y / mag, Z = this.Z / mag };
 		}
 
+		/// <summary>
+		/// Create a new vector with a different X coordinate.
+		/// </summary>
+		/// <param name="x">new X coordinate to use</param>
 		public Vector3 WithX(double x) => new Vector3() { X = x, Y = Y, Z = Z };
+
+		/// <summary>
+		/// Create a new vector with a different Y coordinate.
+		/// </summary>
+		/// <param name="y">new Y coordinate to use</param>
 		public Vector3 WithY(double y) => new Vector3() { X = X, Y = y, Z = Z };
+
+		/// <summary>
+		/// Create a new vector with a different Z coordinate.
+		/// </summary>
+		/// <param name="z">new Z coordinate to use</param>
 		public Vector3 WithZ(double z) => new Vector3() { X = X, Y = Y, Z = z };
 
+		/// <summary>
+		/// Standard vector addition.
+		/// </summary>
 		public static Vector3 operator +(Vector3 first, Vector3 second)
 		{
 			return new Vector3() { X = first.X + second.X, Y = first.Y + second.Y, Z = first.Z + second.Z };
 		}
 
+		/// <summary>
+		/// Standard vector subtraction.
+		/// </summary>
 		public static Vector3 operator -(Vector3 first, Vector3 second)
 		{
 			return new Vector3() { X = first.X - second.X, Y = first.Y - second.Y, Z = first.Z - second.Z };
 		}
 
+		/// <summary>
+		/// Returns new inverse vector.
+		/// </summary>
 		public static Vector3 operator -(Vector3 vector)
 		{
 			return new Vector3() { X = -vector.X, Y = -vector.Y, Z = -vector.Z };
 		}
 
+		/// <summary>
+		/// Returns new vector with all coordinates divided by specified value.
+		/// </summary>
 		public static Vector3 operator /(Vector3 vector, double value)
 		{
 			return new Vector3() { X = vector.X / value, Y = vector.Y / value, Z = vector.Z / value };
 		}
 
+		/// <summary>
+		/// Returns new vector with all coordinates multiplied by specified value.
+		/// </summary>
 		public static Vector3 operator *(Vector3 vector, double value)
 		{
 			return new Vector3() { X = vector.X * value, Y = vector.Y * value, Z = vector.Z * value };
 		}
 
+		/// <summary>
+		/// Returns new vector with all coordinates multiplied by specified value.
+		/// </summary>
 		public static Vector3 operator *(double value, Vector3 vector) => vector * value;
 
+		/// <summary>
+		/// Return cross product between first and second vectors.
+		/// </summary>
 		public static Vector3 Cross(Vector3 first, Vector3 second)
 		{
 			return new Vector3(first.Y * second.Z - first.Z * second.Y, first.Z * second.X - first.X * second.Z, first.X * second.Y - first.Y * second.X);
+		}
+
+		/// <summary>
+		/// Return dot product between first and second vectors.
+		/// </summary>
+		public static double Dot(Vector3 first, Vector3 second)
+		{
+			return first.X * second.X + first.Y * second.Y + first.Z * second.Z;
 		}
 
 		public void Serialize(BinaryWriter writer)
@@ -291,23 +403,30 @@ namespace Photomatch_ProofOfConcept_WPF.Logic
 		{
 			return $"({X}, {Y}, {Z})";
 		}
-
-		internal static double Dot(Vector3 first, Vector3 second)
-		{
-			return first.X * second.X + first.Y * second.Y + first.Z * second.Z;
-		}
 	}
 
+	/// <summary>
+	/// Struct representing a vector with 2 double values.
+	/// </summary>
 	public struct Vector2 : ISafeSerializable<Vector2>
 	{
-		public static Vector2 InvalidInstance = new Vector2(double.NaN, double.NaN);
+		/// <summary>
+		/// Invalid instance of a Vector2.
+		/// </summary>
+		public static readonly Vector2 InvalidInstance = new Vector2(double.NaN, double.NaN);
 
+		/// <summary>
+		/// Create a vector with X and Y coordinates.
+		/// </summary>
 		public Vector2(double X, double Y)
 		{
 			this.X = X;
 			this.Y = Y;
 		}
 
+		/// <summary>
+		/// Create a vector with Vector3 specifying X and Y coordinates.
+		/// </summary>
 		public Vector2(Vector3 vect)
 		{
 			this.X = vect.X;
@@ -317,44 +436,80 @@ namespace Photomatch_ProofOfConcept_WPF.Logic
 		public double X { get; set; }
 		public double Y { get; set; }
 
+		/// <summary>
+		/// Calculate the squared magnitude of the vector (not cached).
+		/// </summary>
 		public double MagnitudeSquared => X * X + Y * Y;
 
+		/// <summary>
+		/// Calculate the magnitude of the vector (not cached).
+		/// </summary>
 		public double Magnitude => Math.Sqrt(MagnitudeSquared);
 
+		/// <summary>
+		/// True if vector is valid - does not contain a NaN value.
+		/// </summary>
 		public bool Valid => !(double.IsNaN(X) || double.IsNaN(Y));
 
+		/// <summary>
+		/// Return a new vector that is normalized.
+		/// </summary>
 		public Vector2 Normalized()
 		{
 			double mag = this.Magnitude;
 			return new Vector2() { X = this.X / mag, Y = this.Y / mag };
 		}
 
+		/// <summary>
+		/// Standard vector addition.
+		/// </summary>
 		public static Vector2 operator +(Vector2 first, Vector2 second)
 		{
 			return new Vector2() { X = first.X + second.X, Y = first.Y + second.Y };
 		}
 
+		/// <summary>
+		/// Standard vector subtraction.
+		/// </summary>
 		public static Vector2 operator -(Vector2 first, Vector2 second)
 		{
 			return new Vector2() { X = first.X - second.X, Y = first.Y - second.Y };
 		}
 
+		/// <summary>
+		/// Returns new vector with all coordinates divided by specified value.
+		/// </summary>
 		public static Vector2 operator /(Vector2 vector, double value)
 		{
 			return new Vector2() { X = vector.X / value, Y = vector.Y / value };
 		}
 
+		/// <summary>
+		/// Returns new vector with all coordinates multiplied by specified value.
+		/// </summary>
 		public static Vector2 operator *(Vector2 vector, double value)
 		{
 			return new Vector2() { X = vector.X * value, Y = vector.Y * value };
 		}
 
+		/// <summary>
+		/// Returns new vector with all coordinates multiplied by specified value.
+		/// </summary>
 		public static Vector2 operator *(double value, Vector2 vector) => vector * value;
 
+		/// <summary>
+		/// Returns true if X and Y coordinates of the two vectors are exactly the same, false otherwise.
+		/// </summary>
 		public static bool operator ==(Vector2 a, Vector2 b) => a.X == b.X && a.Y == b.Y;
 
+		/// <summary>
+		/// Returns false if X and Y coordinates of the two vectors are exactly the same, true otherwise.
+		/// </summary>
 		public static bool operator !=(Vector2 a, Vector2 b) => !(a == b);
 
+		/// <summary>
+		/// Return dot product between first and second vectors.
+		/// </summary>
 		public static double Dot(Vector2 first, Vector2 second)
 		{
 			return first.X * second.X + first.Y * second.Y;
