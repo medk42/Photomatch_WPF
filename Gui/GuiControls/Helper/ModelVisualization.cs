@@ -40,21 +40,19 @@ namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls.Helper
 		{
 			Vertex bestPoint = null;
 			Vector2 bestPointPos = new Vector2();
-			double bestDistance = 0;
-
-			Ray3D mouseRay = Perspective.ScreenToWorldRay(mouseCoord);
+			double bestScreenDistance = 0;
 
 			foreach (Vertex point in Model.Vertices)
 			{
 				Vector2 pointPos = Perspective.WorldToScreen(point.Position);
-				if (Window.ScreenDistance(mouseCoord, pointPos) < PointGrabRadius)
+				double screenDistance = Window.ScreenDistance(mouseCoord, pointPos);
+				if (screenDistance < PointGrabRadius)
 				{
-					Vector3Proj project = Intersections3D.ProjectVectorToRay(point.Position, mouseRay);
-					if (bestPoint == null || project.RayRelative < bestDistance)
+					if (bestPoint == null || screenDistance < bestScreenDistance)
 					{
 						bestPoint = point;
 						bestPointPos = pointPos;
-						bestDistance = project.RayRelative;
+						bestScreenDistance = screenDistance;
 					}
 				}
 			}
@@ -66,24 +64,20 @@ namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls.Helper
 		{
 			Edge bestEdge = null;
 			ILine bestLine = null;
-			double bestDistance = 0;
-
-			Ray3D mouseRay = Perspective.ScreenToWorldRay(mouseCoord);
+			double bestScreenDistance = 0;
 
 			foreach (var edgeTuple in ModelLines)
 			{
 				Line2D edgeLine = new Line2D(edgeTuple.Item1.Start, edgeTuple.Item1.End);
 				Vector2Proj proj = Intersections2D.ProjectVectorToRay(mouseCoord, edgeLine.AsRay());
-
-				if (proj.RayRelative >= 0 && proj.RayRelative <= edgeLine.Length && Window.ScreenDistance(mouseCoord, proj.Projection) < PointGrabRadius)
+				double screenDistance = Window.ScreenDistance(mouseCoord, proj.Projection);
+				if (proj.RayRelative >= 0 && proj.RayRelative <= edgeLine.Length && screenDistance < PointGrabRadius)
 				{
-					Line3D edgeLine3D = new Line3D(edgeTuple.Item2.Start.Position, edgeTuple.Item2.End.Position);
-					ClosestPoint3D closest = Intersections3D.GetRayRayClosest(mouseRay, edgeLine3D.AsRay());
-					if (bestEdge == null || closest.RayARelative < bestDistance)
+					if (bestEdge == null || screenDistance < bestScreenDistance)
 					{
 						bestEdge = edgeTuple.Item2;
 						bestLine = edgeTuple.Item1;
-						bestDistance = closest.RayARelative;
+						bestScreenDistance = screenDistance;
 					}
 				}
 			}
