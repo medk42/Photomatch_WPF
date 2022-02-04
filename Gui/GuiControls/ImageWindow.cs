@@ -78,13 +78,11 @@ namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls
 		public void KeyDown(KeyboardKey key)
 		{
 			ModelCreationHandler.KeyDown(key);
-			Control.KeyDown(key);
 		}
 
 		public void KeyUp(KeyboardKey key)
 		{
 			ModelCreationHandler.KeyUp(key);
-			Control.KeyUp(key);
 		}
 
 		public void Dispose()

@@ -12,6 +12,8 @@ using Photomatch_ProofOfConcept_WPF.Utilities;
 using Photomatch_ProofOfConcept_WPF.Logic;
 using System.ComponentModel;
 using System.Threading;
+using System.Collections.Generic;
+using System.Windows.Input;
 
 namespace Photomatch_ProofOfConcept_WPF
 {
@@ -32,6 +34,8 @@ namespace Photomatch_ProofOfConcept_WPF
 		private bool InvertedAxesCheckboxIgnore = false;
 		private BackgroundWorker CurrentBackgroundWorker = null;
 		private AutoResetEvent CurrentBackgroundWorkerResetEvent = new AutoResetEvent(false);
+
+		private HashSet<Key> PressedKeys = new HashSet<Key>();
 
 		private bool Active_ = true;
 		private bool Active
@@ -406,18 +410,32 @@ namespace Photomatch_ProofOfConcept_WPF
 
 		private void MyMainWindow_KeyDown(object sender, System.Windows.Input.KeyEventArgs e)
 		{
-			if (MainDockMgr.ActiveContent != null)
+			if (!PressedKeys.Contains(e.Key))
 			{
-				IKeyboardHandler keyboardHandler = MainDockMgr.ActiveContent as IKeyboardHandler;
-				if (keyboardHandler == null)
-					throw new Exception("Active window doesn't implement " + nameof(IKeyboardHandler));
-				keyboardHandler.KeyDown(sender, e);
-			}
+				PressedKeys.Add(e.Key);
 
+				KeyboardKey? key = e.Key.AsKeyboardKey();
+				if (key.HasValue)
+					AppControl.KeyDown(key.Value);
+
+				if (MainDockMgr.ActiveContent != null)
+				{
+					IKeyboardHandler keyboardHandler = MainDockMgr.ActiveContent as IKeyboardHandler;
+					if (keyboardHandler == null)
+						throw new Exception("Active window doesn't implement " + nameof(IKeyboardHandler));
+					keyboardHandler.KeyDown(sender, e);
+				}
+			}
 		}
 
 		private void MyMainWindow_KeyUp(object sender, System.Windows.Input.KeyEventArgs e)
 		{
+			PressedKeys.Remove(e.Key);
+
+			KeyboardKey? key = e.Key.AsKeyboardKey();
+			if (key.HasValue)
+				AppControl.KeyUp(key.Value);
+
 			if (MainDockMgr.ActiveContent != null)
 			{
 				IKeyboardHandler keyboardHandler = MainDockMgr.ActiveContent as IKeyboardHandler;
