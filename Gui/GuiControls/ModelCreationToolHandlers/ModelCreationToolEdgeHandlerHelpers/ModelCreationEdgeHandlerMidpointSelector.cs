@@ -17,6 +17,7 @@ namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls.ModelCreationToolHandler
 		private IWindow Window;
 
 		private double PointGrabRadius;
+		private bool Enabled = true;
 
 		public ModelCreationEdgeHandlerMidpointSelector(ModelVisualization modelVisualization, Model model, PerspectiveData perspective, IWindow window, double pointGrabRadius)
 		{
@@ -30,7 +31,7 @@ namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls.ModelCreationToolHandler
 		public IModelCreationEdgeHandlerVertex GetVertex(Vector2 mouseCoord)
 		{
 			var edgeTuple = ModelVisualization.GetEdgeUnderMouse(mouseCoord);
-			if (edgeTuple != null)
+			if (Enabled && edgeTuple != null)
 			{
 				Edge edge = edgeTuple.Item1;
 				Vector3 midpoint = (edge.Start.Position + edge.End.Position) / 2;
@@ -48,6 +49,18 @@ namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls.ModelCreationToolHandler
 		public void UpdateModel(Model model)
 		{
 			this.Model = model;
+		}
+
+		public void KeyDown(KeyboardKey key)
+		{
+			if (key == KeyboardKey.LeftCtrl)
+				Enabled = false;
+		}
+
+		public void KeyUp(KeyboardKey key)
+		{
+			if (key == KeyboardKey.LeftCtrl)
+				Enabled = true;
 		}
 	}
 }

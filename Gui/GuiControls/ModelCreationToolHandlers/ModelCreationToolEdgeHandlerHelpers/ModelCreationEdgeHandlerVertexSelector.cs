@@ -32,6 +32,7 @@ namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls.ModelCreationToolHandler
 		public ApplicationColor VertexColor => ApplicationColor.Vertex;
 
 		private ModelVisualization ModelVisualization;
+		private bool Enabled = true;
 
 		public ModelCreationEdgeHandlerVertexSelector(ModelVisualization modelVisualization)
 		{
@@ -41,7 +42,7 @@ namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls.ModelCreationToolHandler
 		public IModelCreationEdgeHandlerVertex GetVertex(Vector2 mouseCoord)
 		{
 			var vertexTuple = ModelVisualization.GetVertexUnderMouse(mouseCoord);
-			if (vertexTuple.Item1 != null)
+			if (Enabled && vertexTuple.Item1 != null)
 				return new SelectedVertex()
 				{
 					ScreenPosition = vertexTuple.Item2,
@@ -53,5 +54,17 @@ namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls.ModelCreationToolHandler
 		}
 
 		public void UpdateModel(Model model) { }
+
+		public void KeyDown(KeyboardKey key)
+		{
+			if (key == KeyboardKey.LeftCtrl)
+				Enabled = false;
+		}
+
+		public void KeyUp(KeyboardKey key)
+		{
+			if (key == KeyboardKey.LeftCtrl)
+				Enabled = true;
+		}
 	}
 }

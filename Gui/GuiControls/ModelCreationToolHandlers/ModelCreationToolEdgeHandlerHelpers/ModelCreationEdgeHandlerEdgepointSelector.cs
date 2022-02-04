@@ -46,5 +46,9 @@ namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls.ModelCreationToolHandler
 		{
 			this.Model = model;
 		}
+
+		public void KeyDown(KeyboardKey key) { }
+
+		public void KeyUp(KeyboardKey key) { }
 	}
 }

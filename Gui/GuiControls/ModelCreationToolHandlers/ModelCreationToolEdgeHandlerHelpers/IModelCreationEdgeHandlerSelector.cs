@@ -10,5 +10,7 @@ namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls.ModelCreationToolHandler
 		ApplicationColor VertexColor { get; }
 		IModelCreationEdgeHandlerVertex GetVertex(Vector2 mouseCoord);
 		void UpdateModel(Model model);
+		void KeyDown(KeyboardKey key);
+		void KeyUp(KeyboardKey key);
 	}
 }

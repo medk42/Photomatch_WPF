@@ -175,6 +175,9 @@ namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls.ModelCreationToolHandler
 		{
 			if (Active)
 			{
+				foreach (var selector in VertexSelectors)
+					selector.KeyDown(key);
+
 				switch (key)
 				{
 					case KeyboardKey.LeftShift:
@@ -194,6 +197,9 @@ namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls.ModelCreationToolHandler
 		{
 			if (Active)
 			{
+				foreach (var selector in VertexSelectors)
+					selector.KeyUp(key);
+
 				switch (key)
 				{
 					case KeyboardKey.LeftShift:
