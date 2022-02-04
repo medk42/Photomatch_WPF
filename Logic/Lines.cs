@@ -6,22 +6,53 @@ using Photomatch_ProofOfConcept_WPF.Utilities;
 
 namespace Photomatch_ProofOfConcept_WPF.Logic
 {
+	/// <summary>
+	/// Struct representing line in 2D as Vector2 of start and end.
+	/// </summary>
 	public struct Line2D : ISafeSerializable<Line2D>
 	{
+		/// <summary>
+		/// Line start.
+		/// </summary>
 		public Vector2 Start { get; set; }
+
+		/// <summary>
+		/// Line end.
+		/// </summary>
 		public Vector2 End { get; set; }
 
+		/// <summary>
+		/// Calculate the length of the line (not cached).
+		/// </summary>
 		public double Length => (Start - End).Magnitude;
 
+		/// <summary>
+		/// Create the line with specified start and end.
+		/// </summary>
 		public Line2D(Vector2 Start, Vector2 End)
 		{
 			this.Start = Start;
 			this.End = End;
 		}
 
+		/// <summary>
+		/// Create a new line with a different start, but same end.
+		/// </summary>
+		/// <param name="NewStart">new start coordinate to use</param>
+		/// <returns>New line with a different start, but same end.</returns>
 		public Line2D WithStart(Vector2 NewStart) => new Line2D(NewStart, this.End);
+
+		/// <summary>
+		/// Create a new line with a different end, but same start.
+		/// </summary>
+		/// <param name="NewEnd">new end coordinate to use</param>
+		/// <returns>New line with a different end, but same start.</returns>
 		public Line2D WithEnd(Vector2 NewEnd) => new Line2D(this.Start, NewEnd);
 
+		/// <summary>
+		/// Create a ray from the line.
+		/// </summary>
+		/// <returns>New ray struct with the same start point and direction.</returns>
 		public Ray2D AsRay() => new Ray2D(Start, End - Start);
 
 		public void Serialize(BinaryWriter writer)
@@ -37,26 +68,54 @@ namespace Photomatch_ProofOfConcept_WPF.Logic
 		}
 	}
 
+	/// <summary>
+	/// Struct representing ray in 2D as Vector2 of start and direction.
+	/// </summary>
 	public struct Ray2D : ISafeSerializable<Ray2D>
 	{
+		/// <summary>
+		/// Ray start.
+		/// </summary>
 		public Vector2 Start { get; set; }
 
-		private Vector2 _direction;
+		/// <summary>
+		/// Ray direction (normalized on set).
+		/// </summary>
 		public Vector2 Direction
 		{
 			get => _direction;
 			set => _direction = value.Normalized();
 		}
+		private Vector2 _direction;
 
+		/// <summary>
+		/// Create the ray with specified start and direction (normalized on set).
+		/// </summary>
+		/// <param name="Direction">Doesn't need to be normalized.</param>
 		public Ray2D(Vector2 Start, Vector2 Direction) : this()
 		{
 			this.Start = Start;
 			this.Direction = Direction;
 		}
 
+		/// <summary>
+		/// Create a new ray with a different start, but same direction.
+		/// </summary>
+		/// <param name="NewStart">new start coordinate to use</param>
+		/// <returns>New ray with a different start, but same direction.</returns>
 		public Ray2D WithStart(Vector2 NewStart) => new Ray2D(NewStart, this.Direction);
+
+		/// <summary>
+		/// Create a new ray with a different direction, but same start.
+		/// </summary>
+		/// <param name="NewDirection">new direction vector to use</param>
+		/// <returns>New ray with a different direction, but same start.</returns>
 		public Ray2D WithDirection(Vector2 NewDirection) => new Ray2D(this.Start, NewDirection);
 
+		/// <summary>
+		/// Create a line from the ray.
+		/// </summary>
+		/// <returns>New line struct with the same start point and (start + direction) as end point.</returns>
 		public Line2D AsLine() => new Line2D(Start, Start + Direction);
 
 
@@ -73,6 +132,9 @@ namespace Photomatch_ProofOfConcept_WPF.Logic
 		}
 	}
 
+	/// <summary>
+	/// Struct containing the result of 2D line intersections.
+	/// </summary>
 	public struct IntersectionPoint2D
 	{
 		/// <summary>
@@ -104,6 +166,9 @@ namespace Photomatch_ProofOfConcept_WPF.Logic
 		}
 	}
 
+	/// <summary>
+	/// Struct containing the result of vector projection in 2D.
+	/// </summary>
 	public struct Vector2Proj
 	{
 		/// <summary>
@@ -122,6 +187,9 @@ namespace Photomatch_ProofOfConcept_WPF.Logic
 		public double RayRelative { get; set; }
 	}
 
+	/// <summary>
+	/// Intersections and other checks in 2D space.
+	/// </summary>
 	public static class Intersections2D
 	{
 		/// <summary>
@@ -157,11 +225,11 @@ namespace Photomatch_ProofOfConcept_WPF.Logic
 
 		/// <summary>
 		/// Get the point of intersection between a ray and a box specified by "top-left" (smaller X and Y) and
-		/// "bottom-right" (bigger X and Y) corners. If the ray is outside the box, return ray origin.
+		/// "bottom-right" (bigger X and Y) corners. If the ray is outside the box, return invalid Vector2.
 		/// </summary>
 		/// <param name="corner1">Corner with smaller X and Y.</param>
 		/// <param name="corner2">Corner with bigger X and Y.</param>
-		/// <returns>Point of intersection between the ray and the box or ray origin if ray is outside the box</returns>
+		/// <returns>Point of intersection between the ray and the box or invalid Vector2 if the ray is outside the box</returns>
 		public static Vector2 GetRayInsideBoxIntersection(Ray2D ray, Vector2 corner1, Vector2 corner2)
 		{
 			if (corner1.X > corner2.X || corner1.Y > corner2.Y)
@@ -211,7 +279,7 @@ namespace Photomatch_ProofOfConcept_WPF.Logic
 		}
 
 		/// <summary>
-		/// Get a projection of a point onto ray as a Vector2 on the ray.
+		/// Get a projection of a point onto a ray as a Vector2 on the ray.
 		/// </summary>
 		public static Vector2Proj ProjectVectorToRay(Vector2 vector, Ray2D ray)
 		{
@@ -221,9 +289,11 @@ namespace Photomatch_ProofOfConcept_WPF.Logic
 		}
 
 		/// <summary>
-		/// Return whether a point is inside a polygon.
+		/// Return whether a point is inside a polygon. Potentially problematic if point has the same y coordinate 
+		/// as some vertex.
 		/// </summary>
 		/// <param name="vertices">Vertices defining the polygon.</param>
+		/// <returns>true if point is inside polygon, false otherwise</returns>
 		public static bool IsPointInsidePolygon(Vector2 point, List<Vector2> vertices)
 		{
 			int crossings = 0;
@@ -244,8 +314,9 @@ namespace Photomatch_ProofOfConcept_WPF.Logic
 		}
 
 		/// <summary>
-		/// Returns whether is a specified point on the right side of a line (specified by its endpoints).
+		/// Returns whether a specified point is on the right side of a line (specified by its endpoints).
 		/// </summary>
+		/// <returns>true if point is one right side, false otherwise</returns>
 		private static bool IsRight(Vector2 lineStart, Vector2 lineEnd, Vector2 point)
 		{
 			Vector2 startEnd = lineEnd - lineStart;
@@ -292,22 +363,53 @@ namespace Photomatch_ProofOfConcept_WPF.Logic
 		}
 	}
 
+	/// <summary>
+	/// Struct representing line in 3D as Vector3 of start and end.
+	/// </summary>
 	public struct Line3D : ISafeSerializable<Line3D>
 	{
+		/// <summary>
+		/// Line start.
+		/// </summary>
 		public Vector3 Start { get; set; }
+
+		/// <summary>
+		/// Line end.
+		/// </summary>
 		public Vector3 End { get; set; }
 
+		/// <summary>
+		/// Calculate the length of the line (not cached).
+		/// </summary>
 		public double Length => (Start - End).Magnitude;
 
+		/// <summary>
+		/// Create the line with specified start and end.
+		/// </summary>
 		public Line3D(Vector3 Start, Vector3 End)
 		{
 			this.Start = Start;
 			this.End = End;
 		}
 
+		/// <summary>
+		/// Create a new line with a different start, but same end.
+		/// </summary>
+		/// <param name="NewStart">new start coordinate to use</param>
+		/// <returns>New line with a different start, but same end.</returns>
 		public Line3D WithStart(Vector3 NewStart) => new Line3D(NewStart, this.End);
+
+		/// <summary>
+		/// Create a new line with a different end, but same start.
+		/// </summary>
+		/// <param name="NewEnd">new end coordinate to use</param>
+		/// <returns>New line with a different end, but same start.</returns>
 		public Line3D WithEnd(Vector3 NewEnd) => new Line3D(this.Start, NewEnd);
 
+		/// <summary>
+		/// Create a ray from the line.
+		/// </summary>
+		/// <returns>New ray struct with the same start point and direction.</returns>
 		public Ray3D AsRay() => new Ray3D(Start, End - Start);
 
 		public void Serialize(BinaryWriter writer)
@@ -323,26 +425,54 @@ namespace Photomatch_ProofOfConcept_WPF.Logic
 		}
 	}
 
+	/// <summary>
+	/// Struct representing ray in 3D as Vector3 of start and direction.
+	/// </summary>
 	public struct Ray3D : ISafeSerializable<Ray3D>
 	{
+		/// <summary>
+		/// Ray start.
+		/// </summary>
 		public Vector3 Start { get; set; }
 
-		private Vector3 _direction;
+		/// <summary>
+		/// Ray direction (normalized on set).
+		/// </summary>
 		public Vector3 Direction
 		{
 			get => _direction;
 			set => _direction = value.Normalized();
 		}
+		private Vector3 _direction;
 
+		/// <summary>
+		/// Create the ray with specified start and direction (normalized on set).
+		/// </summary>
+		/// <param name="Direction">Doesn't need to be normalized.</param>
 		public Ray3D(Vector3 Start, Vector3 Direction) : this()
 		{
 			this.Start = Start;
 			this.Direction = Direction;
 		}
 
+		/// <summary>
+		/// Create a new ray with a different start, but same direction.
+		/// </summary>
+		/// <param name="NewStart">new start coordinate to use</param>
+		/// <returns>New ray with a different start, but same direction.</returns>
 		public Ray3D WithStart(Vector3 NewStart) => new Ray3D(NewStart, this.Direction);
+
+		/// <summary>
+		/// Create a new ray with a different direction, but same start.
+		/// </summary>
+		/// <param name="NewDirection">new direction vector to use</param>
+		/// <returns>New ray with a different direction, but same start.</returns>
 		public Ray3D WithDirection(Vector3 NewDirection) => new Ray3D(this.Start, NewDirection);
 
+		/// <summary>
+		/// Create a line from the ray.
+		/// </summary>
+		/// <returns>New line struct with the same start point and (start + direction) as end point.</returns>
 		public Line3D AsLine() => new Line3D(Start, Start + Direction);
 
 		public void Serialize(BinaryWriter writer)
@@ -358,17 +488,31 @@ namespace Photomatch_ProofOfConcept_WPF.Logic
 		}
 	}
 
+	/// <summary>
+	/// Struct representing plane in 3D as Vector3 of its normal and a point on the plane.
+	/// </summary>
 	public struct Plane3D
 	{
+		/// <summary>
+		/// A point on the plane.
+		/// </summary>
 		public Vector3 PlanePoint { get; set; }
 
-		private Vector3 _Normal;
+		/// <summary>
+		/// Plane normal (normalized on set).
+		/// </summary>
 		public Vector3 Normal
 		{
 			get => _Normal;
 			set => _Normal = value.Normalized();
 		}
+		private Vector3 _Normal;
 
+		/// <summary>
+		/// Create the plane with specified normal (normalized on set) and a point on the plane.
+		/// </summary>
+		/// <param name="planePoint">Any point on the plane.</param>
+		/// <param name="normal">Doesn't need to be normalized.</param>
 		public Plane3D(Vector3 planePoint, Vector3 normal) : this()
 		{
 			this.PlanePoint = planePoint;
@@ -376,6 +520,9 @@ namespace Photomatch_ProofOfConcept_WPF.Logic
 		}
 	}
 
+	/// <summary>
+	/// Struct containing information about the closest point between two rays in 3D.
+	/// </summary>
 	public struct ClosestPoint3D
 	{
 		/// <summary>
@@ -404,6 +551,9 @@ namespace Photomatch_ProofOfConcept_WPF.Logic
 		public double Distance { get; set; }
 	}
 
+	/// <summary>
+	/// Struct containing the result of vector projection onto ray in 3D.
+	/// </summary>
 	public struct Vector3Proj
 	{
 		/// <summary>
@@ -422,6 +572,9 @@ namespace Photomatch_ProofOfConcept_WPF.Logic
 		public double RayRelative { get; set; }
 	}
 
+	/// <summary>
+	/// Struct containing the result of ray/plane intersection.
+	/// </summary>
 	public struct RayPlaneIntersectionPoint
 	{
 		/// <summary>
@@ -435,6 +588,9 @@ namespace Photomatch_ProofOfConcept_WPF.Logic
 		public double RayRelative { get; set; }
 	}
 
+	/// <summary>
+	/// Struct containing the result of ray/polygon intersection.
+	/// </summary>
 	public struct RayPolygonIntersectionPoint
 	{
 		/// <summary>
@@ -453,6 +609,9 @@ namespace Photomatch_ProofOfConcept_WPF.Logic
 		public bool IntersectedPolygon { get; set; }
 	}
 
+	/// <summary>
+	/// Intersections and other checks in 3D space.
+	/// </summary>
 	public static class Intersections3D
 	{
 		/// <summary>
@@ -470,9 +629,10 @@ namespace Photomatch_ProofOfConcept_WPF.Logic
 		///	</returns>
 		public static ClosestPoint3D GetRayRayClosest(Ray3D RayA, Ray3D RayB)
 		{
-			/* L1 = RayA.Start + t1 * RayA.Direction
-			 * L2 = RayB.Start + t2 * RayB.Direction
-			 * L3 = RayA.Start + t1 * RayA.Direction + t3 * tangent
+			/* based on the following math:
+			 * L1 = RayA.Start + t1 * RayA.Direction ... closest point on RayA
+			 * L2 = RayB.Start + t2 * RayB.Direction ... closest point on RayB
+			 * L3 = (RayA.Start + t1 * RayA.Direction) + t3 * tangent ... line from closest point on RayA to closest point on RayB
 			 * L3 = L2  =>  RayA.Start + t1 * RayA.Direction + t3 * tangent = RayB.Start + t2 * RayB.Direction
 			 * only t1, t2, t3 unknown, rest are known vectors with 3 components each => 3 equations, 3 unknowns
 			 * t1 * RayA.Direction - t2 * RayB.Direction + t3 * tangent = RayB.Start - RayA.Start
