@@ -38,44 +38,96 @@ namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls.Helper
 
 		public Tuple<Vertex, Vector2> GetVertexUnderMouse(Vector2 mouseCoord)
 		{
+			Vertex bestPoint = null;
+			Vector2 bestPointPos = new Vector2();
+			double bestDistance = 0;
+
+			Ray3D mouseRay = Perspective.ScreenToWorldRay(mouseCoord);
+
 			foreach (Vertex point in Model.Vertices)
 			{
 				Vector2 pointPos = Perspective.WorldToScreen(point.Position);
 				if (Window.ScreenDistance(mouseCoord, pointPos) < PointGrabRadius)
 				{
-					return new Tuple<Vertex, Vector2>(point, pointPos);
+					Vector3Proj project = Intersections3D.ProjectVectorToRay(point.Position, mouseRay);
+					if (bestPoint == null || project.RayRelative < bestDistance)
+					{
+						bestPoint = point;
+						bestPointPos = pointPos;
+						bestDistance = project.RayRelative;
+					}
 				}
 			}
-
-			return new Tuple<Vertex, Vector2>(null, new Vector2());
+	
+			return new Tuple<Vertex, Vector2>(bestPoint, bestPointPos);
 		}
 
 		public Tuple<Edge, ILine> GetEdgeUnderMouse(Vector2 mouseCoord)
 		{
+			Edge bestEdge = null;
+			ILine bestLine = null;
+			double bestDistance = 0;
+
+			Ray3D mouseRay = Perspective.ScreenToWorldRay(mouseCoord);
+
 			foreach (var edgeTuple in ModelLines)
 			{
 				Line2D edgeLine = new Line2D(edgeTuple.Item1.Start, edgeTuple.Item1.End);
 				Vector2Proj proj = Intersections2D.ProjectVectorToRay(mouseCoord, edgeLine.AsRay());
+
 				if (proj.RayRelative >= 0 && proj.RayRelative <= edgeLine.Length && Window.ScreenDistance(mouseCoord, proj.Projection) < PointGrabRadius)
-					return new Tuple<Edge, ILine>(edgeTuple.Item2, edgeTuple.Item1);
+				{
+					Line3D edgeLine3D = new Line3D(edgeTuple.Item2.Start.Position, edgeTuple.Item2.End.Position);
+					ClosestPoint3D closest = Intersections3D.GetRayRayClosest(mouseRay, edgeLine3D.AsRay());
+					if (bestEdge == null || closest.RayARelative < bestDistance)
+					{
+						bestEdge = edgeTuple.Item2;
+						bestLine = edgeTuple.Item1;
+						bestDistance = closest.RayARelative;
+					}
+				}
 			}
 
-			return null;
+			if (bestEdge == null)
+				return null;
+			else
+				return new Tuple<Edge, ILine>(bestEdge, bestLine);
 		}
 
 		public Tuple<Face, IPolygon> GetFaceUnderMouse(Vector2 mouseCoord)
 		{
+			Face bestFace = null;
+			IPolygon bestPolygon = null;
+			double bestDistance = 0;
+
+			Ray3D mouseRay = Perspective.ScreenToWorldRay(mouseCoord);
+
 			foreach (var faceTuple in ModelFaces)
 			{
 				List<Vector2> vertices = new List<Vector2>();
+				List<Vector3> vertices3D = new List<Vector3>();
 				for (int i = 0; i < faceTuple.Item1.Count; i++)
+				{
 					vertices.Add(faceTuple.Item1[i]);
+					vertices3D.Add(faceTuple.Item2[i].Position);
+				}
 
 				if (Intersections2D.IsPointInsidePolygon(mouseCoord, vertices))
-					return new Tuple<Face, IPolygon>(faceTuple.Item2, faceTuple.Item1);
+				{
+					RayPolygonIntersectionPoint intersection = Intersections3D.GetRayPolygonIntersection(mouseRay, vertices3D, faceTuple.Item2.Normal);
+					if (bestFace == null || intersection.RayRelative < bestDistance)
+					{
+						bestFace = faceTuple.Item2;
+						bestPolygon = faceTuple.Item1;
+						bestDistance = intersection.RayRelative;
+					}
+				}
 			}
 
-			return null;
+			if (bestFace == null)
+				return null;
+			else
+				return new Tuple<Face, IPolygon>(bestFace, bestPolygon);
 		}
 
 		public void ShowModel(bool show)
