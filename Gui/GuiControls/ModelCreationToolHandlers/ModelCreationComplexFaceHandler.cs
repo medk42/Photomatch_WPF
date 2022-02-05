@@ -113,7 +113,7 @@ namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls.ModelCreationToolHandler
 					Clear();
 					return;
 				}
-				else if (button == MouseButton.Right)
+				else if (button == MouseButton.Right || button == MouseButton.DoubleRight)
 				{
 					if (Vertices.Count > 1)
 					{
