@@ -280,7 +280,15 @@ namespace Photomatch_ProofOfConcept_WPF.Logic
 					UniqueVertices.Add(v);
 			}
 
-			RecalculateProperties();
+			try
+			{
+				RecalculateProperties();
+			}
+			catch (Exception e)
+			{
+				Dispose();
+				throw e;
+			}
 		}
 
 		/// <summary>
