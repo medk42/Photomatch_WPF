@@ -152,6 +152,27 @@ namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls.Helper
 			}
 		}
 
+		public void DisplayClippedFace(IPolygon polygon, Face face)
+		{
+			bool inside = true;
+			for (int i = 0; i < face.Count; i++)
+			{
+				if (!ViewFrustum.IsVectorInside(face[i].Position))
+				{
+					inside = false;
+					break;
+				}
+			}
+
+			if (inside)
+				for (int i = 0; i < face.Count; i++)
+					polygon[i] = Perspective.WorldToScreen(face[i].Position);
+			else
+
+				for (int i = 0; i < face.Count; i++)
+					polygon[i] = new Vector2();
+		}
+
 		public void UpdateDisplayedGeometry()
 		{
 			ViewFrustum.UpdateFrustum();
@@ -162,8 +183,7 @@ namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls.Helper
 			}
 
 			foreach (var faceTuple in ModelFaces)
-				for (int i = 0; i < faceTuple.Item2.Count; i++)
-					faceTuple.Item1[i] = Perspective.WorldToScreen(faceTuple.Item2[i].Position);
+				DisplayClippedFace(faceTuple.Item1, faceTuple.Item2);
 		}
 
 		private void EdgeRemoved(Edge edge)
@@ -205,8 +225,9 @@ namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls.Helper
 		{
 			IPolygon windowPolygon = Window.CreateFilledPolygon(ApplicationColor.Face);
 			for (int i = 0; i < face.Count; i++)
-				windowPolygon.Add(Perspective.WorldToScreen(face[i].Position));
-			FaceEventListener faceEventListener = new FaceEventListener(windowPolygon, Perspective);
+				windowPolygon.Add(new Vector2());
+			DisplayClippedFace(windowPolygon, face);
+			FaceEventListener faceEventListener = new FaceEventListener(windowPolygon, face, this);
 			face.FaceRemovedEvent += FaceRemoved;
 			face.VertexPositionChangedEvent += faceEventListener.FaceVertexPositionChanged;
 			ModelFaces.Add(new Tuple<IPolygon, Face, FaceEventListener>(windowPolygon, face, faceEventListener));

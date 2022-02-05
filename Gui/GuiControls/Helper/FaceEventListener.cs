@@ -8,17 +8,19 @@ namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls.Helper
 	class FaceEventListener
 	{
 		private readonly IPolygon WindowPolygon;
-		private readonly PerspectiveData Perspective;
+		private readonly Face Face;
+		private readonly ModelVisualization ModelVisualization;
 
-		public FaceEventListener(IPolygon windowPolygon, PerspectiveData perspective)
+		public FaceEventListener(IPolygon windowPolygon, Face face, ModelVisualization modelVisualization)
 		{
 			this.WindowPolygon = windowPolygon;
-			this.Perspective = perspective;
+			this.Face = face;
+			this.ModelVisualization = modelVisualization;
 		}
 
 		public void FaceVertexPositionChanged(Vector3 newPosition, int vertexId)
 		{
-			WindowPolygon[vertexId] = Perspective.WorldToScreen(newPosition);
+			ModelVisualization.DisplayClippedFace(WindowPolygon, Face);
 		}
 	}
 }
