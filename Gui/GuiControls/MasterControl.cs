@@ -135,9 +135,9 @@ namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls
 			catch (Exception ex)
 			{
 				if (ex is FileNotFoundException)
-					Logger.Log("Load Image", "File not found.", LogType.Warning);
+					Logger.Log("Load Image", "File not found.", LogType.SevereWarning);
 				else if (ex is UnknownImageFormatException)
-					Logger.Log("Load Image", "Incorrect or unsupported image format.", LogType.Warning);
+					Logger.Log("Load Image", "Incorrect or unsupported image format.", LogType.SevereWarning);
 				else
 					throw ex;
 			}
@@ -164,7 +164,7 @@ namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls
 			switch (State)
 			{
 				case ProjectState.None:
-					Logger.Log("Save Project", "Nothing to save.", LogType.Warning);
+					Logger.Log("Save Project", "Nothing to save.", LogType.SevereWarning);
 					return;
 				case ProjectState.NewProject:
 					SaveProjectAs_Pressed();
@@ -184,7 +184,7 @@ namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls
 			switch (State)
 			{
 				case ProjectState.None:
-					Logger.Log("Save Project", "Nothing to save.", LogType.Warning);
+					Logger.Log("Save Project", "Nothing to save.", LogType.SevereWarning);
 					return;
 				case ProjectState.NewProject:
 				case ProjectState.NamedProject:
@@ -231,13 +231,13 @@ namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls
 			catch (Exception ex)
 			{
 				if (ex is UnauthorizedAccessException)
-					Logger.Log("Save Project", "Unauthorized access to file.", LogType.Warning);
+					Logger.Log("Save Project", "Unauthorized access to file.", LogType.SevereWarning);
 				else if (ex is IOException)
-					Logger.Log("Save Project", "Save operation was not successful.", LogType.Warning);
+					Logger.Log("Save Project", "Save operation was not successful.", LogType.SevereWarning);
 				else if (ex is ArgumentException || ex is DirectoryNotFoundException || ex is NotSupportedException)
-					Logger.Log("Save Project", "Path is invalid.", LogType.Warning);
+					Logger.Log("Save Project", "Path is invalid.", LogType.SevereWarning);
 				else if (ex is PathTooLongException)
-					Logger.Log("Save Project", "Path is too long.", LogType.Warning);
+					Logger.Log("Save Project", "Path is too long.", LogType.SevereWarning);
 				else throw ex;
 
 				return false;
@@ -268,7 +268,7 @@ namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls
 					ulong checksum = reader.ReadUInt64();
 					if (ProjectFileChecksum != checksum)
 					{
-						Logger.Log("Load Project", "Invalid file.", LogType.Warning);
+						Logger.Log("Load Project", "Invalid file.", LogType.SevereWarning);
 						return;
 					}
 
@@ -303,17 +303,17 @@ namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls
 				this.Reset();
 
 				if (ex is UnauthorizedAccessException)
-					Logger.Log("Load Project", "Unauthorized access to file or path was directory.", LogType.Warning);
+					Logger.Log("Load Project", "Unauthorized access to file or path was directory.", LogType.SevereWarning);
 				else if (ex is IOException || ex is ArgumentOutOfRangeException)
-					Logger.Log("Load Project", "Invalid file.", LogType.Warning);
+					Logger.Log("Load Project", "Invalid file.", LogType.SevereWarning);
 				else if (ex is ArgumentException || ex is DirectoryNotFoundException || ex is NotSupportedException)
-					Logger.Log("Load Project", "Path is invalid.", LogType.Warning);
+					Logger.Log("Load Project", "Path is invalid.", LogType.SevereWarning);
 				else if (ex is PathTooLongException)
-					Logger.Log("Load Project", "Path is too long.", LogType.Warning);
+					Logger.Log("Load Project", "Path is too long.", LogType.SevereWarning);
 				else if (ex is FileNotFoundException)
-					Logger.Log("Load Project", "File not found.", LogType.Warning);
+					Logger.Log("Load Project", "File not found.", LogType.SevereWarning);
 				else
-					Logger.Log("Load Project", "Invalid file.", LogType.Warning);
+					Logger.Log("Load Project", "Invalid file.", LogType.SevereWarning);
 			}
 		}
 

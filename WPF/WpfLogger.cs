@@ -15,12 +15,14 @@ namespace Photomatch_ProofOfConcept_WPF.WPF
 				case LogType.Error:
 					MessageBox.Show(message, title, MessageBoxButton.OK, MessageBoxImage.Error);
 					break;
-				case LogType.Warning:
+				case LogType.SevereWarning:
 					MessageBox.Show(message, title, MessageBoxButton.OK, MessageBoxImage.Warning);
 					break;
 				case LogType.Info:
 					break;
 				case LogType.Progress:
+					break;
+				case LogType.Warning:
 					break;
 				default:
 					throw new Exception("Unknown enum type");
@@ -51,8 +53,15 @@ namespace Photomatch_ProofOfConcept_WPF.WPF
 				case LogType.Error:
 					message = $"ERROR ({title}): {message}";
 					break;
+				case LogType.SevereWarning:
+					message = $"WARNING ({title}): {message}";
+					StatusLabel.Foreground = Brushes.Red;
+					StatusLabel.FontWeight = FontWeights.Bold;
+					break;
 				case LogType.Warning:
 					message = $"WARNING ({title}): {message}";
+					StatusLabel.Foreground = Brushes.Red;
+					StatusLabel.FontWeight = FontWeights.Bold;
 					break;
 				case LogType.Info:
 					message = $"INFO ({title}): {message}";

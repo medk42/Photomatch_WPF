@@ -7,7 +7,7 @@ namespace Photomatch_ProofOfConcept_WPF.Utilities
 	/// </summary>
 	public enum LogType
 	{
-		Error, Warning, Info, Progress
+		Error, SevereWarning, Warning, Info, Progress
 	}
 
 	/// <summary>

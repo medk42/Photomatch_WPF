@@ -311,13 +311,13 @@ namespace Photomatch_ProofOfConcept_WPF.Logic
 			catch (Exception ex)
 			{
 				if (ex is UnauthorizedAccessException)
-					logger.Log("Export Model", "Unauthorized access to file.", LogType.Warning);
+					logger.Log("Export Model", "Unauthorized access to file.", LogType.SevereWarning);
 				else if (ex is IOException)
-					logger.Log("Export Model", "Save operation was not successful.", LogType.Warning);
+					logger.Log("Export Model", "Save operation was not successful.", LogType.SevereWarning);
 				else if (ex is ArgumentException || ex is DirectoryNotFoundException || ex is NotSupportedException)
-					logger.Log("Export Model", "Path is invalid.", LogType.Warning);
+					logger.Log("Export Model", "Path is invalid.", LogType.SevereWarning);
 				else if (ex is PathTooLongException)
-					logger.Log("Export Model", "Path is too long.", LogType.Warning);
+					logger.Log("Export Model", "Path is too long.", LogType.SevereWarning);
 				else throw ex;
 
 				return;
