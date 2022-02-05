@@ -90,6 +90,7 @@ namespace Photomatch_ProofOfConcept_WPF.WPF.ViewModel
 		public GeometryGroup VertexLinesGeometry { get; } = new GeometryGroup();
 		public GeometryGroup MidpointLinesGeometry { get; } = new GeometryGroup();
 		public GeometryGroup EdgepointLinesGeometry { get; } = new GeometryGroup();
+		public GeometryGroup InvalidLinesGeometry { get; } = new GeometryGroup();
 		public ICommand Viewbox_SizeChanged { get; private set; }
 		public ICommand Image_Loaded { get; private set; }
 		public ICommand MoveViewbox_Loaded { get; private set; }
@@ -214,6 +215,7 @@ namespace Photomatch_ProofOfConcept_WPF.WPF.ViewModel
 			VertexLinesGeometry.FillRule = FillRule.Nonzero;
 			MidpointLinesGeometry.FillRule = FillRule.Nonzero;
 			EdgepointLinesGeometry.FillRule = FillRule.Nonzero;
+			InvalidLinesGeometry.FillRule = FillRule.Nonzero;
 		}
 
         public void Close()
@@ -301,6 +303,7 @@ namespace Photomatch_ProofOfConcept_WPF.WPF.ViewModel
 			VertexLinesGeometry.Children.Clear();
 			MidpointLinesGeometry.Children.Clear();
 			EdgepointLinesGeometry.Children.Clear();
+			InvalidLinesGeometry.Children.Clear();
 			scalables.Clear(); 
 			ImageSource = null;
 

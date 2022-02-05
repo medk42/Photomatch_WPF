@@ -36,6 +36,7 @@
                 <Path x:Name="VertexLines" Stroke="Black" Fill="Black" Data="{Binding VertexLinesGeometry}" StrokeThickness="{Binding LineStrokeThickness}"/>
                 <Path x:Name="MidpointLines" Stroke="Gold" Fill="Gold" Data="{Binding MidpointLinesGeometry}" StrokeThickness="{Binding LineStrokeThickness}"/>
                 <Path x:Name="EdgepointLines" Stroke="White" Fill="White" Data="{Binding EdgepointLinesGeometry}" StrokeThickness="{Binding LineStrokeThickness}"/>
+                <Path x:Name="InvalidLines" Stroke="Red" Fill="Red" Data="{Binding InvalidLinesGeometry}" StrokeThickness="{Binding LineStrokeThickness}"/>
             </Grid>
         </Viewbox>
     </Grid>

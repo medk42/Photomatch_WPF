@@ -90,6 +90,9 @@ namespace Photomatch_ProofOfConcept_WPF.WPF
 				case ApplicationColor.Edgepoint:
 					geometry = imageViewModel.EdgepointLinesGeometry;
 					break;
+				case ApplicationColor.Invalid:
+					geometry = imageViewModel.InvalidLinesGeometry;
+					break;
 				default:
 					throw new ArgumentException("Unknown application color.");
 			}
@@ -129,6 +132,8 @@ namespace Photomatch_ProofOfConcept_WPF.WPF
 					return Brushes.Gold;
 				case ApplicationColor.Edgepoint:
 					return Brushes.White;
+				case ApplicationColor.Invalid:
+					return Brushes.Red;
 				default:
 					throw new ArgumentException("Unknown application color.");
 			}

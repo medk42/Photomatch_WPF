@@ -41,10 +41,10 @@ namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls.ModelCreationToolHandler
 			return true;
 		}
 
-		private bool CheckLineCross(Vector2 position)
+		private bool IsLineCross(Vector2 position)
 		{
 			if (Vertices.Count <= 2)
-				return true;
+				return false;
 
 			for (int i = ((position == Lines[1].Start) ? 2 : 1); i < Lines.Count - 2; i++)
 			{
@@ -53,8 +53,30 @@ namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls.ModelCreationToolHandler
 
 				IntersectionPoint2D lineCountIntersection = Intersections2D.GetLineLineIntersection(new Line2D(Lines[i].Start, Lines[i].End), new Line2D(Lines[Lines.Count - 1].Start, position));
 				if (lineCountIntersection.LineARelative >= 0 && lineCountIntersection.LineARelative <= 1 && lineCountIntersection.LineBRelative >= 0 && lineCountIntersection.LineBRelative <= 1)
+					return true;
+			}
+
+			return false;
+		}
+
+		private bool CheckLineCross(Vector2 position)
+		{
+			bool lineCross = IsLineCross(position);
+			if (lineCross)
+				Logger.Log("Complex Face Creation", "Face edges can not cross each other.", LogType.Warning);
+
+			return !lineCross;
+		}
+
+		private bool IsNormalValid(Vertex vertex)
+		{
+			if (Vertices.Count >= 3)
+			{
+				Vector3 faceNormal = Vector3.Cross(Vertices[1].Position - Vertices[0].Position, Vertices[2].Position - Vertices[0].Position).Normalized();
+				RayPlaneIntersectionPoint intersectionPoint = Intersections3D.GetRayPlaneIntersection(new Ray3D(vertex.Position, faceNormal), new Plane3D(Vertices[0].Position, faceNormal));
+
+				if (Math.Abs(intersectionPoint.RayRelative) > 1e-6)
 				{
-					Logger.Log("Complex Face Creation", "Face edges can not cross each other.", LogType.Warning);
 					return false;
 				}
 			}
@@ -64,19 +86,11 @@ namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls.ModelCreationToolHandler
 
 		private bool CheckNormal(Vertex vertex)
 		{
-			if (Vertices.Count >= 3)
-			{
-				Vector3 faceNormal = Vector3.Cross(Vertices[1].Position - Vertices[0].Position, Vertices[2].Position - Vertices[0].Position).Normalized();
-				RayPlaneIntersectionPoint intersectionPoint = Intersections3D.GetRayPlaneIntersection(new Ray3D(vertex.Position, faceNormal), new Plane3D(Vertices[0].Position, faceNormal));
+			bool valid = IsNormalValid(vertex);
+			if (!valid)
+				Logger.Log("Complex Face Creation", "Selected vertex does not lay on the same plane.", LogType.Warning);
 
-				if (Math.Abs(intersectionPoint.RayRelative) > 1e-6)
-				{
-					Logger.Log("Complex Face Creation", "Selected vertex does not lay on the same plane.", LogType.Warning);
-					return false;
-				}
-			}
-
-			return true;
+			return valid;
 		}
 
 		public override void MouseDown(Vector2 mouseCoord, MouseButton button)
@@ -108,6 +122,9 @@ namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls.ModelCreationToolHandler
 
 				if (foundPoint != null)
 				{
+					if (!CheckNormal(foundPoint))
+						return;
+
 					if (!CheckLineCross(foundPosition))
 						return;
 
@@ -123,9 +140,6 @@ namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls.ModelCreationToolHandler
 							return;
 						}
 					}
-
-					if (!CheckNormal(foundPoint))
-						return;
 
 					if (Vertices.Count > 0)
 						Lines[Vertices.Count].End = foundPosition;
@@ -144,7 +158,16 @@ namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls.ModelCreationToolHandler
 		{
 			if (Active)
 			{
+				ModelVisualization.ModelHoverEllipse.Ellipse.Color = ApplicationColor.Vertex;
 				ModelVisualization.ModelHoverEllipse.MouseEvent(mouseCoord);
+				var foundVertex = ModelVisualization.GetVertexUnderMouse(mouseCoord);
+				if (foundVertex.Item1 != null)
+				{
+					if (!IsNormalValid(foundVertex.Item1) || IsLineCross(foundVertex.Item2))
+					{
+						ModelVisualization.ModelHoverEllipse.Ellipse.Color = ApplicationColor.Invalid;
+					}
+				}
 
 				if (Vertices.Count > 0)
 				{
@@ -178,6 +201,7 @@ namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls.ModelCreationToolHandler
 		internal override void SetActive(bool active)
 		{
 			ModelVisualization.ModelHoverEllipse.Active = active;
+			ModelVisualization.ModelHoverEllipse.Ellipse.Color = ApplicationColor.Vertex;
 
 			if (!active)
 				Clear();
