@@ -23,20 +23,16 @@ namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls.Helper
 
 		public IEllipse Ellipse { get; set; }
 
-		private Model Model;
-		private PerspectiveData Perspective;
+		private ModelVisualization ModelVisualization;
 		private IWindow Window;
-		private double PointGrabRadius;
 		private double PointDrawRadius;
 		private Vector2 LastMouse;
 
-		public ModelHoverEllipse(Model model, PerspectiveData perspective, IWindow window, double pointGrabRadius, double pointDrawRadius)
+		public ModelHoverEllipse(ModelVisualization modelVisualization, IWindow window, double pointDrawRadius)
 		{
-			this.Model = model;
+			this.ModelVisualization = modelVisualization;
 			this.Window = window;
-			this.PointGrabRadius = pointGrabRadius;
 			this.PointDrawRadius = pointDrawRadius;
-			this.Perspective = perspective;
 
 			this.Ellipse = Window.CreateEllipse(new Vector2(), PointDrawRadius, ApplicationColor.Vertex);
 			this.Ellipse.Visible = false;
@@ -49,19 +45,19 @@ namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls.Helper
 			if (!Active)
 				return false;
 
-			Ellipse.Visible = false;
-			foreach (Vertex point in Model.Vertices)
-			{
-				Vector2 pointPos = Perspective.WorldToScreen(point.Position);
-				if (Window.ScreenDistance(mouseCoord, pointPos) < PointGrabRadius)
-				{
-					Ellipse.Position = pointPos;
-					Ellipse.Visible = true;
-					return true;
-				}
-			}
+			Tuple<Vertex, Vector2> foundVertex = ModelVisualization.GetVertexUnderMouse(mouseCoord);
 
-			return false;
+			if (foundVertex.Item1 != null)
+			{
+				Ellipse.Position = foundVertex.Item2;
+				Ellipse.Visible = true;
+				return true;
+			}
+			else
+			{
+				Ellipse.Visible = false;
+				return false;
+			}
 		}
 
 		private void SetActive(bool active)
@@ -70,11 +66,6 @@ namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls.Helper
 				MouseEvent(LastMouse);
 			else
 				Ellipse.Visible = false;
-		}
-
-		public void UpdateModel(Model model)
-		{
-			Model = model;
 		}
 	}
 }

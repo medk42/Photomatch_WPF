@@ -31,7 +31,7 @@ namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls.Helper
 			this.PointGrabRadius = pointGrabRadius;
 			this.PointDrawRadius = pointDrawRadius;
 
-			this.ModelHoverEllipse = new ModelHoverEllipse(Model, Perspective, Window, PointGrabRadius, PointDrawRadius);
+			this.ModelHoverEllipse = new ModelHoverEllipse(this, Window, PointDrawRadius);
 
 			CreateModelLines();
 		}
@@ -239,8 +239,6 @@ namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls.Helper
 			Model = model;
 			CreateModelLines();
 			ShowModel(Show);
-
-			ModelHoverEllipse.UpdateModel(model);
 		}
 	}
 }
