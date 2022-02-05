@@ -9,6 +9,8 @@ namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls.Helper
 	{
 		public ModelHoverEllipse ModelHoverEllipse { get; }
 		public ILine ModelDraggingLine { get; private set; }
+		public List<Tuple<ILine, Edge, EdgeEventListener>> ModelLines { get; } = new List<Tuple<ILine, Edge, EdgeEventListener>>();
+		public List<Tuple<IPolygon, Face, FaceEventListener>> ModelFaces { get; } = new List<Tuple<IPolygon, Face, FaceEventListener>>();
 
 		private Model Model;
 		private IWindow Window;
@@ -17,9 +19,6 @@ namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls.Helper
 
 		private double PointGrabRadius;
 		private double PointDrawRadius;
-
-		private List<Tuple<ILine, Edge, EdgeEventListener>> ModelLines = new List<Tuple<ILine, Edge, EdgeEventListener>>();
-		private List<Tuple<IPolygon, Face, FaceEventListener>> ModelFaces = new List<Tuple<IPolygon, Face, FaceEventListener>>();
 
 		private bool Show = true;
 

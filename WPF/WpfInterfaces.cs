@@ -7,7 +7,7 @@ namespace Photomatch_ProofOfConcept_WPF.WPF
 	/// <summary>
 	/// Implemented by objects that want to be updated when some scale changes.
 	/// </summary>
-	interface IScalable
+	public interface IScalable
 	{
 		/// <summary>
 		/// Called to notify about a scale change.

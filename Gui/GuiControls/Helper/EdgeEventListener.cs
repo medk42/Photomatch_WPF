@@ -6,7 +6,7 @@ using Photomatch_ProofOfConcept_WPF.Logic;
 
 namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls.Helper
 {
-	class EdgeEventListener
+	public class EdgeEventListener
 	{
 		private readonly ILine WindowLine;
 		private readonly Edge Edge;

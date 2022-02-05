@@ -5,7 +5,7 @@ using System.Text;
 
 namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls.Helper
 {
-	class FaceEventListener
+	public class FaceEventListener
 	{
 		private readonly IPolygon WindowPolygon;
 		private readonly Face Face;

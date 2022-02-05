@@ -163,6 +163,7 @@ namespace Photomatch_ProofOfConcept_WPF
 		private void EdgeRadioButton_Checked(object sender, RoutedEventArgs e) => ActionListener?.ModelCreationTool_Changed(ModelCreationTool.Edge);
 		private void TriangleFaceRadioButton_Checked(object sender, RoutedEventArgs e) => ActionListener?.ModelCreationTool_Changed(ModelCreationTool.TriangleFace);
 		private void ComplexFaceRadioButton_Checked(object sender, RoutedEventArgs e) => ActionListener?.ModelCreationTool_Changed(ModelCreationTool.ComplexFace);
+		private void FaceNormalRadioButton_Checked(object sender, RoutedEventArgs e) => ActionListener?.ModelCreationTool_Changed(ModelCreationTool.FaceNormals);
 		private void CalibrateOriginRadioButton_Checked(object sender, RoutedEventArgs e) => ActionListener?.CameraModelCalibrationTool_Changed(CameraModelCalibrationTool.CalibrateOrigin);
 		private void CalibrateScaleRadioButton_Checked(object sender, RoutedEventArgs e) => ActionListener?.CameraModelCalibrationTool_Changed(CameraModelCalibrationTool.CalibrateScale);
 
@@ -345,6 +346,9 @@ namespace Photomatch_ProofOfConcept_WPF
 					break;
 				case ModelCreationTool.ComplexFace:
 					ComplexFaceRadioButton.IsChecked = true;
+					break;
+				case ModelCreationTool.FaceNormals:
+					FaceNormalRadioButton.IsChecked = true;
 					break;
 				default:
 					throw new Exception("Unknown switch case.");

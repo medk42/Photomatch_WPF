@@ -91,6 +91,9 @@ namespace Photomatch_ProofOfConcept_WPF.WPF.ViewModel
 		public GeometryGroup MidpointLinesGeometry { get; } = new GeometryGroup();
 		public GeometryGroup EdgepointLinesGeometry { get; } = new GeometryGroup();
 		public GeometryGroup InvalidLinesGeometry { get; } = new GeometryGroup();
+		public GeometryGroup NormalLinesGeometry { get; } = new GeometryGroup();
+		public GeometryGroup NormalInsideLinesGeometry { get; } = new GeometryGroup();
+		public GeometryGroup NormalOutsideLinesGeometry { get; } = new GeometryGroup();
 		public ICommand Viewbox_SizeChanged { get; private set; }
 		public ICommand Image_Loaded { get; private set; }
 		public ICommand MoveViewbox_Loaded { get; private set; }
@@ -115,7 +118,7 @@ namespace Photomatch_ProofOfConcept_WPF.WPF.ViewModel
 			{
 				_Scale = value;
 				LineStrokeThickness = DefaultLineStrokeThickness / ViewboxImageScale / Scale; 
-				foreach (var scalable in scalables)
+				foreach (var scalable in Scalables)
 				{
 					scalable.SetNewScale(ViewboxImageScale * Scale);
 				}
@@ -158,11 +161,11 @@ namespace Photomatch_ProofOfConcept_WPF.WPF.ViewModel
 
 		public CalibrationAxes CurrentCalibrationAxes { get; private set; }
 		public InvertedAxes CurrentInvertedAxes { get; private set; }
+		public List<IScalable> Scalables { get; } = new List<IScalable>();
 
 		private ILogger Logger;
 		private ImageWindow ImageWindow;
 		private double ViewboxImageScale = double.NaN;
-		private List<IScalable> scalables = new List<IScalable>();
 		private Image ImageView;
 		private Viewbox MoveViewbox;
 		private Grid FixedGrid;
@@ -216,6 +219,9 @@ namespace Photomatch_ProofOfConcept_WPF.WPF.ViewModel
 			MidpointLinesGeometry.FillRule = FillRule.Nonzero;
 			EdgepointLinesGeometry.FillRule = FillRule.Nonzero;
 			InvalidLinesGeometry.FillRule = FillRule.Nonzero;
+			NormalLinesGeometry.FillRule = FillRule.Nonzero;
+			NormalInsideLinesGeometry.FillRule = FillRule.Nonzero;
+			NormalOutsideLinesGeometry.FillRule = FillRule.Nonzero;
 		}
 
         public void Close()
@@ -271,7 +277,7 @@ namespace Photomatch_ProofOfConcept_WPF.WPF.ViewModel
 
 			wpfLine.SetNewScale(ViewboxImageScale * Scale);
 			if (wpfLine.StartEllipse != null && wpfLine.EndEllipse != null)
-				scalables.Add(wpfLine);
+				Scalables.Add(wpfLine);
 
 			return wpfLine;
 		}
@@ -281,7 +287,7 @@ namespace Photomatch_ProofOfConcept_WPF.WPF.ViewModel
 			var wpfEllipse = new WpfEllipse(position.AsPoint(), radius, this, color);
 
 			wpfEllipse.SetNewScale(ViewboxImageScale * Scale);
-			scalables.Add(wpfEllipse);				
+			Scalables.Add(wpfEllipse);				
 
 			return wpfEllipse;
 		}
@@ -304,7 +310,10 @@ namespace Photomatch_ProofOfConcept_WPF.WPF.ViewModel
 			MidpointLinesGeometry.Children.Clear();
 			EdgepointLinesGeometry.Children.Clear();
 			InvalidLinesGeometry.Children.Clear();
-			scalables.Clear(); 
+			NormalLinesGeometry.Children.Clear();
+			NormalInsideLinesGeometry.Children.Clear();
+			NormalOutsideLinesGeometry.Children.Clear();
+			Scalables.Clear(); 
 			ImageSource = null;
 
 			IsClosed = true;
@@ -455,7 +464,7 @@ namespace Photomatch_ProofOfConcept_WPF.WPF.ViewModel
 			ViewboxImageScale = viewboxSize.Height / ImageSource.Height;
 			LineStrokeThickness = DefaultLineStrokeThickness / ViewboxImageScale / Scale;
 
-			foreach (var scalable in scalables)
+			foreach (var scalable in Scalables)
 			{
 				scalable.SetNewScale(ViewboxImageScale * Scale);
 			}

@@ -39,6 +39,12 @@ namespace Photomatch_ProofOfConcept_WPF.Logic
 	public delegate void VertexPositionChangedEventHandler(Vector3 position, int id);
 
 	/// <summary>
+	/// Event handler for user setting reverse of a face manually.
+	/// </summary>
+	/// <param name="reverse">true if user set face to reversed</param>
+	public delegate void FaceUserReverseSetEventHandler(bool reverse);
+
+	/// <summary>
 	/// Class containing data about 3D model vertex.
 	/// </summary>
 	public class Vertex
@@ -188,6 +194,11 @@ namespace Photomatch_ProofOfConcept_WPF.Logic
 		public event FaceRemovedEventHandler FaceRemovedEvent;
 
 		/// <summary>
+		/// Event called on user manually changing reverse;
+		/// </summary>
+		public event FaceUserReverseSetEventHandler FaceUserReverseSetEvent;
+
+		/// <summary>
 		/// Get vertex with ID i.
 		/// </summary>
 		/// <param name="i">ID of vertex to return</param>
@@ -209,8 +220,10 @@ namespace Photomatch_ProofOfConcept_WPF.Logic
 		/// </summary>
 		public bool Reversed
 		{
-			get => FacesFront.Count % 2 == 1;
+			get => UserReversed ?? (FacesFront.Count % 2 == 1);
 		}
+
+		public bool? UserReversed { get; set; } = null;
 
 		/// <summary>
 		/// Face normal. Calculated from first 3 vertices and reversed if the normal is facing the wrong way. 
@@ -266,6 +279,15 @@ namespace Photomatch_ProofOfConcept_WPF.Logic
 			}
 
 			RecalculateProperties();
+		}
+
+		/// <summary>
+		/// Reverse face by user action. Face reversal will no longer be calculated automatically.
+		/// </summary>
+		public void UserReverse()
+		{
+			UserReversed = !Reversed;
+			FaceUserReverseSetEvent?.Invoke(UserReversed.Value);
 		}
 
 		/// <summary>
@@ -341,6 +363,7 @@ namespace Photomatch_ProofOfConcept_WPF.Logic
 		{
 			FaceRemovedEvent = null;
 			VertexPositionChangedEvent = null;
+			FaceUserReverseSetEvent = null;
 
 			for (int i = 0; i < Count; i++)
 			{
@@ -652,6 +675,7 @@ namespace Photomatch_ProofOfConcept_WPF.Logic
 
 			newFace.FaceRemovedEvent += RemoveFace;
 			newFace.VertexPositionChangedEvent += (position, id) => FaceUpdated(newFace);
+			newFace.FaceUserReverseSetEvent += (reverse) => ModelChangedEvent?.Invoke();
 
 			foreach (Face face in Faces)
 			{
@@ -677,7 +701,7 @@ namespace Photomatch_ProofOfConcept_WPF.Logic
 			{
 				f.FaceChanged(face);
 				face.FaceChanged(f);
-			}					
+			}
 		}
 
 		/// <summary>
@@ -785,6 +809,10 @@ namespace Photomatch_ProofOfConcept_WPF.Logic
 				writer.Write(f.Count);
 				for (int i = 0; i < f.Count; i++)
 					writer.Write(Vertices.IndexOf(f[i]));
+
+				writer.Write(f.UserReversed.HasValue);
+				if (f.UserReversed.HasValue)
+					writer.Write(f.UserReversed.Value);
 			}
 		}
 
@@ -809,7 +837,10 @@ namespace Photomatch_ProofOfConcept_WPF.Logic
 				int faceVertexCount = reader.ReadInt32();
 				for (int j = 0; j < faceVertexCount; j++)
 					vertices.Add(Vertices[reader.ReadInt32()]);
-				AddFace(vertices);
+				Face face = AddFace(vertices);
+
+				if (reader.ReadBoolean())
+					face.UserReversed = reader.ReadBoolean();
 			}
 		}
 

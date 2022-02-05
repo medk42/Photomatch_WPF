@@ -6,13 +6,13 @@ namespace Photomatch_ProofOfConcept_WPF.Gui
 {
 	public enum MouseButton { Left, Right, Middle, DoubleLeft, DoubleRight, DoubleMiddle }
 
-	public enum ApplicationColor { XAxis, YAxis, ZAxis, Model, Selected, Face, Highlight, Vertex, Midpoint, Edgepoint, Invalid }
+	public enum ApplicationColor { XAxis, YAxis, ZAxis, Model, Selected, Face, Highlight, Vertex, Midpoint, Edgepoint, Invalid, NormalLine, NormalInside, NormalOutside }
 
 	public enum DesignTool { CameraCalibration, CameraModelCalibration, ModelCreation }
 
 	public enum KeyboardKey { LeftShift, Escape, LeftCtrl, Y, Z, S };
 
-	public enum ModelCreationTool { Delete, Edge, TriangleFace, ComplexFace };
+	public enum ModelCreationTool { Delete, Edge, TriangleFace, ComplexFace, FaceNormals };
 
 	public enum CameraModelCalibrationTool { CalibrateOrigin, CalibrateScale };
 }

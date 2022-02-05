@@ -42,7 +42,8 @@ namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls
 				new ModelCreationEdgeHandler(Perspective, Model, ModelVisualization, window, pointDrawRadius, pointGrabRadius),
 				new ModelCreationDeleteHandler(ModelVisualization),
 				new ModelCreationTriangleFaceHandler(ModelVisualization, Model, window),
-				new ModelCreationComplexFaceHandler(ModelVisualization, Model, window, logger)
+				new ModelCreationComplexFaceHandler(ModelVisualization, Model, window, logger),
+				new ModelCreationFaceNormalsHandler(ModelVisualization, model, window, Perspective)
 			}; 
 
 			this.Active = false;

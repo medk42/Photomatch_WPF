@@ -93,6 +93,15 @@ namespace Photomatch_ProofOfConcept_WPF.WPF
 				case ApplicationColor.Invalid:
 					geometry = imageViewModel.InvalidLinesGeometry;
 					break;
+				case ApplicationColor.NormalLine:
+					geometry = imageViewModel.NormalLinesGeometry;
+					break;
+				case ApplicationColor.NormalInside:
+					geometry = imageViewModel.NormalInsideLinesGeometry;
+					break;
+				case ApplicationColor.NormalOutside:
+					geometry = imageViewModel.NormalOutsideLinesGeometry;
+					break;
 				default:
 					throw new ArgumentException("Unknown application color.");
 			}
@@ -134,6 +143,12 @@ namespace Photomatch_ProofOfConcept_WPF.WPF
 					return Brushes.White;
 				case ApplicationColor.Invalid:
 					return Brushes.Red;
+				case ApplicationColor.NormalLine:
+					return Brushes.Black;
+				case ApplicationColor.NormalInside:
+					return Brushes.Red;
+				case ApplicationColor.NormalOutside:
+					return Brushes.Green;
 				default:
 					throw new ArgumentException("Unknown application color.");
 			}
@@ -386,6 +401,7 @@ namespace Photomatch_ProofOfConcept_WPF.WPF
 			Line = null;
 			StartEllipse = null;
 			EndEllipse = null;
+			ImageViewModel.Scalables.Remove(this);
 		}
 	}
 
@@ -438,6 +454,7 @@ namespace Photomatch_ProofOfConcept_WPF.WPF
 		{
 			RemoveOldColor(Color);
 			Ellipse = null;
+			ImageViewModel.Scalables.Remove(this);
 		}
 	}
 }

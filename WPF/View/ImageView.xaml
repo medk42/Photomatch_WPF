@@ -37,6 +37,9 @@
                 <Path x:Name="MidpointLines" Stroke="Gold" Fill="Gold" Data="{Binding MidpointLinesGeometry}" StrokeThickness="{Binding LineStrokeThickness}"/>
                 <Path x:Name="EdgepointLines" Stroke="White" Fill="White" Data="{Binding EdgepointLinesGeometry}" StrokeThickness="{Binding LineStrokeThickness}"/>
                 <Path x:Name="InvalidLines" Stroke="Red" Fill="Red" Data="{Binding InvalidLinesGeometry}" StrokeThickness="{Binding LineStrokeThickness}"/>
+                <Path x:Name="NormalLines" Stroke="Black" Fill="Black" Data="{Binding NormalLinesGeometry}" StrokeThickness="{Binding LineStrokeThickness}"/>
+                <Path x:Name="NormalInsideLines" Stroke="Red" Fill="Red" Data="{Binding NormalInsideLinesGeometry}" StrokeThickness="{Binding LineStrokeThickness}"/>
+                <Path x:Name="NormalOutsideLines" Stroke="Green" Fill="Green" Data="{Binding NormalOutsideLinesGeometry}" StrokeThickness="{Binding LineStrokeThickness}"/>
             </Grid>
         </Viewbox>
     </Grid>
