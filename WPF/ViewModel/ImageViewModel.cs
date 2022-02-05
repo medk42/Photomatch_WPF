@@ -307,21 +307,21 @@ namespace Photomatch_ProofOfConcept_WPF.WPF.ViewModel
 			IsClosed = true;
 		}
 
-		private Gui.MouseButton? GetMouseButton(System.Windows.Input.MouseButton button)
+		private Gui.MouseButton? GetMouseButton(System.Windows.Input.MouseButton button, int clickCount)
 		{
 			if (button == System.Windows.Input.MouseButton.Left)
-				return Gui.MouseButton.Left;
+				return clickCount == 1 ? Gui.MouseButton.Left : Gui.MouseButton.DoubleLeft;
 			else if (button == System.Windows.Input.MouseButton.Right)
-				return Gui.MouseButton.Right;
+				return clickCount == 1 ? Gui.MouseButton.Right : Gui.MouseButton.DoubleRight;
 			else if (button == System.Windows.Input.MouseButton.Middle)
-				return Gui.MouseButton.Middle;
+				return clickCount == 1 ? Gui.MouseButton.Middle : Gui.MouseButton.DoubleMiddle;
 			else
 				return null;
 		}
 
 		public void MouseDown(object sender, MouseButtonEventArgs e)
 		{
-			Gui.MouseButton? button = GetMouseButton(e.ChangedButton);
+			Gui.MouseButton? button = GetMouseButton(e.ChangedButton, e.ClickCount);
 			if (!button.HasValue)
 				return;
 
@@ -349,7 +349,7 @@ namespace Photomatch_ProofOfConcept_WPF.WPF.ViewModel
 
 		public void MouseUp(object sender, MouseButtonEventArgs e)
 		{
-			Gui.MouseButton? button = GetMouseButton(e.ChangedButton);
+			Gui.MouseButton? button = GetMouseButton(e.ChangedButton, e.ClickCount);
 			if (!button.HasValue)
 				return;
 

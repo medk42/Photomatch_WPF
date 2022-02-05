@@ -83,7 +83,7 @@ namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls.ModelCreationToolHandler
 		{
 			if (Active)
 			{
-				if (button == MouseButton.Right)
+				if (button == MouseButton.DoubleLeft)
 				{
 					if (!CheckCount())
 						return;
@@ -91,6 +91,11 @@ namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls.ModelCreationToolHandler
 						return;
 
 					Model.AddFace(Vertices);
+					Clear();
+					return;
+				}
+				else if (button == MouseButton.Right)
+				{
 					Clear();
 					return;
 				}
