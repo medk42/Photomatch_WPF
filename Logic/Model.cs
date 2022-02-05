@@ -640,7 +640,16 @@ namespace Photomatch_ProofOfConcept_WPF.Logic
 		/// <returns>Added face.</returns>
 		public Face AddFace(List<Vertex> vertices)
 		{
-			Face newFace = new Face(vertices);
+			Face newFace;
+			try
+			{
+				newFace = new Face(vertices);
+			}
+			catch (Exception e)
+			{
+				return null;
+			}
+
 			newFace.FaceRemovedEvent += RemoveFace;
 			newFace.VertexPositionChangedEvent += (position, id) => FaceUpdated(newFace);
 

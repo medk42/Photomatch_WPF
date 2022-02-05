@@ -104,13 +104,27 @@ namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls.ModelCreationToolHandler
 					if (!CheckLineCross(Lines[1].Start))
 						return;
 
-					Model.AddFace(Vertices);
+					if (Model.AddFace(Vertices) == null)
+					{
+						Logger.Log("Complex Face Creation", "Face needs to be clockwise or anticlockwise, not both at the same time.", LogType.Warning);
+						return;
+					}
+
 					Clear();
 					return;
 				}
 				else if (button == MouseButton.Right)
 				{
-					Clear();
+					if (Vertices.Count > 1)
+					{
+						Vertices.RemoveAt(Vertices.Count - 1);
+						ILine removedLine = Lines[Lines.Count - 1];
+						Lines.RemoveAt(Lines.Count - 1);
+						Lines[Lines.Count - 1].End = mouseCoord;
+						removedLine.Dispose();
+					}
+					else
+						Clear();
 					return;
 				}
 				else if (button != MouseButton.Left)
@@ -127,19 +141,6 @@ namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls.ModelCreationToolHandler
 
 					if (!CheckLineCross(foundPosition))
 						return;
-
-					if (Vertices.Count > 0)
-					{
-						if (foundPoint == Vertices[0])
-						{
-							if (!CheckCount())
-								return;
-
-							Model.AddFace(Vertices);
-							Clear();
-							return;
-						}
-					}
 
 					if (Vertices.Count > 0)
 						Lines[Vertices.Count].End = foundPosition;
