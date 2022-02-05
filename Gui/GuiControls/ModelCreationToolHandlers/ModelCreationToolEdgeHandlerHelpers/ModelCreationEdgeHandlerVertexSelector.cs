@@ -18,7 +18,7 @@ namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls.ModelCreationToolHandler
 
 			public bool UpdateToHoldRay(Ray3D holdRay)
 			{
-				Vector3Proj worldPosProject = Intersections3D.ProjectVectorToRay(WorldPosition, holdRay);
+				Vector3RayProj worldPosProject = Intersections3D.ProjectVectorToRay(WorldPosition, holdRay);
 
 				if (worldPosProject.Distance <= 1e-6)
 				{

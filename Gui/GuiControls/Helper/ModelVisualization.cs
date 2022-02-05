@@ -13,6 +13,7 @@ namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls.Helper
 		private Model Model;
 		private IWindow Window;
 		private PerspectiveData Perspective;
+		private ViewFrustum ViewFrustum;
 
 		private double PointGrabRadius;
 		private double PointDrawRadius;
@@ -32,6 +33,7 @@ namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls.Helper
 			this.PointDrawRadius = pointDrawRadius;
 
 			this.ModelHoverEllipse = new ModelHoverEllipse(this, Window, PointDrawRadius);
+			this.ViewFrustum = new ViewFrustum(Perspective);
 
 			CreateModelLines();
 		}
@@ -134,13 +136,29 @@ namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls.Helper
 			foreach (var faceTuple in ModelFaces)
 				faceTuple.Item1.Visible = show;
 		}
+		
+		public void DisplayClippedEdge(ILine line, Edge edge)
+		{
+			Line3D clippedLine = ViewFrustum.ClipLine(new Line3D(edge.Start.Position, edge.End.Position));
+			if (clippedLine.Start.Valid && clippedLine.End.Valid)
+			{
+				line.Start = Perspective.WorldToScreen(clippedLine.Start);
+				line.End = Perspective.WorldToScreen(clippedLine.End);
+			}
+			else
+			{
+				line.Start = new Vector2();
+				line.End = new Vector2();
+			}
+		}
 
 		public void UpdateDisplayedGeometry()
 		{
+			ViewFrustum.UpdateFrustum();
+
 			foreach (var lineTuple in ModelLines)
 			{
-				lineTuple.Item1.Start = Perspective.WorldToScreen(lineTuple.Item2.Start.Position);
-				lineTuple.Item1.End = Perspective.WorldToScreen(lineTuple.Item2.End.Position);
+				DisplayClippedEdge(lineTuple.Item1, lineTuple.Item2);
 			}
 
 			foreach (var faceTuple in ModelFaces)
@@ -173,10 +191,9 @@ namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls.Helper
 
 		private void EdgeAdderHelper(Edge edge)
 		{
-			Vector2 start = Perspective.WorldToScreen(edge.Start.Position);
-			Vector2 end = Perspective.WorldToScreen(edge.End.Position);
-			ILine windowLine = Window.CreateLine(start, end, 0, ApplicationColor.Model);
-			EdgeEventListener edgeEventListener = new EdgeEventListener(windowLine, Perspective);
+			ILine windowLine = Window.CreateLine(new Vector2(), new Vector2(), 0, ApplicationColor.Model);
+			DisplayClippedEdge(windowLine, edge);
+			EdgeEventListener edgeEventListener = new EdgeEventListener(windowLine, edge, this);
 			edge.StartPositionChangedEvent += edgeEventListener.StartPositionChanged;
 			edge.EndPositionChangedEvent += edgeEventListener.EndPositionChanged;
 			edge.EdgeRemovedEvent += EdgeRemoved;

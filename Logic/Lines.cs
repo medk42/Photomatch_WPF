@@ -554,7 +554,7 @@ namespace Photomatch_ProofOfConcept_WPF.Logic
 	/// <summary>
 	/// Struct containing the result of vector projection onto ray in 3D.
 	/// </summary>
-	public struct Vector3Proj
+	public struct Vector3RayProj
 	{
 		/// <summary>
 		/// The projected point.
@@ -570,6 +570,22 @@ namespace Photomatch_ProofOfConcept_WPF.Logic
 		/// Relative position of the projected point on the ray.
 		/// </summary>
 		public double RayRelative { get; set; }
+	}
+
+	/// <summary>
+	/// Struct containing the result of vector projection onto plane in 3D.
+	/// </summary>
+	public struct Vector3PlaneProj
+	{
+		/// <summary>
+		/// The projected point.
+		/// </summary>
+		public Vector3 Projection { get; set; }
+
+		/// <summary>
+		/// Distance of the projected point from the original point. Positive when the vector is on the same side as the normal.
+		/// </summary>
+		public double SignedDistance { get; set; }
 	}
 
 	/// <summary>
@@ -655,11 +671,20 @@ namespace Photomatch_ProofOfConcept_WPF.Logic
 		/// <summary>
 		/// Get a projection of a point onto ray as a Vector3 on the ray.
 		/// </summary>
-		public static Vector3Proj ProjectVectorToRay(Vector3 vector, Ray3D ray)
+		public static Vector3RayProj ProjectVectorToRay(Vector3 vector, Ray3D ray)
 		{
 			double t = Vector3.Dot(vector - ray.Start, ray.Direction);
 			Vector3 projected = ray.Start + t * ray.Direction;
-			return new Vector3Proj() { Projection = projected, RayRelative = t, Distance = (projected - vector).Magnitude };
+			return new Vector3RayProj() { Projection = projected, RayRelative = t, Distance = (projected - vector).Magnitude };
+		}
+
+		/// <summary>
+		/// Get a projection of a point onto plane.
+		/// </summary>
+		public static Vector3PlaneProj ProjectVectorToPlane(Vector3 vector, Plane3D plane)
+		{
+			Vector3RayProj vectorRayProj = ProjectVectorToRay(vector, new Ray3D(plane.PlanePoint, plane.Normal));
+			return new Vector3PlaneProj() { SignedDistance = vectorRayProj.RayRelative, Projection = plane.PlanePoint + (vector - vectorRayProj.Projection) };
 		}
 
 		/// <summary>

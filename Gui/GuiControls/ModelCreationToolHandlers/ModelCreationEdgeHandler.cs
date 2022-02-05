@@ -87,7 +87,7 @@ namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls.ModelCreationToolHandler
 						if (CurrentVertex != null)
 						{
 							Ray3D CurrentDirectionRay = new Ray3D(FirstVertex.WorldPosition, CurrentDirection.Direction);
-							Vector3Proj currentVertexProj = Intersections3D.ProjectVectorToRay(CurrentVertex.WorldPosition, CurrentDirectionRay);
+							Vector3RayProj currentVertexProj = Intersections3D.ProjectVectorToRay(CurrentVertex.WorldPosition, CurrentDirectionRay);
 
 							CurrentDirection = new ModelCreationEdgeHandlerDirectionProjection()
 							{

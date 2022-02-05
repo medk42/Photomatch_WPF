@@ -645,7 +645,7 @@ namespace Photomatch_ProofOfConcept_WPF.Logic
 			{
 				newFace = new Face(vertices);
 			}
-			catch (Exception e)
+			catch (Exception)
 			{
 				return null;
 			}
