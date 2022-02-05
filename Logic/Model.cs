@@ -183,6 +183,8 @@ namespace Photomatch_ProofOfConcept_WPF.Logic
 	/// </summary>
 	public class Face
 	{
+		private static readonly double TriangulateMinEdgeAngle = Math.PI / 6;
+
 		/// <summary>
 		/// Event called on any vertex position change - with the new position and id of the changed vertex.
 		/// </summary>
@@ -457,12 +459,135 @@ namespace Photomatch_ProofOfConcept_WPF.Logic
 		}
 
 		/// <summary>
+		/// Calculate triangle angles and return them as a Vector3 (angleA, angleB, angleC).
+		/// </summary>
+		/// <param name="triangle">triangle to calculate</param>
+		/// <param name="vertices">list of unique vertices</param>
+		private Vector3 CalculateTriangleAngles(TriangleIndices triangle, List<Vector2> vertices)
+		{
+			double aAngle = CalculateAngleOfVertex(vertices[triangle.C], vertices[triangle.A], vertices[triangle.B]);
+			double bAngle = CalculateAngleOfVertex(vertices[triangle.A], vertices[triangle.B], vertices[triangle.C]);
+			double cAngle = CalculateAngleOfVertex(vertices[triangle.B], vertices[triangle.C], vertices[triangle.A]);
+
+			return new Vector3(aAngle, bAngle, cAngle);
+		}
+
+		/// <summary>
+		/// Returns true if edge defined by two vertices edgeStart and edgeEnd is one of the triangle edges, false otherwise.
+		/// </summary>
+		private bool IsSideOfTriangle(TriangleIndices triangle, int edgeStart, int edgeEnd)
+		{
+			return
+				(triangle.A == edgeStart || triangle.B == edgeStart || triangle.C == edgeStart) &&
+				(triangle.A == edgeEnd || triangle.B == edgeEnd || triangle.C == edgeEnd);
+		}
+
+		/// <summary>
+		/// Get the last vertex of a triangle.
+		/// </summary>
+		/// <param name="triangle">triangle to get last vertex of</param>
+		/// <param name="vertexA">one of the triangle vertices</param>
+		/// <param name="vertexB">one of the triangle vertices</param>
+		/// <returns>The last vertex of the triangle or -1 if vertexA and vertexB are not two vertices of the triangle.</returns>
+		private int GetLastVertex(TriangleIndices triangle, int vertexA, int vertexB)
+		{
+			if ((triangle.A == vertexA && triangle.B == vertexB) || (triangle.A == vertexB && triangle.B == vertexA))
+				return triangle.C;
+			if ((triangle.A == vertexA && triangle.C == vertexB) || (triangle.A == vertexB && triangle.C == vertexA))
+				return triangle.B;
+			if ((triangle.C == vertexA && triangle.B == vertexB) || (triangle.C == vertexB && triangle.B == vertexA))
+				return triangle.A;
+
+			return -1;
+		}
+
+		/// <summary>
+		/// Switch around two triangles sharing one edge if minimum angle of the new configuration is larger, otherwise just add triangle to triangles.
+		/// </summary>
+		/// <param name="triangle">triangle that is being added</param>
+		/// <param name="existingTriangle">triangle already in triangles, to be removed and replaced by two new triangles if new configuration is better</param>
+		/// <param name="triangles">list of existing triangles to add result to</param>
+		/// <param name="vertices">list of unique vertices</param>
+		/// <param name="start">start of the edge from point of view of triangle</param>
+		/// <param name="end">end of the edge from point of view of triangle</param>
+		private void SwitchQuadrilateral(TriangleIndices triangle, TriangleIndices existingTriangle, List<TriangleIndices> triangles, List<Vector2> vertices, int start, int end)
+		{
+
+			int triangleLastVertex = GetLastVertex(triangle, start, end);
+			int existingTriangleLastVertex = GetLastVertex(existingTriangle, start, end);
+
+			TriangleIndices triangleA = new TriangleIndices() { A = triangleLastVertex, B = start, C = existingTriangleLastVertex };
+			TriangleIndices triangleB = new TriangleIndices() { A = existingTriangleLastVertex, B = end, C = triangleLastVertex };
+
+			Vector3 anglesA = CalculateTriangleAngles(triangleA, vertices);
+			Vector3 anglesB = CalculateTriangleAngles(triangleB, vertices);
+			double minAngle = Math.Min(Math.Min(Math.Min(anglesA.X, anglesA.Y), anglesA.Z), Math.Min(Math.Min(anglesB.X, anglesB.Y), anglesB.Z));
+
+			Vector3 anglesOldA = CalculateTriangleAngles(triangle, vertices);
+			Vector3 anglesOldB = CalculateTriangleAngles(existingTriangle, vertices);
+			double minAngleOld = Math.Min(Math.Min(Math.Min(anglesOldA.X, anglesOldA.Y), anglesOldA.Z), Math.Min(Math.Min(anglesOldB.X, anglesOldB.Y), anglesOldB.Z));
+
+			if (minAngleOld < minAngle)
+			{
+				triangles.Remove(existingTriangle);
+				triangles.Add(triangleA);
+				triangles.Add(triangleB);
+			}
+			else
+				triangles.Add(triangle);
+		}
+
+		/// <summary>
+		/// Add a triangle to existing triangles. Try to switch edges with another triangle, if the smallest
+		/// angle in the new triangle is too small. 
+		/// </summary>
+		/// <param name="triangle">triangle to add</param>
+		/// <param name="triangles">list of already existing triangles</param>
+		/// <param name="vertices">list of unique vertices</param>
+		private void EdgeSwapAdd(TriangleIndices triangle, List<TriangleIndices> triangles, List<Vector2> vertices)
+		{
+			Vector3 angles = CalculateTriangleAngles(triangle, vertices);
+			double minAngle = Math.Min(angles.X, Math.Min(angles.Y, angles.Z));
+
+			if (minAngle < TriangulateMinEdgeAngle)
+			{
+				int start, end;
+				if (angles.X >= angles.Y && angles.X >= angles.Z)
+				{
+					start = triangle.B;
+					end = triangle.C;
+				}
+				else if (angles.Y >= angles.X && angles.Y >= angles.Z)
+				{
+					start = triangle.C;
+					end = triangle.A;
+				}
+				else
+				{
+					start = triangle.A;
+					end = triangle.B;
+				}
+
+				foreach (TriangleIndices existingTriangle in triangles)
+				{
+					if (IsSideOfTriangle(existingTriangle, start, end))
+					{
+						SwitchQuadrilateral(triangle, existingTriangle, triangles, vertices, start, end);
+						return;
+					}
+				}
+			}
+		
+			triangles.Add(triangle);
+		}
+
+		/// <summary>
 		/// Use ear-clipping triangulation to triangulate this face.
 		/// Using https://arxiv.org/ftp/arxiv/papers/1212/1212.6038.pdf.
 		/// </summary>
 		private void Triangulate()
 		{
-			Triangulated.Clear();
+			List<TriangleIndices> triangles = new List<TriangleIndices>();
 
 			List<Vector2> vertices = new List<Vector2>();
 			int[] verticesMap = new int[Vertices.Count];
@@ -484,12 +609,12 @@ namespace Photomatch_ProofOfConcept_WPF.Logic
 				int prevId = prevVertex[smallestId];
 				int nextId = nextVertex[smallestId];
 
-				Triangulated.Add(new Triangle()
+				EdgeSwapAdd(new TriangleIndices()
 				{
-					A = Vertices[prevId],
-					B = Vertices[smallestId],
-					C = Vertices[nextId]
-				});
+					A = verticesMap[prevId],
+					B = verticesMap[smallestId],
+					C = verticesMap[nextId]
+				}, triangles, vertices);
 
 				earTips.Remove(smallestId);
 				earTips.Remove(prevId);
@@ -511,6 +636,15 @@ namespace Photomatch_ProofOfConcept_WPF.Logic
 				if (angles[nextId] >= 0)
 					AddEartip(prevVect, nextVect, nextNextVect, vertices, earTips, nextId);
 			}
+
+			Triangulated.Clear();
+			foreach (TriangleIndices triangle in triangles)
+				Triangulated.Add(new Triangle()
+				{
+					A = UniqueVertices[triangle.A],
+					B = UniqueVertices[triangle.B],
+					C = UniqueVertices[triangle.C]
+				});
 		}
 	}
 
@@ -522,6 +656,16 @@ namespace Photomatch_ProofOfConcept_WPF.Logic
 		public Vertex A { get; set; }
 		public Vertex B { get; set; }
 		public Vertex C { get; set; }
+	}
+
+	/// <summary>
+	/// Struct representing a triangle, containing 3 vertex indices, for face triangulation.
+	/// </summary>
+	public struct TriangleIndices
+	{
+		public int A { get; set; }
+		public int B { get; set; }
+		public int C { get; set; }
 	}
 
 	/// <summary>
