@@ -8,13 +8,13 @@ namespace Photomatch_ProofOfConcept_WPF.WPF.ViewModel
 {
     public class DockManagerViewModel
     {
-        public ObservableCollection<ImageViewModel> Documents { get; private set; }
+        public ObservableCollection<BaseViewModel> Documents { get; private set; }
 
         public ObservableCollection<object> Anchorables { get; private set; }
 
-        public DockManagerViewModel(IEnumerable<ImageViewModel> dockWindowViewModels)
+        public DockManagerViewModel(IEnumerable<BaseViewModel> dockWindowViewModels)
         {
-            this.Documents = new ObservableCollection<ImageViewModel>();
+            this.Documents = new ObservableCollection<BaseViewModel>();
             this.Anchorables = new ObservableCollection<object>();
 
             foreach (var document in dockWindowViewModels)
@@ -23,7 +23,7 @@ namespace Photomatch_ProofOfConcept_WPF.WPF.ViewModel
             }
         }
 
-        public void AddDocument(ImageViewModel doc)
+        public void AddDocument(BaseViewModel doc)
         {
             doc.PropertyChanged += DockWindowViewModel_PropertyChanged;
             if (!doc.IsClosed)
@@ -32,13 +32,13 @@ namespace Photomatch_ProofOfConcept_WPF.WPF.ViewModel
 
 		private void DockWindowViewModel_PropertyChanged(object sender, PropertyChangedEventArgs e)
 		{
-			if (e.PropertyName == nameof(ImageViewModel.IsClosed))
+			if (e.PropertyName == nameof(BaseViewModel.IsClosed))
 			{
-                ImageViewModel document = sender as ImageViewModel;
+                BaseViewModel document = sender as BaseViewModel;
 
                 if (document == null)
 				{
-                    throw new ArgumentException("sender needs to be of type " + nameof(ImageViewModel));
+                    throw new ArgumentException("sender needs to be of type " + nameof(BaseViewModel));
 				}
 
                 if (!document.IsClosed)

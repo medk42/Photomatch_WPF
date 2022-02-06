@@ -10,7 +10,7 @@ namespace Photomatch_ProofOfConcept_WPF.WPF.ViewModel
 
         public MainViewModel()
         {
-            var documents = new List<ImageViewModel>();
+            var documents = new List<BaseViewModel>();
             this.DockManagerViewModel = new DockManagerViewModel(documents);
         }
     }

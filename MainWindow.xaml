@@ -85,6 +85,9 @@
                 <DataTemplate DataType="{x:Type vm:ImageViewModel}">
                     <v:ImageView />
                 </DataTemplate>
+                <DataTemplate DataType="{x:Type vm:ModelViewModel}">
+                    <v:ModelView />
+                </DataTemplate>
             </DockingManager.Resources>
 
             <DockingManager.LayoutItemContainerStyle>

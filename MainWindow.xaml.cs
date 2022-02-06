@@ -54,8 +54,6 @@ namespace Photomatch_ProofOfConcept_WPF
 		{
 			InitializeComponent();
 			MyMainWindow.Title = MainTitle;
-			AppControl = new MasterControl(this);
-			ActionListener = AppControl;
 
 			var multiLogger = new MultiLogger();
 			multiLogger.Loggers.Add(new StatusStripLogger(StatusText));
@@ -64,6 +62,9 @@ namespace Photomatch_ProofOfConcept_WPF
 
 			MainViewModel = new MainViewModel();
 			this.DataContext = MainViewModel;
+
+			AppControl = new MasterControl(this);
+			ActionListener = AppControl;
 
 			MainDockMgr.ActiveContentChanged += MainDockMgr_ActiveContentChanged;
 			XInvertedCheckbox.Checked += AnyInvertedCheckbox_Changed;
@@ -141,6 +142,11 @@ namespace Photomatch_ProofOfConcept_WPF
 			return window;
 		}
 
+		public void CreateModelWindow(Model model)
+		{
+			MainViewModel.DockManagerViewModel.AddDocument(new ModelViewModel(model) { Title = "Model visualization", CanClose = false });
+		}
+
 		public void DisplayProjectName(string projectName)
 		{
 			RunBackgroundChecked(() => {
@@ -194,7 +200,10 @@ namespace Photomatch_ProofOfConcept_WPF
 
 				ImageViewModel imageViewModel = MainDockMgr.ActiveContent as ImageViewModel;
 				if (imageViewModel == null)
-					throw new Exception("Dock manager should only show " + nameof(ImageViewModel));
+				{
+					MainToolbar.IsEnabled = false;
+					return;
+				}
 
 				DisplayCalibrationAxes(imageViewModel.CurrentCalibrationAxes);
 				DisplayInvertedAxes(imageViewModel.CurrentCalibrationAxes, imageViewModel.CurrentInvertedAxes);

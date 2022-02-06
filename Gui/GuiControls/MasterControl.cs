@@ -98,6 +98,8 @@ namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls
 
 			ProjectName = NewProjectName;
 
+			Gui.CreateModelWindow(Model);
+
 			AddHistory();
 		}
 
@@ -391,6 +393,7 @@ namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls
 				DeserializeUndoRedo(data);
 
 				HistoryDirty = false;
+				Dirty = true;
 			}
 		}
 
@@ -403,6 +406,7 @@ namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls
 				Future.RemoveAt(Future.Count - 1);
 
 				DeserializeUndoRedo(data);
+				Dirty = true;
 			}
 		}
 
