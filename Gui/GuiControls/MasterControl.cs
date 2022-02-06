@@ -28,6 +28,7 @@ namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls
 		private DesignTool DesignTool;
 		private ModelCreationTool ModelCreationTool;
 		private CameraModelCalibrationTool CameraModelCalibrationTool;
+		private IModelView ModelView;
 
 		private List<byte[]> History = new List<byte[]>();
 		private List<byte[]> Future = new List<byte[]>();
@@ -98,7 +99,7 @@ namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls
 
 			ProjectName = NewProjectName;
 
-			Gui.CreateModelWindow(Model);
+			ModelView = Gui.CreateModelWindow(Model);
 
 			AddHistory();
 		}
@@ -292,6 +293,8 @@ namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls
 					Model.ModelChangedEvent += () => Dirty = true;
 					this.Model.ModelChangedEvent += () => HistoryDirty = true;
 
+					ModelView.UpdateModel(Model);
+
 					DesignTool = (DesignTool)reader.ReadInt32();
 					Gui.DisplayDesignTool(DesignTool);
 
@@ -373,6 +376,8 @@ namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls
 				Model = ISafeSerializable<Model>.CreateDeserialize(reader);
 				Model.ModelChangedEvent += () => Dirty = true;
 				this.Model.ModelChangedEvent += () => HistoryDirty = true;
+
+				ModelView.UpdateModel(Model);
 
 				foreach (ImageWindow window in Windows)
 					window.UpdateModel(Model);

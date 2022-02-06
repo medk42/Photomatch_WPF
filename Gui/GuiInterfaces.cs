@@ -44,12 +44,17 @@ namespace Photomatch_ProofOfConcept_WPF.Gui
 		string GetLoadProjectFilePath();
 		string GetModelExportFilePath();
 		IWindow CreateImageWindow(ImageWindow imageWindow, string title);
-		void CreateModelWindow(Model model);
+		IModelView CreateModelWindow(Model model);
 		void DisplayProjectName(string projectName);
 		void DisplayDesignTool(DesignTool designTool);
 		void DisplayModelCreationTool(ModelCreationTool modelCreationTool);
 		void DisplayCameraModelCalibrationTool(CameraModelCalibrationTool cameraModelCalibrationTool);
 		bool DisplayWarningProceedMessage(string title, string message);
+	}
+
+	public interface IModelView
+	{
+		void UpdateModel(Model model);
 	}
 
 	public interface IWindow

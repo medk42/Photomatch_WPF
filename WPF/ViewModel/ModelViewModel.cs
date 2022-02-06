@@ -1,4 +1,5 @@
-﻿using Photomatch_ProofOfConcept_WPF.Logic;
+﻿using Photomatch_ProofOfConcept_WPF.Gui;
+using Photomatch_ProofOfConcept_WPF.Logic;
 using Photomatch_ProofOfConcept_WPF.WPF.Helper;
 using System;
 using System.Collections.Generic;
@@ -12,7 +13,7 @@ using System.Windows.Media.Media3D;
 namespace Photomatch_ProofOfConcept_WPF.WPF.ViewModel
 {
 
-	class ModelViewModel : BaseViewModel, IKeyboardHandler, IMouseHandler
+	class ModelViewModel : BaseViewModel, IKeyboardHandler, IMouseHandler, IModelView
     {
         public Viewport3D ModelContent { get; private set; }
 
@@ -46,7 +47,7 @@ namespace Photomatch_ProofOfConcept_WPF.WPF.ViewModel
             myPCamera = new PerspectiveCamera();
 
             // Specify where in the 3D scene the camera is.
-            myPCamera.Position = new Point3D(0, 0, 2);
+            myPCamera.Position = new Point3D(0, 0, 10);
 
             // Specify the direction that the camera is pointing.
             myPCamera.LookDirection = new Vector3D(0, 0, -1);
@@ -102,19 +103,17 @@ namespace Photomatch_ProofOfConcept_WPF.WPF.ViewModel
 
             // Apply the viewport to the page so it will be rendered.
             ModelContent = myViewport3D;
-
-            myPositionCollection.Add(new Point3D(0, 0, 0));
         }
 
 		private void Model_AddVertexEvent(Vertex vertex)
 		{
-            Vector3 pos = vertex.Position;
-            myPositionCollection.Add(new Point3D(pos.X, pos.Y, pos.Z));
+            /*Vector3 pos = vertex.Position;
+            myPositionCollection.Add(new Point3D(pos.X, pos.Y, pos.Z));*/
         }
 
 		private void Model_AddFaceEvent(Face face)
 		{
-            Vector3 normal = face.Reversed ? -face.Normal : face.Normal;
+            /*Vector3 normal = face.Reversed ? -face.Normal : face.Normal;
 
             foreach (Triangle t in face.Triangulated)
             {
@@ -132,7 +131,7 @@ namespace Photomatch_ProofOfConcept_WPF.WPF.ViewModel
                 myTriangleIndicesCollection.Add(aIndex);
                 myTriangleIndicesCollection.Add(bIndex);
                 myTriangleIndicesCollection.Add(cIndex);
-            }
+            }*/
 		}
 
 		public void KeyUp(object sender, KeyEventArgs e)
@@ -146,8 +145,39 @@ namespace Photomatch_ProofOfConcept_WPF.WPF.ViewModel
 		public void MouseDown(object sender, MouseButtonEventArgs e)
 		{
             if (e.ClickCount == 2)
-			{
-                myNormalCollection.Add(new Vector3D(0, 0, 1));
+            {
+                int triangleCount = 0;
+
+                foreach (var face in Model.Faces)
+                {
+                    Vector3 normal = face.Reversed ? face.Normal : -face.Normal;
+
+                    foreach (var triangle in face.Triangulated)
+					{
+                        myNormalCollection.Add(new Vector3D(normal.X, normal.Z, normal.Y));
+                        myNormalCollection.Add(new Vector3D(normal.X, normal.Z, normal.Y));
+                        myNormalCollection.Add(new Vector3D(normal.X, normal.Z, normal.Y));
+
+                        myPositionCollection.Add(new Point3D(triangle.A.Position.X, triangle.A.Position.Z, triangle.A.Position.Y));
+                        myPositionCollection.Add(new Point3D(triangle.B.Position.X, triangle.B.Position.Z, triangle.B.Position.Y));
+                        myPositionCollection.Add(new Point3D(triangle.C.Position.X, triangle.C.Position.Z, triangle.C.Position.Y));
+
+                        int aIndex = 0 + 3 * triangleCount;
+                        int bIndex = 1 + 3 * triangleCount;
+                        int cIndex = 2 + 3 * triangleCount;
+
+                        if (!face.Reversed)
+                            (aIndex, bIndex) = (bIndex, aIndex);
+
+                        myTriangleIndicesCollection.Add(aIndex);
+                        myTriangleIndicesCollection.Add(bIndex);
+                        myTriangleIndicesCollection.Add(cIndex);
+
+                        triangleCount++;
+                    }
+                }
+
+                /*myNormalCollection.Add(new Vector3D(0, 0, 1));
                 myNormalCollection.Add(new Vector3D(0, 0, 1));
                 myNormalCollection.Add(new Vector3D(0, 0, 1));
                 myNormalCollection.Add(new Vector3D(0, 0, 1));
@@ -166,7 +196,7 @@ namespace Photomatch_ProofOfConcept_WPF.WPF.ViewModel
                 myTriangleIndicesCollection.Add(2);
                 myTriangleIndicesCollection.Add(3);
                 myTriangleIndicesCollection.Add(4);
-                myTriangleIndicesCollection.Add(5);
+                myTriangleIndicesCollection.Add(5);*/
             }
 		}
 
@@ -189,6 +219,11 @@ namespace Photomatch_ProofOfConcept_WPF.WPF.ViewModel
 		public void MouseWheel(object sender, MouseWheelEventArgs e)
 		{
             myPCamera.Position = new Point3D(0, 0, myPCamera.Position.Z + e.Delta / 240.0);
+		}
+
+		public void UpdateModel(Model model)
+		{
+            this.Model = model;
 		}
 	}
 }

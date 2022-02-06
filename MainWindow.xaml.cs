@@ -142,9 +142,12 @@ namespace Photomatch_ProofOfConcept_WPF
 			return window;
 		}
 
-		public void CreateModelWindow(Model model)
+		public IModelView CreateModelWindow(Model model)
 		{
-			MainViewModel.DockManagerViewModel.AddDocument(new ModelViewModel(model) { Title = "Model visualization", CanClose = false });
+			ModelViewModel modelView = new ModelViewModel(model) { Title = "Model visualization", CanClose = false };
+			MainViewModel.DockManagerViewModel.AddDocument(modelView);
+
+			return modelView;
 		}
 
 		public void DisplayProjectName(string projectName)
