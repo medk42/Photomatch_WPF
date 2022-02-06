@@ -127,15 +127,29 @@ namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls
 				return;
 			}
 
+			byte[] imageData = null;
 			Image<Rgb24> image = null;
 			try
 			{
-				image = Image.Load<Rgb24>(filePath);
+				using (FileStream fileStream = File.OpenRead(filePath))
+				using (MemoryStream memoryStream = new MemoryStream())
+				{
+					fileStream.CopyTo(memoryStream);
+					imageData = memoryStream.ToArray();
+				}
+
+				image = Image.Load<Rgb24>(imageData);
 			}
 			catch (Exception ex)
 			{
 				if (ex is FileNotFoundException)
 					Logger.Log("Load Image", "File not found.", LogType.SevereWarning);
+				else if (ex is ArgumentException || ex is ArgumentNullException || ex is PathTooLongException || ex is DirectoryNotFoundException || ex is UnauthorizedAccessException)
+					Logger.Log("Load Image", "Invalid path.", LogType.SevereWarning);
+				else if (ex is UnauthorizedAccessException)
+					Logger.Log("Load Image", "Unauthorized access to file.", LogType.SevereWarning);
+				else if (ex is IOException)
+					Logger.Log("Load Image", "Image could not be loaded.", LogType.SevereWarning);
 				else if (ex is UnknownImageFormatException)
 					Logger.Log("Load Image", "Incorrect or unsupported image format.", LogType.SevereWarning);
 				else
@@ -145,7 +159,7 @@ namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls
 			if (image != null)
 			{
 				Logger.Log("Load Image", "File loaded successfully.", LogType.Info);
-				Windows.Add(new ImageWindow(new PerspectiveData(image, filePath), Gui, this, Logger, Model, DesignTool, ModelCreationTool, CameraModelCalibrationTool));
+				Windows.Add(new ImageWindow(new PerspectiveData(image, imageData, filePath), Gui, this, Logger, Model, DesignTool, ModelCreationTool, CameraModelCalibrationTool));
 				Dirty = true;
 				Windows[Windows.Count - 1].Perspective.PerspectiveChangedEvent += () => Dirty = true;
 				Windows[Windows.Count - 1].Perspective.PerspectiveChangedEvent += () => HistoryDirty = true;

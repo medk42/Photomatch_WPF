@@ -46,6 +46,7 @@ namespace Photomatch_ProofOfConcept_WPF.Logic
 		private CalibrationAxes _calibrationAxes = CalibrationAxes.XY;
 		private InvertedAxes _invertedAxes;
 		private double _scale = 1;
+		private byte[] _imageData;
 
 		public Vector2 Origin
 		{
@@ -140,10 +141,11 @@ namespace Photomatch_ProofOfConcept_WPF.Logic
 
 		public string ImagePath { get; private set; }
 
-		public PerspectiveData(Image<Rgb24> image, string imagePath)
+		public PerspectiveData(Image<Rgb24> image, byte[] imageData, string imagePath)
 		{
 			Image = image;
 			ImagePath = imagePath;
+			_imageData = imageData;
 
 			LineA1 = ScaleLine(LineA1, image.Width, image.Height);
 			LineA2 = ScaleLine(LineA2, image.Width, image.Height);
@@ -162,18 +164,9 @@ namespace Photomatch_ProofOfConcept_WPF.Logic
 
 		public void Serialize(BinaryWriter writer)
 		{
-			byte[] imageData = null;
-			using (var stream = new MemoryStream())
-			{
-				Image.SaveAsPng(stream);
-				imageData = stream.ToArray();
-			}
 
-			if (imageData == null)
-				throw new Exception("Image serialization failed.");
-
-			writer.Write(imageData.Length);
-			writer.Write(imageData);
+			writer.Write(_imageData.Length);
+			writer.Write(_imageData);
 
 			writer.Write(ImagePath);
 
@@ -197,11 +190,8 @@ namespace Photomatch_ProofOfConcept_WPF.Logic
 		public void Deserialize(BinaryReader reader)
 		{
 			int imageDataLength = reader.ReadInt32();
-			byte[] imageData = reader.ReadBytes(imageDataLength);
-			using (var stream = new MemoryStream(imageData))
-			{
-				Image = SixLabors.ImageSharp.Image.Load<Rgb24>(stream);
-			}
+			_imageData = reader.ReadBytes(imageDataLength);
+			Image = SixLabors.ImageSharp.Image.Load<Rgb24>(_imageData);
 
 			ImagePath = reader.ReadString();
 
