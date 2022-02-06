@@ -27,6 +27,7 @@ namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls
 
 		private ILine LineA1, LineA2, LineB1, LineB2;
 		private ILine LineX, LineY, LineZ;
+		private IEllipse Origin;
 		private DraggablePoints DraggablePoints;
 
 		private PerspectiveData Perspective;
@@ -149,9 +150,10 @@ namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls
 		private void CreateCoordSystemLines()
 		{
 			var origin = new Vector2();
-			LineX = Window.CreateLine(origin, origin, PointDrawRadius, ApplicationColor.XAxis);
-			LineY = Window.CreateLine(origin, origin, PointDrawRadius, ApplicationColor.YAxis);
-			LineZ = Window.CreateLine(origin, origin, PointDrawRadius, ApplicationColor.ZAxis);
+			LineX = Window.CreateLine(origin, origin, 0, ApplicationColor.XAxis);
+			LineY = Window.CreateLine(origin, origin, 0, ApplicationColor.YAxis);
+			LineZ = Window.CreateLine(origin, origin, 0, ApplicationColor.ZAxis);
+			Origin = Window.CreateEllipse(origin, PointDrawRadius, ApplicationColor.Vertex);
 
 			DraggablePoints.Points.Add(new ActionPoint(Perspective.Origin, (value) =>
 			{
@@ -171,6 +173,7 @@ namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls
 			LineX.Start = Perspective.Origin;
 			LineY.Start = Perspective.Origin;
 			LineZ.Start = Perspective.Origin;
+			Origin.Position = Perspective.Origin;
 
 			if (dirX.Valid && dirY.Valid && dirZ.Valid)
 			{
@@ -211,6 +214,7 @@ namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls
 			LineX.Visible = active;
 			LineY.Visible = active;
 			LineZ.Visible = active;
+			Origin.Visible = active;
 
 			if (active)
 				UpdateCoordSystemLines();
