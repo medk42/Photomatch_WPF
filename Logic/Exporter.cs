@@ -16,6 +16,19 @@ namespace Photomatch_ProofOfConcept_WPF.Logic
 	public static class Exporter
 	{
 		/// <summary>
+		/// Scaling values to get points inside face triangle. Generated using python.
+		/// 
+		/// from random import random
+		/// def f():
+		///		a = round((random() * 0.8 + 0.1) * 1000) / 1000
+		///		b = round((random() * (0.95 - a)) * 1000) / 1000
+		///		c = round((1 - a - b) * 1000) / 1000
+		///		return a,b,c
+		///	for a,b,c in [f() for i in range(10)]: print('{' + f'{a}, {b}, {c}' + '}, ', end='')
+		/// </summary>
+		private static readonly double[,] PointScaling = { { 0.853, 0.063, 0.084 }, { 0.873, 0.023, 0.104 }, { 0.177, 0.165, 0.658 }, { 0.27, 0.571, 0.159 }, { 0.566, 0.2, 0.234 }, { 0.281, 0.495, 0.224 }, { 0.155, 0.731, 0.114 }, { 0.868, 0.049, 0.083 }, { 0.625, 0.2, 0.175 }, { 0.235, 0.484, 0.281 } };
+
+		/// <summary>
 		/// Texture resolution is selected by finding a bounding box of a polygon and then width is the highest horizontal distance 
 		/// on model image and height is the highest vertical distance on model image. Then both are multiplied by ExportTextureResolutionMultiplier.
 		/// </summary>
@@ -45,31 +58,50 @@ namespace Photomatch_ProofOfConcept_WPF.Logic
 		/// <returns>Best perspective for specified face.</returns>
 		private static PerspectiveData GetFacePerspective(Face face, List<PerspectiveData> perspectives, Model model)
 		{
+			PerspectiveData bestPerspective = null;
+			int bestViableCount = 0;
+
 			foreach (PerspectiveData perspective in perspectives)
 			{
-				Vector2 facePointScreen = perspective.WorldToScreen(face.FacePoint);
-				Ray3D ray = perspective.ScreenToWorldRay(facePointScreen);
-				RayPolygonIntersectionPoint faceIntersection = GetRayFaceIntersection(ray, face);
+				int viableCount = 0;
 
-				bool viable = true;
-				foreach (Face otherFace in model.Faces)
+				for (int i = 0; i < Math.Max(PointScaling.Length, face.Triangulated.Count); i++)
 				{
-					if (otherFace != face)
+					int scaleIndex = i % PointScaling.GetLength(0);
+					int triangleIndex = i % face.Triangulated.Count;
+
+					Triangle triangle = face.Triangulated[triangleIndex];
+					Vector3 trianglePoint = triangle.A.Position * PointScaling[scaleIndex, 0] + triangle.B.Position * PointScaling[scaleIndex, 1] + triangle.C.Position * PointScaling[scaleIndex, 2];
+					Vector2 facePointScreen = perspective.WorldToScreen(trianglePoint);
+					Ray3D ray = perspective.ScreenToWorldRay(facePointScreen);
+					RayPolygonIntersectionPoint faceIntersection = GetRayFaceIntersection(ray, face);
+
+					bool viable = true;
+					foreach (Face otherFace in model.Faces)
 					{
-						RayPolygonIntersectionPoint compareFaceIntersection = GetRayFaceIntersection(ray, otherFace);
-						if (compareFaceIntersection.IntersectedPolygon && compareFaceIntersection.RayRelative < faceIntersection.RayRelative)
+						if (otherFace != face)
 						{
-							viable = false;
-							break;
+							RayPolygonIntersectionPoint compareFaceIntersection = GetRayFaceIntersection(ray, otherFace);
+							if (compareFaceIntersection.IntersectedPolygon && compareFaceIntersection.RayRelative < faceIntersection.RayRelative)
+							{
+								viable = false;
+								break;
+							}
 						}
 					}
+
+					if (viable)
+						viableCount++;
 				}
 
-				if (viable)
-					return perspective;
+				if (viableCount > bestViableCount)
+				{
+					bestPerspective = perspective;
+					bestViableCount = viableCount;
+				}
 			}
 
-			return null;
+			return bestPerspective;
 		}
 
 		/// <summary>
