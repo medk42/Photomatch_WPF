@@ -16,7 +16,8 @@
         <Viewport3D.Children>
             <ModelVisual3D>
                 <ModelVisual3D.Content>
-                    <DirectionalLight Color="#FFFFFF" Direction="-0.612372,-0.5,0.612372" />
+                    <!-- positive direction means "right, up, into camera" -->
+                    <DirectionalLight Color="#FFFFFF" Direction="1,-1,-1" />
                 </ModelVisual3D.Content>
             </ModelVisual3D>
             <ModelVisual3D>

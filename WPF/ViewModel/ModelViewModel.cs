@@ -133,16 +133,16 @@ namespace Photomatch_ProofOfConcept_WPF.WPF.ViewModel
             {
                 Triangle reversedTriangle = new Triangle { A = triangle.B, B = triangle.A, C = triangle.C };
 
-                AddTriangle(triangle, face.Normal, !face.Reversed);
-                AddTriangle(reversedTriangle, -face.Normal, face.Reversed);
+                AddTriangle(reversedTriangle, face.Normal, !face.Reversed);
+                AddTriangle(triangle, -face.Normal, face.Reversed);
             }
         }
 
         private void AddTriangle(Triangle triangle, Vector3 normal, bool front)
         {
-            Vector3DCollection vertexNormals = !front ? VertexNormalsFront : VertexNormalsBack;
-            Point3DCollection vertexPositions = !front ? VertexPositionsFront : VertexPositionsBack;
-            Int32Collection triangleIndices = !front ? TriangleIndicesFront : TriangleIndicesBack;
+            Vector3DCollection vertexNormals = front ? VertexNormalsFront : VertexNormalsBack;
+            Point3DCollection vertexPositions = front ? VertexPositionsFront : VertexPositionsBack;
+            Int32Collection triangleIndices = front ? TriangleIndicesFront : TriangleIndicesBack;
 
             vertexNormals.Add(new Vector3D(normal.X, normal.Z, normal.Y));
             vertexNormals.Add(new Vector3D(normal.X, normal.Z, normal.Y));
