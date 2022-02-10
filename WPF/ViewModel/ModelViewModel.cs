@@ -33,52 +33,108 @@ namespace Photomatch_ProofOfConcept_WPF.WPF.ViewModel
             }
 		}
 
+        private Vector3 ModelRotate_;
+        public Vector3 ModelRotate
+		{
+            get => ModelRotate_;
+            set
+			{
+                ModelRotate_ = value;
+                OnPropertyChanged(nameof(ModelRotate));
+            }
+
+        }
+
+        public ICommand ViewportLoaded { get; }
+
         public MeshGeometry3D MeshGeometry { get; } = new MeshGeometry3D();
 
         private Model Model;
+        private Viewport3D Viewport;
         private Vector3DCollection VertexNormals = new Vector3DCollection();
         private Point3DCollection VertexPositions = new Point3DCollection();
         private Int32Collection TriangleIndices = new Int32Collection();
 
         public ModelViewModel(Model model)
 		{
-            this.Model = model;
-            Model.AddFaceEvent += Model_AddFaceEvent;
-            Model.AddVertexEvent += Model_AddVertexEvent;
+            SetModel(model);
 
             MeshGeometry.Normals = VertexNormals;
             MeshGeometry.Positions = VertexPositions;
             MeshGeometry.TriangleIndices = TriangleIndices;
+
+            ViewportLoaded = new RelayCommand(ViewportLoaded_);
         }
 
-		private void Model_AddVertexEvent(Vertex vertex)
+        public void ViewportLoaded_(object obj)
 		{
-            /*Vector3 pos = vertex.Position;
-            myPositionCollection.Add(new Point3D(pos.X, pos.Y, pos.Z));*/
-        }
-
-		private void Model_AddFaceEvent(Face face)
-		{
-            /*Vector3 normal = face.Reversed ? -face.Normal : face.Normal;
-
-            foreach (Triangle t in face.Triangulated)
+            Viewport3D viewport = obj as Viewport3D;
+            if (viewport == null)
             {
-                int aIndex = Model.Vertices.IndexOf(t.A);
-                int bIndex = Model.Vertices.IndexOf(t.B);
-                int cIndex = Model.Vertices.IndexOf(t.C);
+                throw new ArgumentException("obj is not of type " + nameof(Viewport3D));
+            }
 
-                if (face.Reversed)
-                    (aIndex, bIndex) = (bIndex, aIndex);
+            Viewport = viewport;
+        }
 
-                myNormalCollection.Add(new Vector3D(normal.X, normal.Y, normal.Z));
-                myNormalCollection.Add(new Vector3D(normal.X, normal.Y, normal.Z));
-                myNormalCollection.Add(new Vector3D(normal.X, normal.Y, normal.Z));
+        private void SetModel(Model model)
+		{
+            this.Model = model;
 
-                myTriangleIndicesCollection.Add(aIndex);
-                myTriangleIndicesCollection.Add(bIndex);
-                myTriangleIndicesCollection.Add(cIndex);
-            }*/
+            model.AddFaceEvent += AddFace;
+
+            foreach (Face face in model.Faces)
+                AddFace(face);
 		}
+
+        private void FaceRemove(Face face)
+		{
+            face.FaceRemovedEvent -= FaceRemove;
+
+            UpdateModel(this.Model);
+		}
+
+        private void AddTriangle(Triangle triangle, Vector3 normal)
+		{
+            VertexNormals.Add(new Vector3D(normal.X, normal.Z, normal.Y));
+            VertexNormals.Add(new Vector3D(normal.X, normal.Z, normal.Y));
+            VertexNormals.Add(new Vector3D(normal.X, normal.Z, normal.Y));
+
+            VertexPositions.Add(new Point3D(triangle.A.Position.X, triangle.A.Position.Z, triangle.A.Position.Y));
+            VertexPositions.Add(new Point3D(triangle.B.Position.X, triangle.B.Position.Z, triangle.B.Position.Y));
+            VertexPositions.Add(new Point3D(triangle.C.Position.X, triangle.C.Position.Z, triangle.C.Position.Y));
+
+            int aIndex = 0 + TriangleIndices.Count;
+            int bIndex = 1 + TriangleIndices.Count;
+            int cIndex = 2 + TriangleIndices.Count;
+
+            TriangleIndices.Add(aIndex);
+            TriangleIndices.Add(bIndex);
+            TriangleIndices.Add(cIndex);
+        }
+
+        private void AddFace(Face face)
+		{
+            face.FaceRemovedEvent += FaceRemove;
+
+            Vector3 normal = face.Reversed ? face.Normal : -face.Normal;
+
+            foreach (var triangle in face.Triangulated)
+            {
+                Triangle reversedTriangle = new Triangle { A = triangle.B, B = triangle.A, C = triangle.C };
+                if (face.Reversed)
+				{
+                    AddTriangle(reversedTriangle, -face.Normal);
+                    AddTriangle(triangle, face.Normal);
+				}
+                else
+				{
+                    AddTriangle(triangle, face.Normal);
+                    AddTriangle(reversedTriangle, -face.Normal);
+                }
+
+            }
+        }
 
 		public void KeyUp(object sender, KeyEventArgs e)
 		{
@@ -90,39 +146,6 @@ namespace Photomatch_ProofOfConcept_WPF.WPF.ViewModel
 
 		public void MouseDown(object sender, MouseButtonEventArgs e)
 		{
-            if (e.ClickCount == 2)
-            {
-                int triangleCount = 0;
-
-                foreach (var face in Model.Faces)
-                {
-                    Vector3 normal = face.Reversed ? face.Normal : -face.Normal;
-
-                    foreach (var triangle in face.Triangulated)
-					{
-                        VertexNormals.Add(new Vector3D(normal.X, normal.Z, normal.Y));
-                        VertexNormals.Add(new Vector3D(normal.X, normal.Z, normal.Y));
-                        VertexNormals.Add(new Vector3D(normal.X, normal.Z, normal.Y));
-
-                        VertexPositions.Add(new Point3D(triangle.A.Position.X, triangle.A.Position.Z, triangle.A.Position.Y));
-                        VertexPositions.Add(new Point3D(triangle.B.Position.X, triangle.B.Position.Z, triangle.B.Position.Y));
-                        VertexPositions.Add(new Point3D(triangle.C.Position.X, triangle.C.Position.Z, triangle.C.Position.Y));
-
-                        int aIndex = 0 + 3 * triangleCount;
-                        int bIndex = 1 + 3 * triangleCount;
-                        int cIndex = 2 + 3 * triangleCount;
-
-                        if (!face.Reversed)
-                            (aIndex, bIndex) = (bIndex, aIndex);
-
-                        TriangleIndices.Add(aIndex);
-                        TriangleIndices.Add(bIndex);
-                        TriangleIndices.Add(cIndex);
-
-                        triangleCount++;
-                    }
-                }
-            }
 		}
 
 		public void MouseUp(object sender, MouseButtonEventArgs e)
@@ -131,6 +154,8 @@ namespace Photomatch_ProofOfConcept_WPF.WPF.ViewModel
 
 		public void MouseMove(object sender, MouseEventArgs e)
 		{
+            Vector2 mouse = e.GetPosition(Viewport).AsVector2();
+            ModelRotate = new Vector3(mouse, 0);
 		}
 
 		public void MouseEnter(object sender, MouseEventArgs e)
@@ -148,10 +173,12 @@ namespace Photomatch_ProofOfConcept_WPF.WPF.ViewModel
 
 		public void UpdateModel(Model model)
 		{
-            this.Model = model;
             VertexNormals.Clear();
             VertexPositions.Clear();
             TriangleIndices.Clear();
+
+            this.Model.AddFaceEvent -= AddFace;
+            SetModel(model);
         }
 	}
 }

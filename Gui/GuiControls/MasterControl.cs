@@ -544,6 +544,7 @@ namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls
 			Model.AddVertex(new Vector3());
 			Model.ModelChangedEvent += () => Dirty = true;
 			Model.ModelChangedEvent += () => HistoryDirty = true;
+			ModelView.UpdateModel(Model);
 
 			ProjectName = NewProjectName;
 
