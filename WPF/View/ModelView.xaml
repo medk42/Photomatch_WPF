@@ -21,13 +21,25 @@
             </ModelVisual3D>
             <ModelVisual3D>
                 <ModelVisual3D.Content>
-                    <GeometryModel3D Geometry="{Binding MeshGeometry}">
-                        <GeometryModel3D.Material>
-                            <DiffuseMaterial Brush="Gray"/>
-                        </GeometryModel3D.Material>
-
-                        <GeometryModel3D.Transform>
+                    <AmbientLight Color="#333333" ></AmbientLight>
+                </ModelVisual3D.Content>
+            </ModelVisual3D>
+            <ModelVisual3D>
+                <ModelVisual3D.Content>
+                    <Model3DGroup>
+                        <GeometryModel3D Geometry="{Binding MeshGeometryFront}">
+                            <GeometryModel3D.Material>
+                                <DiffuseMaterial Brush="Green"/>
+                            </GeometryModel3D.Material>
+                        </GeometryModel3D>
+                        <GeometryModel3D Geometry="{Binding MeshGeometryBack}">
+                            <GeometryModel3D.Material>
+                                <DiffuseMaterial Brush="Red"/>
+                            </GeometryModel3D.Material>
+                        </GeometryModel3D>
+                        <Model3DGroup.Transform>
                             <Transform3DGroup>
+                                <TranslateTransform3D OffsetX="{Binding Translate.X}" OffsetY="{Binding Translate.Z}" OffsetZ="{Binding Translate.Y}" />
                                 <RotateTransform3D>
                                     <RotateTransform3D.Rotation>
                                         <AxisAngleRotation3D Axis="0,1,0" Angle="{Binding ModelRotate.X}" />
@@ -39,8 +51,8 @@
                                     </RotateTransform3D.Rotation>
                                 </RotateTransform3D>
                             </Transform3DGroup>
-                        </GeometryModel3D.Transform>
-                    </GeometryModel3D>
+                        </Model3DGroup.Transform>
+                    </Model3DGroup>
                 </ModelVisual3D.Content>
             </ModelVisual3D>
         </Viewport3D.Children>
