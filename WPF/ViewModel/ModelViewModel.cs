@@ -15,8 +15,6 @@ namespace Photomatch_ProofOfConcept_WPF.WPF.ViewModel
 
 	class ModelViewModel : BaseViewModel, IKeyboardHandler, IMouseHandler, IModelView
     {
-        public Viewport3D ModelContent { get; private set; }
-
         public IMouseHandler MouseHandler
         {
             get => this;
@@ -110,8 +108,38 @@ namespace Photomatch_ProofOfConcept_WPF.WPF.ViewModel
 
         private void ModelChanged() => Recalculate();
 
-        private void AddTriangle(Triangle triangle, Vector3 normal, bool front)
+        private void Recalculate()
 		{
+            VertexNormalsFront.Clear();
+            VertexPositionsFront.Clear();
+            TriangleIndicesFront.Clear();
+            VertexNormalsBack.Clear();
+            VertexPositionsBack.Clear();
+            TriangleIndicesBack.Clear();
+
+            foreach (Face face in Model.Faces)
+                AddFace(face);
+
+            Vector3 vertexPositionsSum = new Vector3();
+            foreach (Vertex vertex in Model.Vertices)
+                vertexPositionsSum += vertex.Position;
+
+            Translate = -vertexPositionsSum / Model.Vertices.Count;
+        }
+
+        private void AddFace(Face face)
+		{
+            foreach (var triangle in face.Triangulated)
+            {
+                Triangle reversedTriangle = new Triangle { A = triangle.B, B = triangle.A, C = triangle.C };
+
+                AddTriangle(triangle, face.Normal, !face.Reversed);
+                AddTriangle(reversedTriangle, -face.Normal, face.Reversed);
+            }
+        }
+
+        private void AddTriangle(Triangle triangle, Vector3 normal, bool front)
+        {
             Vector3DCollection vertexNormals = !front ? VertexNormalsFront : VertexNormalsBack;
             Point3DCollection vertexPositions = !front ? VertexPositionsFront : VertexPositionsBack;
             Int32Collection triangleIndices = !front ? TriangleIndicesFront : TriangleIndicesBack;
@@ -133,55 +161,9 @@ namespace Photomatch_ProofOfConcept_WPF.WPF.ViewModel
             triangleIndices.Add(cIndex);
         }
 
-        private void Recalculate()
-		{
-            VertexNormalsFront.Clear();
-            VertexPositionsFront.Clear();
-            TriangleIndicesFront.Clear();
-            VertexNormalsBack.Clear();
-            VertexPositionsBack.Clear();
-            TriangleIndicesBack.Clear();
+        public void KeyUp(object sender, KeyEventArgs e) { }
 
-            foreach (Face face in Model.Faces)
-                AddFace(face);
-
-
-
-            Vector3 vertexPositionsSum = new Vector3();
-            foreach (Vertex vertex in Model.Vertices)
-                vertexPositionsSum += vertex.Position;
-
-            Translate = -vertexPositionsSum / Model.Vertices.Count;
-        }
-
-        private void AddFace(Face face)
-		{
-            Vector3 normal = face.Reversed ? face.Normal : -face.Normal;
-
-            foreach (var triangle in face.Triangulated)
-            {
-                Triangle reversedTriangle = new Triangle { A = triangle.B, B = triangle.A, C = triangle.C };
-                if (face.Reversed)
-				{
-                    AddTriangle(reversedTriangle, -face.Normal, true);
-                    AddTriangle(triangle, face.Normal, false);
-				}
-                else
-				{
-                    AddTriangle(triangle, face.Normal, true);
-                    AddTriangle(reversedTriangle, -face.Normal, false);
-                }
-
-            }
-        }
-
-        public void KeyUp(object sender, KeyEventArgs e)
-		{
-		}
-
-		public void KeyDown(object sender, KeyEventArgs e)
-        {
-        }
+        public void KeyDown(object sender, KeyEventArgs e) { }
 
         private Vector2 GetMousePosition(MouseEventArgs e) 
         {
@@ -211,13 +193,9 @@ namespace Photomatch_ProofOfConcept_WPF.WPF.ViewModel
             }
 		}
 
-		public void MouseEnter(object sender, MouseEventArgs e)
-		{
-		}
+        public void MouseEnter(object sender, MouseEventArgs e) { }
 
-		public void MouseLeave(object sender, MouseEventArgs e)
-		{
-		}
+        public void MouseLeave(object sender, MouseEventArgs e) { }
 
 		public void MouseWheel(object sender, MouseWheelEventArgs e)
 		{
