@@ -40,6 +40,7 @@
                         <Model3DGroup.Transform>
                             <Transform3DGroup>
                                 <TranslateTransform3D OffsetX="{Binding Translate.X}" OffsetY="{Binding Translate.Z}" OffsetZ="{Binding Translate.Y}" />
+                                <ScaleTransform3D ScaleX="-1"/>
                                 <RotateTransform3D>
                                     <RotateTransform3D.Rotation>
                                         <AxisAngleRotation3D Axis="0,1,0" Angle="{Binding ModelRotate.X}" />

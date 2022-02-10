@@ -86,7 +86,6 @@ namespace Photomatch_ProofOfConcept_WPF.WPF.ViewModel
             MeshGeometryBack.TriangleIndices = TriangleIndicesBack;
 
             ViewportLoaded = new RelayCommand(ViewportLoaded_);
-            Translate = new Vector3(-0.5, 0, 0);
         }
 
         public void ViewportLoaded_(object obj)
@@ -191,13 +190,13 @@ namespace Photomatch_ProofOfConcept_WPF.WPF.ViewModel
 
 		public void MouseDown(object sender, MouseButtonEventArgs e)
 		{
-            if (e.ChangedButton == System.Windows.Input.MouseButton.Middle)
+            if (e.ChangedButton == System.Windows.Input.MouseButton.Left)
                 DraggingOffset = GetMousePosition(e);
 		}
 
 		public void MouseUp(object sender, MouseButtonEventArgs e)
 		{
-            if (e.ChangedButton == System.Windows.Input.MouseButton.Middle)
+            if (e.ChangedButton == System.Windows.Input.MouseButton.Left)
                 DraggingOffset = Vector2.InvalidInstance;
 		}
 
@@ -207,6 +206,7 @@ namespace Photomatch_ProofOfConcept_WPF.WPF.ViewModel
 			{
                 Vector2 newOffset = GetMousePosition(e);
                 ModelRotate += new Vector3(newOffset - DraggingOffset, 0);
+                ModelRotate = ModelRotate.WithY(Math.Clamp(ModelRotate.Y, -90, 90));
                 DraggingOffset = newOffset;
             }
 		}
