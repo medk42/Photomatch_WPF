@@ -61,11 +61,30 @@ namespace Photomatch_ProofOfConcept_WPF.Gui
 			this.MaxMouseDistance = maxMouseDistance;
 		}
 
+		private double Clip(double value, double min, double max)
+		{
+			if (value < min)
+				return min;
+			if (value > max)
+				return max;
+			return value;
+		}
+
 		public void MouseMove(Vector2 mouseCoord)
 		{
 			if (CurrentPoint != null)
 			{
-				CurrentPoint.Position = mouseCoord + DraggingOffset;
+				Vector2 newPosition = mouseCoord + DraggingOffset;
+
+				double scale = Window.ScreenDistance(new Vector2(), new Vector2(1, 0));
+
+				double maxDistance = MaxMouseDistance / scale;
+
+
+				CurrentPoint.Position = new Vector2(
+					Clip(newPosition.X, maxDistance, Window.Width - maxDistance - 1),
+					Clip(newPosition.Y, maxDistance, Window.Height - maxDistance - 1)
+				);
 			}
 		}
 

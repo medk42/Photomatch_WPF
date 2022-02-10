@@ -59,6 +59,8 @@ namespace Photomatch_ProofOfConcept_WPF.Gui
 
 	public interface IWindow
 	{
+		double Width { get; }
+		double Height { get; }
 		void SetImage(Image image);
 		double ScreenDistance(Vector2 pointA, Vector2 pointB);
 		ILine CreateLine(Vector2 start, Vector2 end, double endRadius, ApplicationColor color);
