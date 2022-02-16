@@ -200,16 +200,18 @@ namespace Photomatch_ProofOfConcept_WPF
 			if (MainDockMgr.ActiveContent != null)
 			{
 				MainToolbar.IsEnabled = true;
-
+				
 				ImageViewModel imageViewModel = MainDockMgr.ActiveContent as ImageViewModel;
-				if (imageViewModel == null)
+				if (imageViewModel != null)
 				{
-					MainToolbar.IsEnabled = false;
-					return;
+					DisplayCalibrationAxes(imageViewModel.CurrentCalibrationAxes);
+					DisplayInvertedAxes(imageViewModel.CurrentCalibrationAxes, imageViewModel.CurrentInvertedAxes);
 				}
 
-				DisplayCalibrationAxes(imageViewModel.CurrentCalibrationAxes);
-				DisplayInvertedAxes(imageViewModel.CurrentCalibrationAxes, imageViewModel.CurrentInvertedAxes);
+				if (MainViewModel.DockManagerViewModel.Documents.Count == 1)
+				{
+					MainToolbar.IsEnabled = false;
+				}
 			}
 			else
 			{
