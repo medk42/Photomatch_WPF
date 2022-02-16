@@ -15,6 +15,8 @@ namespace Photomatch_ProofOfConcept_WPF.WPF.ViewModel
 
 	class ModelViewModel : BaseViewModel, IKeyboardHandler, IMouseHandler, IModelView
     {
+        private static readonly double CameraZOffset = 1;
+
         public IMouseHandler MouseHandler
         {
             get => this;
@@ -199,7 +201,7 @@ namespace Photomatch_ProofOfConcept_WPF.WPF.ViewModel
 
 		public void MouseWheel(object sender, MouseWheelEventArgs e)
 		{
-            CameraPosition = new Point3D(0, 0, Math.Pow(CameraPosition.Z, 1 - e.Delta / 120.0 / 10));
+            CameraPosition = new Point3D(0, 0, Math.Pow(CameraPosition.Z + CameraZOffset, 1 - e.Delta / 120.0 / 10) - CameraZOffset);
         }
 
 		public void UpdateModel(Model model)
