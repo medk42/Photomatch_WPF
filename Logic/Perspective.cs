@@ -7,12 +7,29 @@ using SixLabors.ImageSharp.PixelFormats;
 
 namespace Photomatch_ProofOfConcept_WPF.Logic
 {
+	/// <summary>
+	/// First and second calibration axis written as [first][second].
+	/// </summary>
 	public enum CalibrationAxes { XY, YX, XZ, ZX, YZ, ZY };
 
+	/// <summary>
+	/// Struct containing information about X/Y/Z axes being inverted.
+	/// </summary>
 	public struct InvertedAxes : ISafeSerializable<InvertedAxes>
 	{
+		/// <summary>
+		/// True if X is inverted. False otherwise.
+		/// </summary>
 		public bool X;
+
+		/// <summary>
+		/// True if Y is inverted. False otherwise.
+		/// </summary>
 		public bool Y;
+
+		/// <summary>
+		/// True if Z is inverted. False otherwise.
+		/// </summary>
 		public bool Z;
 
 		public void Deserialize(BinaryReader reader)
@@ -30,11 +47,21 @@ namespace Photomatch_ProofOfConcept_WPF.Logic
 		}
 	}
 
+	/// <summary>
+	/// Class containing all data about an image and its calibration.
+	/// </summary>
 	public class PerspectiveData : ISafeSerializable<PerspectiveData>
 	{
 		public delegate void PerspectiveChangedEventHandler();
+
+		/// <summary>
+		/// Called when perspective is changed in any way. 
+		/// </summary>
 		public event PerspectiveChangedEventHandler PerspectiveChangedEvent;
 
+		/// <summary>
+		/// Image for this perspective.
+		/// </summary>
 		public Image<Rgb24> Image { get; private set; }
 
 		private Camera _camera = new Camera();
@@ -48,6 +75,9 @@ namespace Photomatch_ProofOfConcept_WPF.Logic
 		private double _scale = 1;
 		private byte[] _imageData;
 
+		/// <summary>
+		/// Projection of world origin point on image.
+		/// </summary>
 		public Vector2 Origin
 		{
 			get => _origin;
@@ -59,6 +89,9 @@ namespace Photomatch_ProofOfConcept_WPF.Logic
 			}
 		}
 
+		/// <summary>
+		/// First (world) parallel line for the first axis on image.
+		/// </summary>
 		public Line2D LineA1
 		{
 			get => _lineA1;
@@ -70,6 +103,9 @@ namespace Photomatch_ProofOfConcept_WPF.Logic
 			}
 		}
 
+		/// <summary>
+		/// Second (world) parallel line for the first axis on image.
+		/// </summary>
 		public Line2D LineA2
 		{
 			get => _lineA2;
@@ -81,6 +117,9 @@ namespace Photomatch_ProofOfConcept_WPF.Logic
 			}
 		}
 
+		/// <summary>
+		/// First (world) parallel line for the second axis on image.
+		/// </summary>
 		public Line2D LineB1
 		{
 			get => _lineB1;
@@ -92,6 +131,9 @@ namespace Photomatch_ProofOfConcept_WPF.Logic
 			}
 		}
 
+		/// <summary>
+		/// Second (world) parallel line for the second axis on image.
+		/// </summary>
 		public Line2D LineB2
 		{
 			get => _lineB2;
@@ -103,6 +145,10 @@ namespace Photomatch_ProofOfConcept_WPF.Logic
 			}
 		}
 
+		/// <summary>
+		/// Specifies the first and second calibration axes - which axes do 
+		/// LineA1/2 and LineB1/2 represent.
+		/// </summary>
 		public CalibrationAxes CalibrationAxes
 		{
 			get => _calibrationAxes;
@@ -117,6 +163,10 @@ namespace Photomatch_ProofOfConcept_WPF.Logic
 			}
 		}
 
+		/// <summary>
+		/// Specifies axes direction inversion. Default positive direction is 
+		/// towards the vanishing point of that axis.
+		/// </summary>
 		public InvertedAxes InvertedAxes
 		{
 			get => _invertedAxes;
@@ -128,6 +178,9 @@ namespace Photomatch_ProofOfConcept_WPF.Logic
 			}
 		}
 
+		/// <summary>
+		/// Scaling factor between this calibration and model.
+		/// </summary>
 		public double Scale
 		{
 			get => _scale;
@@ -139,8 +192,14 @@ namespace Photomatch_ProofOfConcept_WPF.Logic
 			}
 		}
 
+		/// <summary>
+		/// Original path to the loaded image.
+		/// </summary>
 		public string ImagePath { get; private set; }
 
+		/// <summary>
+		/// Create a new perspective from specified image, image bytes and image path.
+		/// </summary>
 		public PerspectiveData(Image<Rgb24> image, byte[] imageData, string imagePath)
 		{
 			Image = image;
@@ -173,6 +232,9 @@ namespace Photomatch_ProofOfConcept_WPF.Logic
 			SerializeWithoutImage(writer);
 		}
 
+		/// <summary>
+		/// Serialize only calibration data to binary writer.
+		/// </summary>
 		public void SerializeWithoutImage(BinaryWriter writer)
 		{
 			_origin.Serialize(writer);
@@ -198,6 +260,9 @@ namespace Photomatch_ProofOfConcept_WPF.Logic
 			DeserializeWithoutImage(reader);
 		}
 
+		/// <summary>
+		/// De-serialize only calibration data from binary reader to current instance.
+		/// </summary>
 		public void DeserializeWithoutImage(BinaryReader reader)
 		{
 			_origin = ISafeSerializable<Vector2>.CreateDeserialize(reader);
@@ -214,6 +279,9 @@ namespace Photomatch_ProofOfConcept_WPF.Logic
 			RecalculateProjection();
 		}
 
+		/// <summary>
+		/// Scale Line2D's x coordinates by xStretch and y coordinates by yStretch.
+		/// </summary>
 		private Line2D ScaleLine(Line2D line, double xStretch, double yStretch)
 		{
 			var newStart = new Vector2(line.Start.X * xStretch, line.Start.Y * yStretch);
@@ -221,6 +289,10 @@ namespace Photomatch_ProofOfConcept_WPF.Logic
 			return new Line2D(newStart, newEnd);
 		}
 
+		/// <summary>
+		/// Recalculate projection matrices based on calibration variables. 
+		/// Principal point is chosen as the image midpoint.
+		/// </summary>
 		public void RecalculateProjection()
 		{
 			Vector2 vanishingPointA = Intersections2D.GetLineLineIntersection(LineA1, LineA2).Intersection;
@@ -264,6 +336,9 @@ namespace Photomatch_ProofOfConcept_WPF.Logic
 		}
 	}
 
+	/// <summary>
+	/// Class containing data about world-to-screen and screen-to-world transformations.
+	/// </summary>
 	public class Camera
 	{
 		private Matrix3x3 IntrinsicMatrix;
@@ -276,6 +351,16 @@ namespace Photomatch_ProofOfConcept_WPF.Logic
 
 		private double Scale;
 
+		/// <summary>
+		/// Update transformation matrices based on calibration variables.
+		/// </summary>
+		/// <param name="viewRatio">Ratio between x and y coordinates.</param>
+		/// <param name="principalPoint">Principal point of the image.</param>
+		/// <param name="vanishingPointA">Vanishing point of the first axis.</param>
+		/// <param name="vanishingPointB">Vanishing point of the second axis.</param>
+		/// <param name="origin">World origin position on the image.</param>
+		/// <param name="axes">Specification of the first and second axis.</param>
+		/// <param name="inverted">Specification of axis inversion.</param>
 		public void UpdateView(double viewRatio, Vector2 principalPoint, Vector2 vanishingPointA, Vector2 vanishingPointB, Vector2 origin, CalibrationAxes axes, InvertedAxes inverted)
 		{
 			double scale = GetInstrinsicParametersScale(principalPoint, viewRatio, vanishingPointA, vanishingPointB);
@@ -286,9 +371,15 @@ namespace Photomatch_ProofOfConcept_WPF.Logic
 
 			Translate = IntrinsicMatrixInverse * new Vector3(origin.X, origin.Y, 1);
 		}
-
+		
+		/// <summary>
+		/// Update model scale to a new value.
+		/// </summary>
 		public void UpdateScale(double newScale) => Scale = newScale;
 
+		/// <summary>
+		/// Transform vector from world space to screen space (with z normalized).
+		/// </summary>
 		public Vector2 WorldToScreen(Vector3 worldPoint)
 		{
 			Vector3 point = RotationMatrix * worldPoint * Scale + Translate;
@@ -297,11 +388,18 @@ namespace Photomatch_ProofOfConcept_WPF.Logic
 			return new Vector2(point.X, point.Y);
 		}
 
+		/// <summary>
+		/// Transform vector from screen space (with 1 as z coordinate) to world space.
+		/// </summary>
 		public Vector3 ScreenToWorld(Vector2 screenPoint)
 		{
 			return RotationMatrixInverse * (IntrinsicMatrixInverse * new Vector3(screenPoint.X, screenPoint.Y, 1) - Translate) / Scale;
 		}
 
+		/// <summary>
+		/// Create a ray in world space from Vector3(screenPoint, 1) in the direction 
+		/// of the view of the camera at that point. 
+		/// </summary>
 		public Ray3D ScreenToWorldRay(Vector2 screenPoint)
 		{
 			Vector3 origin = RotationMatrixInverse * (IntrinsicMatrixInverse * new Vector3(screenPoint.X, screenPoint.Y, 1) - Translate) / Scale;
@@ -309,12 +407,25 @@ namespace Photomatch_ProofOfConcept_WPF.Logic
 			return new Ray3D(origin, behindOrigin - origin);
 		}
 
+		/// <summary>
+		/// Calculate perspective origin screen position, based on transformation matrices and scale, 
+		/// so that the WorldToScreen projection of the worldPoint is at screenPoint.
+		/// </summary>
 		public Vector2 MatchScreenWorldPoint(Vector2 screenPoint, Vector3 worldPoint)
 		{
 			Vector3 rightHandSide = IntrinsicMatrix * (RotationMatrix * (Scale * worldPoint)) + new Vector3(0, 0, 1);
 			return new Vector2(screenPoint.X * rightHandSide.Z - rightHandSide.X, screenPoint.Y * rightHandSide.Z - rightHandSide.Y);
 		}
 
+		/// <summary>
+		/// Calculate perspective origin screen position and scale, based on transformation matrices,
+		/// so that the WorldToScreen projection of the worldPointPos is at screenPointPos and
+		/// the WorldToScreen projection of worldPointScale is closest to screenPointScale.
+		/// </summary>
+		/// <returns>
+		/// Vector3 containing the calculated perspective origin as x and y coordinates and 
+		/// the calculated scale as the z coordinate.
+		/// </returns>
 		public Vector3 MatchScreenWorldPoints(Vector2 screenPointPos, Vector3 worldPointPos, Vector2 screenPointScale, Vector3 worldPointScale)
 		{
 			Vector3 a = IntrinsicMatrix * RotationMatrix * worldPointPos;
@@ -330,6 +441,13 @@ namespace Photomatch_ProofOfConcept_WPF.Logic
 			return new Vector3(X, Y, S);
 		}
 
+		/// <summary>
+		/// Calculate the scale of the intrinsic camera matrix.
+		/// </summary>
+		/// <param name="principalPoint">Principal point of the image.</param>
+		/// <param name="viewRatio">Ratio between x and y coordinates.</param>
+		/// <param name="firstVanishingPoint">Vanishing point of the first axis.</param>
+		/// <param name="secondVanishingPoint">Vanishing point of the second axis.</param>
 		public static double GetInstrinsicParametersScale(Vector2 principalPoint, double viewRatio, Vector2 firstVanishingPoint, Vector2 secondVanishingPoint)
 		{
 			return Math.Sqrt(
@@ -345,6 +463,12 @@ namespace Photomatch_ProofOfConcept_WPF.Logic
 				) / (viewRatio * viewRatio));
 		}
 
+		/// <summary>
+		/// Get the intrinsic camera matrix.
+		/// </summary>
+		/// <param name="principalPoint">Principal point of the image.</param>
+		/// <param name="scale">The scale of the intrinsic camera matrix.</param>
+		/// <param name="viewRatio">Ratio between x and y coordinates.</param>
 		public static Matrix3x3 GetIntrinsicParametersMatrix(Vector2 principalPoint, double scale, double viewRatio)
 		{
 			Matrix3x3 intrinsicMatrix = new Matrix3x3();
@@ -358,6 +482,12 @@ namespace Photomatch_ProofOfConcept_WPF.Logic
 			return intrinsicMatrix;
 		}
 
+		/// <summary>
+		/// Get the inverted intrinsic camera matrix.
+		/// </summary>
+		/// <param name="principalPoint">Principal point of the image.</param>
+		/// <param name="scale">The scale of the intrinsic camera matrix.</param>
+		/// <param name="viewRatio">Ratio between x and y coordinates.</param>
 		public static Matrix3x3 GetInvertedIntrinsicParametersMatrix(Vector2 principalPoint, double scale, double viewRatio)
 		{
 			Matrix3x3 intrinsicMatrixInv = new Matrix3x3();
@@ -374,6 +504,16 @@ namespace Photomatch_ProofOfConcept_WPF.Logic
 			return intrinsicMatrixInv;
 		}
 
+		/// <summary>
+		/// Calculate the rotational camera matrix.
+		/// </summary>
+		/// <param name="invertedIntrinsicMatrix">The inverted intrinsic camera matrix.</param>
+		/// <param name="vanishingPointA">Vanishing point of the first axis.</param>
+		/// <param name="vanishingPointB">Vanishing point of the second axis.</param>
+		/// <param name="principalPoint">Principal point of the image.</param>
+		/// <param name="axes">Specification of the first and second axis.</param>
+		/// <param name="inverted">Specification of axis inversion.</param>
+		/// <returns></returns>
 		public static Matrix3x3 GetRotationalMatrix(Matrix3x3 invertedIntrinsicMatrix, Vector2 vanishingPointA, Vector2 vanishingPointB, Vector2 principalPoint, CalibrationAxes axes, InvertedAxes inverted)
 		{
 			Matrix3x3 rotationMatrix = new Matrix3x3();
@@ -434,6 +574,9 @@ namespace Photomatch_ProofOfConcept_WPF.Logic
 			return rotationMatrix;
 		}
 
+		/// <summary>
+		/// Calculate the third triangle vertex from the other two and an orthocenter.
+		/// </summary>
 		private static Vector2 GetTriangleThirdVertexFromOrthocenter(Vector2 firstVertex, Vector2 secondVertex, Vector2 orthocenter)
 		{
 			Vector2 firstToSecond = secondVertex - firstVertex;
