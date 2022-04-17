@@ -247,7 +247,7 @@ namespace Photomatch_ProofOfConcept_WPF.Logic
 
 			Line2D rayLine = ray.AsLine();
 
-			if (ray.Start.Y >= corner1.Y)
+			if (ray.Start.Y > corner1.Y)
 			{
 				var intersection = Intersections2D.GetLineLineIntersection(rayLine, top);
 				if (intersection.LineARelative >= 0 && (intersection.LineBRelative >= 0 && intersection.LineBRelative <= 1))
@@ -261,7 +261,7 @@ namespace Photomatch_ProofOfConcept_WPF.Logic
 					return intersection.Intersection;
 			}
 
-			if (ray.Start.X >= corner1.X)
+			if (ray.Start.X > corner1.X)
 			{
 				var intersection = Intersections2D.GetLineLineIntersection(rayLine, left);
 				if (intersection.LineARelative >= 0 && (intersection.LineBRelative >= 0 && intersection.LineBRelative <= 1))
