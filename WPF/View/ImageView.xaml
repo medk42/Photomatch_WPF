@@ -40,6 +40,9 @@
                 <Path x:Name="NormalLines" Stroke="Black" Fill="Black" Data="{Binding NormalLinesGeometry}" StrokeThickness="{Binding LineStrokeThickness}"/>
                 <Path x:Name="NormalInsideLines" Stroke="Red" Fill="Red" Data="{Binding NormalInsideLinesGeometry}" StrokeThickness="{Binding LineStrokeThickness}"/>
                 <Path x:Name="NormalOutsideLines" Stroke="Green" Fill="Green" Data="{Binding NormalOutsideLinesGeometry}" StrokeThickness="{Binding LineStrokeThickness}"/>
+                <Path x:Name="XAxisDottedLines" StrokeDashArray="2 3" Stroke="Red" Fill="Red" Data="{Binding XAxisDottedLinesGeometry}" StrokeThickness="{Binding LineStrokeThickness}"/>
+                <Path x:Name="YAxisDottedLines" StrokeDashArray="2 3" Stroke="Green" Fill="Green" Data="{Binding YAxisDottedLinesGeometry}" StrokeThickness="{Binding LineStrokeThickness}"/>
+                <Path x:Name="ZAxisDottedLines" StrokeDashArray="2 3" Stroke="Blue" Fill="Blue" Data="{Binding ZAxisDottedLinesGeometry}" StrokeThickness="{Binding LineStrokeThickness}"/>
             </Grid>
         </Viewbox>
     </Grid>

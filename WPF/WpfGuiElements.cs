@@ -102,6 +102,15 @@ namespace Photomatch_ProofOfConcept_WPF.WPF
 				case ApplicationColor.NormalOutside:
 					geometry = imageViewModel.NormalOutsideLinesGeometry;
 					break;
+				case ApplicationColor.XAxisDotted:
+					geometry = imageViewModel.XAxisDottedLinesGeometry;
+					break;
+				case ApplicationColor.YAxisDotted:
+					geometry = imageViewModel.YAxisDottedLinesGeometry;
+					break;
+				case ApplicationColor.ZAxisDotted:
+					geometry = imageViewModel.ZAxisDottedLinesGeometry;
+					break;
 				default:
 					throw new ArgumentException("Unknown application color.");
 			}
@@ -149,6 +158,12 @@ namespace Photomatch_ProofOfConcept_WPF.WPF
 					return Brushes.Red;
 				case ApplicationColor.NormalOutside:
 					return Brushes.Green;
+				case ApplicationColor.XAxisDotted:
+					return Brushes.Red;
+				case ApplicationColor.YAxisDotted:
+					return Brushes.Green;
+				case ApplicationColor.ZAxisDotted:
+					return Brushes.Blue;
 				default:
 					throw new ArgumentException("Unknown application color.");
 			}

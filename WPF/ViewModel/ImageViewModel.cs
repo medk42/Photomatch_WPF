@@ -52,6 +52,9 @@ namespace Photomatch_ProofOfConcept_WPF.WPF.ViewModel
 		public GeometryGroup NormalLinesGeometry { get; } = new GeometryGroup();
 		public GeometryGroup NormalInsideLinesGeometry { get; } = new GeometryGroup();
 		public GeometryGroup NormalOutsideLinesGeometry { get; } = new GeometryGroup();
+		public GeometryGroup XAxisDottedLinesGeometry { get; } = new GeometryGroup();
+		public GeometryGroup YAxisDottedLinesGeometry { get; } = new GeometryGroup();
+		public GeometryGroup ZAxisDottedLinesGeometry { get; } = new GeometryGroup();
 		public ICommand Viewbox_SizeChanged { get; private set; }
 		public ICommand Image_Loaded { get; private set; }
 		public ICommand MoveViewbox_Loaded { get; private set; }
@@ -180,6 +183,9 @@ namespace Photomatch_ProofOfConcept_WPF.WPF.ViewModel
 			NormalLinesGeometry.FillRule = FillRule.Nonzero;
 			NormalInsideLinesGeometry.FillRule = FillRule.Nonzero;
 			NormalOutsideLinesGeometry.FillRule = FillRule.Nonzero;
+			XAxisDottedLinesGeometry.FillRule = FillRule.Nonzero;
+			YAxisDottedLinesGeometry.FillRule = FillRule.Nonzero;
+			ZAxisDottedLinesGeometry.FillRule = FillRule.Nonzero;
 		}
 
         public void Close()
@@ -271,6 +277,9 @@ namespace Photomatch_ProofOfConcept_WPF.WPF.ViewModel
 			NormalLinesGeometry.Children.Clear();
 			NormalInsideLinesGeometry.Children.Clear();
 			NormalOutsideLinesGeometry.Children.Clear();
+			XAxisDottedLinesGeometry.Children.Clear();
+			YAxisDottedLinesGeometry.Children.Clear();
+			ZAxisDottedLinesGeometry.Children.Clear();
 			Scalables.Clear(); 
 			ImageSource = null;
 
