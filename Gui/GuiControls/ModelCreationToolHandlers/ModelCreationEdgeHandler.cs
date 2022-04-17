@@ -19,6 +19,7 @@ namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls.ModelCreationToolHandler
 		private IModelCreationEdgeHandlerDirection HoldDirectionSelector;
 		private IEllipse ModelHoverEllipse;
 		private ILine ModelEdgeLine;
+		private ILine CursorXLine, CursorYLine, CursorZLine;
 		private IModelCreationEdgeHandlerSelector[] VertexSelectors;
 		private IModelCreationEdgeHandlerDirection[] DirectionSelectors;
 		private IModelCreationEdgeHandlerVertex FirstVertex;
@@ -42,6 +43,15 @@ namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls.ModelCreationToolHandler
 			this.ModelEdgeLine = Window.CreateLine(new Vector2(), new Vector2(), 0, ApplicationColor.Highlight);
 			this.ModelEdgeLine.Visible = false;
 
+			this.CursorXLine = new InfiniteLine(window, new Vector2(), new Vector2(), ApplicationColor.XAxisDotted);
+			this.CursorXLine.Visible = false;
+
+			this.CursorYLine = new InfiniteLine(window, new Vector2(), new Vector2(), ApplicationColor.YAxisDotted);
+			this.CursorYLine.Visible = false;
+
+			this.CursorZLine = new InfiniteLine(window, new Vector2(), new Vector2(), ApplicationColor.ZAxisDotted);
+			this.CursorZLine.Visible = false;
+
 			this.VertexSelectors = new IModelCreationEdgeHandlerSelector[]
 			{
 				new ModelCreationEdgeHandlerVertexSelector(ModelVisualization),
@@ -60,6 +70,29 @@ namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls.ModelCreationToolHandler
 			SetActive(Active);
 		}
 
+		private void ResetCursor()
+		{
+			CursorXLine.Visible = false;
+			CursorYLine.Visible = false;
+			CursorZLine.Visible = false;
+		}
+		private void SetCursor(Vector3 worldPos, Vector2 screenPos)
+		{
+			Vector2 endX = Perspective.WorldToScreen(worldPos + new Vector3(1, 0, 0));
+			Vector2 endY = Perspective.WorldToScreen(worldPos + new Vector3(0, 1, 0));
+			Vector2 endZ = Perspective.WorldToScreen(worldPos + new Vector3(0, 0, 1));
+
+			CursorXLine.Start = screenPos;
+			CursorYLine.Start = screenPos;
+			CursorZLine.Start = screenPos;
+			CursorXLine.End = endX;
+			CursorYLine.End = endY;
+			CursorZLine.End = endZ;
+			CursorXLine.Visible = true;
+			CursorYLine.Visible = true;
+			CursorZLine.Visible = true;
+		}
+
 		public override void MouseMove(Vector2 mouseCoord)
 		{
 			if (Active)
@@ -67,6 +100,7 @@ namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls.ModelCreationToolHandler
 				CurrentVertex = null;
 				CurrentDirection = null;
 				ModelHoverEllipse.Visible = false;
+				ResetCursor();
 				foreach (var selector in VertexSelectors)
 				{
 					CurrentVertex = selector.GetVertex(mouseCoord);
@@ -75,6 +109,8 @@ namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls.ModelCreationToolHandler
 						ModelHoverEllipse.Position = CurrentVertex.ScreenPosition;
 						ModelHoverEllipse.Visible = true;
 						ModelHoverEllipse.Color = selector.VertexColor;
+
+						SetCursor(CurrentVertex.WorldPosition, CurrentVertex.ScreenPosition);
 						break;
 					}
 				}
@@ -110,7 +146,9 @@ namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls.ModelCreationToolHandler
 						}
 						else
 						{
-							ModelEdgeLine.End = Perspective.WorldToScreen(CurrentDirection.ProjectedWorld);
+							Vector2 ProjectedWorldScreen = Perspective.WorldToScreen(CurrentDirection.ProjectedWorld);
+							ModelEdgeLine.End = ProjectedWorldScreen;
+							SetCursor(CurrentDirection.ProjectedWorld, ProjectedWorldScreen);
 						}
 						ModelEdgeLine.Color = HoldDirectionSelector.EdgeColor;
 					}
@@ -134,7 +172,10 @@ namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls.ModelCreationToolHandler
 									bestColor = selector.EdgeColor;
 								}
 							}
-							ModelEdgeLine.End = Perspective.WorldToScreen(bestDirection.ProjectedWorld);
+							Vector2 ProjectedWorldScreen = Perspective.WorldToScreen(bestDirection.ProjectedWorld);
+							ModelEdgeLine.End = ProjectedWorldScreen;
+							SetCursor(bestDirection.ProjectedWorld, ProjectedWorldScreen);
+
 							ModelEdgeLine.Color = bestColor;
 
 							CurrentDirection = bestDirection;
@@ -215,6 +256,7 @@ namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls.ModelCreationToolHandler
 			{
 				CancelLineCreate();
 				ModelHoverEllipse.Visible = false;
+				ResetCursor();
 			}
 		}
 
@@ -234,6 +276,9 @@ namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls.ModelCreationToolHandler
 			DirectionSelectors = null;
 			ModelEdgeLine.Dispose();
 			ModelHoverEllipse.Dispose();
+			CursorXLine.Dispose();
+			CursorYLine.Dispose();
+			CursorZLine.Dispose();
 		}
 
 		public override void UpdateModel(Model model)
