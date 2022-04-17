@@ -4,8 +4,18 @@ using System.Text;
 
 namespace Photomatch_ProofOfConcept_WPF.Logic
 {
+	/// <summary>
+	/// Class for solving sets of linear equations.
+	/// </summary>
 	public static class Solver
 	{
+		/// <summary>
+		/// Solve 3 linear equations. Switch rows around to not have zeros on first column of the first 
+		/// row and second column of the second row.
+		/// </summary>
+		/// <param name="leftHandSide">Each row represents left hand side coefficients in order x/y/z.</param>
+		/// <param name="rightHandSide">Each value represents right hand side coefficient.</param>
+		/// <returns>Solutions for variables x/y/z.</returns>
 		public static Vector3 Solve(Matrix3x3 leftHandSide, Vector3 rightHandSide)
 		{
 			if (leftHandSide.A00 == 0)
