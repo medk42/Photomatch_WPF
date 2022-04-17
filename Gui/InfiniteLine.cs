@@ -61,27 +61,19 @@ namespace Photomatch_ProofOfConcept_WPF.Gui
 			Vector2 topLeft = new Vector2();
 			Vector2 bottomRight = new Vector2(Window.Width, Window.Height);
 
-			Ray2D StartEndRay = new Line2D(Start, End).AsRay();
-			//StartEndRay = StartEndRay.WithStart(StartEndRay.Start + StartEndRay.Direction * TinyDouble);
-			Vector2 end = Intersections2D.GetRayInsideBoxIntersection(StartEndRay, topLeft, bottomRight);
+			Vector2 end = Intersections2D.GetRayInsideBoxIntersection(new Line2D(Start, End).AsRay(), topLeft, bottomRight);
 			if (end.Valid)
 			{
-				Ray2D endStartRay = new Line2D(end, Start).AsRay();
-				//endStartRay = endStartRay.WithStart(endStartRay.Start + endStartRay.Direction * TinyDouble);
-				Vector2 start = Intersections2D.GetRayInsideBoxIntersection(endStartRay, topLeft, bottomRight);
+				Vector2 start = Intersections2D.GetRayInsideBoxIntersection(new Line2D(end, Start).AsRay(), topLeft, bottomRight);
 				GuiLine.Start = start;
 				GuiLine.End = end;
 			}
 			else
 			{
-				Ray2D EndStartRay = new Line2D(End, Start).AsRay();
-				//EndStartRay.WithStart(EndStartRay.Start + EndStartRay.Direction * TinyDouble);
-				Vector2 start = Intersections2D.GetRayInsideBoxIntersection(EndStartRay, topLeft, bottomRight);
+				Vector2 start = Intersections2D.GetRayInsideBoxIntersection(new Line2D(End, Start).AsRay(), topLeft, bottomRight);
 				if (start.Valid)
 				{
-					Ray2D startEndRay = new Line2D(start, End).AsRay();
-					//startEndRay = startEndRay.WithStart(startEndRay.Start + startEndRay.Direction * TinyDouble);
-					end = Intersections2D.GetRayInsideBoxIntersection(startEndRay, topLeft, bottomRight);
+					end = Intersections2D.GetRayInsideBoxIntersection(new Line2D(start, End).AsRay(), topLeft, bottomRight);
 					GuiLine.Start = start;
 					GuiLine.End = end;
 				}
