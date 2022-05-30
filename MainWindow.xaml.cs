@@ -23,7 +23,7 @@ namespace Photomatch_ProofOfConcept_WPF
 	public partial class MainWindow : Window, MasterGUI
 	{
 		private static readonly string PhotomatcherProjectFileFilter = "Photomatcher Project Files (*.ppf)|*.ppf";
-		private static readonly string ImageFileFilter = "Image Files(*.BMP;*.JPG;*.GIF;*.PNG;*.TIFF)|*.BMP;*.JPG;*.GIF;*.PNG;*.TIFF";
+		private static readonly string ImageFileFilter = "Image Files(*.BMP;*.JPG;*.JPEG;*.GIF;*.PNG;*.TIFF)|*.BMP;*.JPG;*.JPEG;*.GIF;*.PNG;*.TIFF";
 		private static readonly string ModelExportFileFilter = "3D Files(*.obj)|*.obj";
 		private static readonly string MainTitle = "Photomatcher";
 
