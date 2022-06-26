@@ -434,6 +434,52 @@ namespace Photomatch_ProofOfConcept_WPF.WPF
 			{
 				var point = value.AsPoint();
 				Ellipse.Center = point;
+
+				if (Visible)
+				{
+					if (WasInside_ && !IsInside)
+						RemoveOldColor(Color);
+					else if (!WasInside_ && IsInside)
+						AddNewColor(Color);
+				}
+				WasInside_ = IsInside;
+			}
+		}
+
+		private bool WasInside_ = false;
+		public override bool Visible
+		{
+			get => Visible_;
+			set
+			{
+				if (Visible_ != value)
+				{
+					if (WasInside_)
+					{
+						if (Visible_)
+						{
+							RemoveOldColor(Color);
+						}
+						else
+						{
+							AddNewColor(Color);
+						}
+					}
+
+					Visible_ = value;
+				}
+			}
+		}
+
+		private bool IsInside
+		{
+			get
+			{
+				return
+					Position.X - Radius > 0 &&
+					Position.Y - Radius > 0 &&
+					Position.X + Radius < ImageViewModel.Width &&
+					Position.Y + Radius < ImageViewModel.Height;
 			}
 		}
 
@@ -444,7 +490,10 @@ namespace Photomatch_ProofOfConcept_WPF.WPF
 			Color_ = color;
 
 			Ellipse = new EllipseGeometry(position, Radius, Radius);
-			AddNewColor(Color);
+
+			WasInside_ = IsInside;
+			if (WasInside_)
+				AddNewColor(Color);
 		}
 
 		public void SetNewScale(double scale)
