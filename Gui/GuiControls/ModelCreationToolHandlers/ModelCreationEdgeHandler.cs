@@ -1,8 +1,8 @@
-﻿using Photomatch_ProofOfConcept_WPF.Gui.GuiControls.Helper;
-using Photomatch_ProofOfConcept_WPF.Gui.GuiControls.ModelCreationToolHandlers.ModelCreationToolEdgeHandlerHelpers;
-using Photomatch_ProofOfConcept_WPF.Logic;
+﻿using Photomatch.Gui.GuiControls.Helper;
+using Photomatch.Gui.GuiControls.ModelCreationToolHandlers.ModelCreationToolEdgeHandlerHelpers;
+using Photomatch.Logic;
 
-namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls.ModelCreationToolHandlers
+namespace Photomatch.Gui.GuiControls.ModelCreationToolHandlers
 {
 	public class ModelCreationEdgeHandler : BaseModelCreationToolHandler
 	{

@@ -1,10 +1,10 @@
-﻿using Photomatch_ProofOfConcept_WPF.Gui;
+﻿using Photomatch.Gui;
 using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Windows.Input;
 
-namespace Photomatch_ProofOfConcept_WPF.WPF.Helper
+namespace Photomatch.WPF.Helper
 {
 	public static class KeyConvertor
 	{

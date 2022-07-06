@@ -3,11 +3,11 @@ using System.Collections.Generic;
 using System.Text;
 using SixLabors.ImageSharp;
 
-using Photomatch_ProofOfConcept_WPF.Logic;
-using Photomatch_ProofOfConcept_WPF.Utilities;
-using Photomatch_ProofOfConcept_WPF.Gui.GuiControls;
+using Photomatch.Logic;
+using Photomatch.Utilities;
+using Photomatch.Gui.GuiControls;
 
-namespace Photomatch_ProofOfConcept_WPF.Gui
+namespace Photomatch.Gui
 {
 	public interface ILine
 	{

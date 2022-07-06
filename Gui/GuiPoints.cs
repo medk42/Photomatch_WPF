@@ -2,9 +2,9 @@
 using System.Collections.Generic;
 using System.Text;
 
-using Photomatch_ProofOfConcept_WPF.Logic;
+using Photomatch.Logic;
 
-namespace Photomatch_ProofOfConcept_WPF.Gui
+namespace Photomatch.Gui
 {
 	public delegate void UpdateValue<T>(T value);
 	public delegate T GetValue<T>();

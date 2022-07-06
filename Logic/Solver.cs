@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace Photomatch_ProofOfConcept_WPF.Logic
+namespace Photomatch.Logic
 {
 	/// <summary>
 	/// Class for solving sets of linear equations.

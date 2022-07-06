@@ -4,13 +4,13 @@ using System.Text;
 using System.Windows;
 using System.Windows.Media;
 
-using Photomatch_ProofOfConcept_WPF.WPF.ViewModel;
-using Photomatch_ProofOfConcept_WPF.Gui;
-using Photomatch_ProofOfConcept_WPF.Logic;
+using Photomatch.WPF.ViewModel;
+using Photomatch.Gui;
+using Photomatch.Logic;
 using System.Windows.Shapes;
 using System.Collections.ObjectModel;
 
-namespace Photomatch_ProofOfConcept_WPF.WPF
+namespace Photomatch.WPF
 {
 	public abstract class WpfGuiElement
 	{

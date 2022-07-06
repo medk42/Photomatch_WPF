@@ -2,10 +2,10 @@
 using System;
 using SixLabors.ImageSharp;
 
-using Photomatch_ProofOfConcept_WPF.Utilities;
+using Photomatch.Utilities;
 using SixLabors.ImageSharp.PixelFormats;
 
-namespace Photomatch_ProofOfConcept_WPF.Logic
+namespace Photomatch.Logic
 {
 	/// <summary>
 	/// First and second calibration axis written as [first][second].

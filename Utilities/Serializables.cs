@@ -2,7 +2,7 @@
 using System.IO;
 using System.Text;
 
-namespace Photomatch_ProofOfConcept_WPF.Utilities
+namespace Photomatch.Utilities
 {
 	/// <summary>
 	/// Interface for implementing object serialization. 

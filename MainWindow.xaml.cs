@@ -3,19 +3,19 @@ using System;
 using System.Windows;
 using System.Windows.Controls;
 
-using Photomatch_ProofOfConcept_WPF.WPF;
-using Photomatch_ProofOfConcept_WPF.WPF.ViewModel;
-using Photomatch_ProofOfConcept_WPF.WPF.Helper;
-using Photomatch_ProofOfConcept_WPF.Gui;
-using Photomatch_ProofOfConcept_WPF.Gui.GuiControls;
-using Photomatch_ProofOfConcept_WPF.Utilities;
-using Photomatch_ProofOfConcept_WPF.Logic;
+using Photomatch.WPF;
+using Photomatch.WPF.ViewModel;
+using Photomatch.WPF.Helper;
+using Photomatch.Gui;
+using Photomatch.Gui.GuiControls;
+using Photomatch.Utilities;
+using Photomatch.Logic;
 using System.ComponentModel;
 using System.Threading;
 using System.Collections.Generic;
 using System.Windows.Input;
 
-namespace Photomatch_ProofOfConcept_WPF
+namespace Photomatch
 {
 	/// <summary>
 	/// Interaction logic for MainWindow.xaml

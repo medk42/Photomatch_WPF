@@ -2,11 +2,11 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
-using Photomatch_ProofOfConcept_WPF.Gui.GuiControls.Helper;
-using Photomatch_ProofOfConcept_WPF.Logic;
-using Photomatch_ProofOfConcept_WPF.Utilities;
+using Photomatch.Gui.GuiControls.Helper;
+using Photomatch.Logic;
+using Photomatch.Utilities;
 
-namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls
+namespace Photomatch.Gui.GuiControls
 {
 	public class ImageWindow
 	{

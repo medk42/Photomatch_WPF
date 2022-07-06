@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text;
 
-using Photomatch_ProofOfConcept_WPF.Utilities;
+using Photomatch.Utilities;
 
-namespace Photomatch_ProofOfConcept_WPF.Logic
+namespace Photomatch.Logic
 {
 	/// <summary>
 	/// Event handler for Vector3 position change.

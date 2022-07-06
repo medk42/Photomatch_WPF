@@ -4,13 +4,13 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text;
 
-using Photomatch_ProofOfConcept_WPF.Logic;
-using Photomatch_ProofOfConcept_WPF.Utilities;
+using Photomatch.Logic;
+using Photomatch.Utilities;
 using System.Globalization;
 using SixLabors.ImageSharp.PixelFormats;
-using Photomatch_ProofOfConcept_WPF.Gui.GuiControls.Helper;
+using Photomatch.Gui.GuiControls.Helper;
 
-namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls
+namespace Photomatch.Gui.GuiControls
 {
 	public class MasterControl : Actions
 	{

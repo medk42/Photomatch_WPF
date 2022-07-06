@@ -3,7 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace Photomatch_ProofOfConcept_WPF.Logic
+namespace Photomatch.Logic
 {
 	/// <summary>
 	/// Extension methods for ImageSharp library.

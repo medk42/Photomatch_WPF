@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Text;
 
-namespace Photomatch_ProofOfConcept_WPF.WPF.ViewModel
+namespace Photomatch.WPF.ViewModel
 {
 	public class BaseViewModel : INotifyPropertyChanged
 	{

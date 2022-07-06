@@ -1,11 +1,11 @@
-﻿using Photomatch_ProofOfConcept_WPF.Gui.GuiControls.Helper;
-using Photomatch_ProofOfConcept_WPF.Gui.GuiControls.ModelCreationToolHandlers.ModelCreationToolEdgeHandlerHelpers.Helper;
-using Photomatch_ProofOfConcept_WPF.Logic;
+﻿using Photomatch.Gui.GuiControls.Helper;
+using Photomatch.Gui.GuiControls.ModelCreationToolHandlers.ModelCreationToolEdgeHandlerHelpers.Helper;
+using Photomatch.Logic;
 using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls.ModelCreationToolHandlers.ModelCreationToolEdgeHandlerHelpers
+namespace Photomatch.Gui.GuiControls.ModelCreationToolHandlers.ModelCreationToolEdgeHandlerHelpers
 {
 	public class ModelCreationEdgeHandlerMidpointSelector : IModelCreationEdgeHandlerSelector
 	{

@@ -4,7 +4,7 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Text;
 
-namespace Photomatch_ProofOfConcept_WPF.WPF.ViewModel
+namespace Photomatch.WPF.ViewModel
 {
     public class DockManagerViewModel
     {

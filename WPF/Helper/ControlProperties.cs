@@ -4,7 +4,7 @@ using System.Text;
 using System.Windows;
 using System.Windows.Input;
 
-namespace Photomatch_ProofOfConcept_WPF.WPF.Helper
+namespace Photomatch.WPF.Helper
 {
 	public static class ControlProperties
     {

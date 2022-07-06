@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.Windows.Input;
 
-namespace Photomatch_ProofOfConcept_WPF.WPF.Helper
+namespace Photomatch.WPF.Helper
 {
 	public interface IKeyboardHandler
 	{

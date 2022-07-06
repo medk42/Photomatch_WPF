@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace Photomatch_ProofOfConcept_WPF.WPF.ViewModel
+namespace Photomatch.WPF.ViewModel
 {
     public class MainViewModel
     {

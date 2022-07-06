@@ -1,11 +1,11 @@
-﻿using Photomatch_ProofOfConcept_WPF.Gui.GuiControls.Helper;
-using Photomatch_ProofOfConcept_WPF.Logic;
-using Photomatch_ProofOfConcept_WPF.Utilities;
+﻿using Photomatch.Gui.GuiControls.Helper;
+using Photomatch.Logic;
+using Photomatch.Utilities;
 using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls.ModelCreationToolHandlers
+namespace Photomatch.Gui.GuiControls.ModelCreationToolHandlers
 {
 	public class ModelCreationComplexFaceHandler : BaseModelCreationToolHandler
 	{

@@ -1,9 +1,9 @@
 ﻿using System;
 using System.IO;
 
-using Photomatch_ProofOfConcept_WPF.Utilities;
+using Photomatch.Utilities;
 
-namespace Photomatch_ProofOfConcept_WPF.Logic
+namespace Photomatch.Logic
 {
 	/// <summary>
 	/// Struct representing 3x3 matrix with double values.

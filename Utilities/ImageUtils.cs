@@ -1,9 +1,9 @@
-﻿using Photomatch_ProofOfConcept_WPF.Logic;
+﻿using Photomatch.Logic;
 using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace Photomatch_ProofOfConcept_WPF.Utilities
+namespace Photomatch.Utilities
 {
     /// <summary>
     /// Utility functions for working with images.

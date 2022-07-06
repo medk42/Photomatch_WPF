@@ -2,9 +2,9 @@
 using System.Collections.Generic;
 using System.Text;
 
-using Photomatch_ProofOfConcept_WPF.Logic;
+using Photomatch.Logic;
 
-namespace Photomatch_ProofOfConcept_WPF.Gui.GuiControls.Helper
+namespace Photomatch.Gui.GuiControls.Helper
 {
 	public class EdgeEventListener
 	{

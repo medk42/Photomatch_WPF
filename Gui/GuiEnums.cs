@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace Photomatch_ProofOfConcept_WPF.Gui
+namespace Photomatch.Gui
 {
 	public enum MouseButton { Left, Right, Middle, DoubleLeft, DoubleRight, DoubleMiddle }
 

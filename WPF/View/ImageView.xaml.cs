@@ -4,7 +4,7 @@ using System.Text;
 using System.Windows;
 using System.Windows.Controls;
 
-namespace Photomatch_ProofOfConcept_WPF.WPF.View
+namespace Photomatch.WPF.View
 {
 
 	/// <summary>

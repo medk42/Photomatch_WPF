@@ -9,16 +9,16 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 
-using Photomatch_ProofOfConcept_WPF.WPF.Helper;
-using Photomatch_ProofOfConcept_WPF.Gui;
-using Photomatch_ProofOfConcept_WPF.Logic;
-using Photomatch_ProofOfConcept_WPF.Utilities;
-using Photomatch_ProofOfConcept_WPF.Gui.GuiControls;
-using Photomatch_ProofOfConcept_WPF;
+using Photomatch.WPF.Helper;
+using Photomatch.Gui;
+using Photomatch.Logic;
+using Photomatch.Utilities;
+using Photomatch.Gui.GuiControls;
+using Photomatch;
 using System.Windows.Shapes;
 using System.Collections.ObjectModel;
 
-namespace Photomatch_ProofOfConcept_WPF.WPF.ViewModel
+namespace Photomatch.WPF.ViewModel
 {
 	public class ImageViewModel : BaseViewModel, IWindow, IMouseHandler, IKeyboardHandler
 	{

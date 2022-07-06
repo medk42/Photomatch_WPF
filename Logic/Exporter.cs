@@ -1,4 +1,4 @@
-﻿using Photomatch_ProofOfConcept_WPF.Utilities;
+﻿using Photomatch.Utilities;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 using System;
@@ -7,7 +7,7 @@ using System.Globalization;
 using System.IO;
 using System.Text;
 
-namespace Photomatch_ProofOfConcept_WPF.Logic
+namespace Photomatch.Logic
 {
 
 	/// <summary>
