@@ -173,7 +173,15 @@ namespace Photomatch.Gui.GuiControls
 				Gui.DisplayModelCreationTool(ModelCreationTool);
 				Gui.DisplayCameraModelCalibrationTool(CameraModelCalibrationTool);
 				Gui.DisplayDesignTool(DesignTool);
+
+				UpdateHistoryWithNewWindow();
 			}
+		}
+
+		private void UpdateHistoryWithNewWindow()
+		{
+			History.RemoveAt(History.Count - 1);
+			AddHistory();
 		}
 
 		public void SaveProject_Pressed()
@@ -396,6 +404,7 @@ namespace Photomatch.Gui.GuiControls
 				byte[] data = History[History.Count - 1];
 
 				DeserializeUndoRedo(data);
+				UpdateHistoryWithNewWindow();
 
 				HistoryDirty = false;
 				Dirty = true;

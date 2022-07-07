@@ -206,6 +206,12 @@ namespace Photomatch
 				{
 					DisplayCalibrationAxes(imageViewModel.CurrentCalibrationAxes);
 					DisplayInvertedAxes(imageViewModel.CurrentCalibrationAxes, imageViewModel.CurrentInvertedAxes);
+
+					CameraCalibrationTools.IsEnabled = true;
+				}
+				else
+				{
+					CameraCalibrationTools.IsEnabled = false;
 				}
 
 				if (MainViewModel.DockManagerViewModel.Documents.Count == 1)
