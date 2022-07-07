@@ -196,6 +196,9 @@ namespace Photomatch.Gui.GuiControls
 
 			foreach (IPoint point in DraggablePoints.Points)
 				((ActionPoint)point).UpdateSelf();
+
+			UpdateCalibrationAxesColors();
+			Window.DisplayInvertedAxes(Perspective.CalibrationAxes, Perspective.InvertedAxes);
 		}
 
 		private void UpdateCoordSystemLines()
@@ -233,11 +236,19 @@ namespace Photomatch.Gui.GuiControls
 
 			UpdateCoordSystemLines();
 
+			UpdateCalibrationAxesColors();
+		}
+
+		private void UpdateCalibrationAxesColors()
+		{
 			Tuple<ApplicationColor, ApplicationColor> colors = GetColorsFromCalibrationAxes(Perspective.CalibrationAxes);
-			LineA1.Color = colors.Item1;
-			LineA2.Color = colors.Item1;
-			LineB1.Color = colors.Item2;
-			LineB2.Color = colors.Item2;
+			if (LineA1 != null)
+			{
+				LineA1.Color = colors.Item1;
+				LineA2.Color = colors.Item1;
+				LineB1.Color = colors.Item2;
+				LineB2.Color = colors.Item2;
+			}
 		}
 
 		public void InvertedAxes_Changed(InvertedAxes invertedAxes)
