@@ -9,14 +9,25 @@ namespace Photomatch.Gui
 	public delegate void UpdateValue<T>(T value);
 	public delegate T GetValue<T>();
 
+	/// <summary>
+	/// Interface representing a 2D point.
+	/// </summary>
 	public interface IPoint
 	{
 		public Vector2 Position { get; set; }
 	}
 
+	/// <summary>
+	/// Class representing a 2D point that calls a delegate on position update and 
+	/// updates its own position using another delegate when UpdateSelf() is called.
+	/// </summary>
 	public class ActionPoint : IPoint
 	{
 		private Vector2 position_;
+
+		/// <summary>
+		/// Calls UpdateValue delegate on set.
+		/// </summary>
 		public Vector2 Position
 		{
 			get => position_;
@@ -33,6 +44,10 @@ namespace Photomatch.Gui
 		private UpdateValue<Vector2> UpdateValue;
 		private GetValue<Vector2> GetValue;
 
+		/// <summary>
+		/// Create and ActionPoint with initial position, a delegate to be called on position update 
+		/// and a delegate that ActionPoint calls when UpdateSelf is called on ActionPoint.
+		/// </summary>
 		public ActionPoint(Vector2 position, UpdateValue<Vector2> updateValue, GetValue<Vector2> getValue)
 		{
 			this.UpdateValue = updateValue;
@@ -40,14 +55,24 @@ namespace Photomatch.Gui
 			this.Position = position;
 		}
 
+		/// <summary>
+		/// Update own position based on GetValue delegate.
+		/// </summary>
 		public void UpdateSelf()
 		{
 			Position = GetValue();
 		}
 	}
 
+	/// <summary>
+	/// Class implementing a mouse dragging operation on a list of points 
+	/// by dragging at most one at a time.
+	/// </summary>
 	public class DraggablePoints
 	{
+		/// <summary>
+		/// Points that can be dragged by a mouse.
+		/// </summary>
 		public List<IPoint> Points { get; } = new List<IPoint>();
 
 		private IPoint CurrentPoint = null;
@@ -55,6 +80,8 @@ namespace Photomatch.Gui
 		private IWindow Window;
 		private double MaxMouseDistance;
 
+		/// <param name="window">Window where the points are being dragged.</param>
+		/// <param name="maxMouseDistance">Maximum distance between mouse and point to start dragging it, in pixels on screen.</param>
 		public DraggablePoints(IWindow window, double maxMouseDistance)
 		{
 			this.Window = window;

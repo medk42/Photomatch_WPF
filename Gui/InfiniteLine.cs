@@ -5,11 +5,15 @@ using System.Text;
 
 namespace Photomatch.Gui
 {
+	/// <summary>
+	/// Class representing an infinite GUI line in a specified GUI window.
+	/// </summary>
 	class InfiniteLine : ILine
 	{
-		private static readonly double TinyDouble = 1e-6;
-
 		private Vector2 Start_;
+		/// <summary>
+		/// A point on the infinite line. Must not equal End.
+		/// </summary>
 		public Vector2 Start
 		{
 			get => Start_;
@@ -20,6 +24,9 @@ namespace Photomatch.Gui
 			}
 		}
 
+		/// <summary>
+		/// A point on the infinite line. Must not equal Start.
+		/// </summary>
 		private Vector2 End_;
 		public Vector2 End
 		{
@@ -46,6 +53,9 @@ namespace Photomatch.Gui
 		private IWindow Window;
 		private ILine GuiLine;
 
+		/// <summary>
+		/// Create an infinite line in a specified GUI window and with a specified start, end and color.
+		/// </summary>
 		public InfiniteLine(IWindow window, Vector2 start, Vector2 end, ApplicationColor color)
 		{
 			this.Window = window;
@@ -56,6 +66,9 @@ namespace Photomatch.Gui
 
 		public void Dispose() => GuiLine.Dispose();
 
+		/// <summary>
+		/// Calculate actual line endpoints inside of the GUI window.
+		/// </summary>
 		private void RecalculateInfiniteLine()
 		{
 			Vector2 topLeft = new Vector2();
