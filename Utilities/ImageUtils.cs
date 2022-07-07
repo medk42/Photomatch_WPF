@@ -5,9 +5,9 @@ using System.Text;
 
 namespace Photomatch.Utilities
 {
-    /// <summary>
-    /// Utility functions for working with images.
-    /// </summary>
+	/// <summary>
+	/// Utility functions for working with images.
+	/// </summary>
 	public static class ImageUtils
 	{
         /// <summary>
