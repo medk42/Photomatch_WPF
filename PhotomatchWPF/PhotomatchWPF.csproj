@@ -8,7 +8,10 @@
 
   <ItemGroup>
     <PackageReference Include="Dirkster.AvalonDock" Version="4.60.0" />
-    <PackageReference Include="SixLabors.ImageSharp" Version="1.0.4" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\PhotomatchCore\PhotomatchCore.csproj" />
   </ItemGroup>
 
 </Project>
