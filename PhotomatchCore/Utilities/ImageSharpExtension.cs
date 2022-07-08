@@ -1,4 +1,4 @@
-﻿using PhotomatchCore.Logic;
+﻿using PhotomatchCore.Data;
 using SixLabors.ImageSharp.PixelFormats;
 using System;
 using System.Collections.Generic;

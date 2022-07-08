@@ -12,11 +12,12 @@ using System.Windows.Media.Imaging;
 using PhotomatchWPF.WPF.Helper;
 using PhotomatchCore.Gui;
 using PhotomatchCore.Logic;
-using PhotomatchCore.Utilities;
 using PhotomatchCore.Gui.GuiControls;
 using PhotomatchCore;
 using System.Windows.Shapes;
 using System.Collections.ObjectModel;
+using PhotomatchCore.Data;
+using PhotomatchCore.Interfaces;
 
 namespace PhotomatchWPF.WPF.ViewModel
 {

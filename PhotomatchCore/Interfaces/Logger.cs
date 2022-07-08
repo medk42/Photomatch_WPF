@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace PhotomatchCore.Utilities
+namespace PhotomatchCore.Interfaces
 {
 	/// <summary>
 	/// Type of the log message. Loggers may choose to only log certain messages (or display certain types differently and so on).

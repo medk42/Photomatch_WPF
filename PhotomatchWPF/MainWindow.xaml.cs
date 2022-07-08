@@ -8,12 +8,12 @@ using PhotomatchWPF.WPF.ViewModel;
 using PhotomatchWPF.WPF.Helper;
 using PhotomatchCore.Gui;
 using PhotomatchCore.Gui.GuiControls;
-using PhotomatchCore.Utilities;
 using PhotomatchCore.Logic;
 using System.ComponentModel;
 using System.Threading;
 using System.Collections.Generic;
 using System.Windows.Input;
+using PhotomatchCore.Interfaces;
 
 namespace PhotomatchWPF
 {

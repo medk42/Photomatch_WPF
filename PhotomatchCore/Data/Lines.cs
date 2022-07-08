@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-
+using PhotomatchCore.Interfaces;
 using PhotomatchCore.Utilities;
 
-namespace PhotomatchCore.Logic
+namespace PhotomatchCore.Data
 {
 	/// <summary>
 	/// Struct representing line in 2D as Vector2 of start and end.
@@ -40,14 +40,14 @@ namespace PhotomatchCore.Logic
 		/// </summary>
 		/// <param name="NewStart">new start coordinate to use</param>
 		/// <returns>New line with a different start, but same end.</returns>
-		public Line2D WithStart(Vector2 NewStart) => new Line2D(NewStart, this.End);
+		public Line2D WithStart(Vector2 NewStart) => new Line2D(NewStart, End);
 
 		/// <summary>
 		/// Create a new line with a different end, but same start.
 		/// </summary>
 		/// <param name="NewEnd">new end coordinate to use</param>
 		/// <returns>New line with a different end, but same start.</returns>
-		public Line2D WithEnd(Vector2 NewEnd) => new Line2D(this.Start, NewEnd);
+		public Line2D WithEnd(Vector2 NewEnd) => new Line2D(Start, NewEnd);
 
 		/// <summary>
 		/// Create a ray from the line.
@@ -103,14 +103,14 @@ namespace PhotomatchCore.Logic
 		/// </summary>
 		/// <param name="NewStart">new start coordinate to use</param>
 		/// <returns>New ray with a different start, but same direction.</returns>
-		public Ray2D WithStart(Vector2 NewStart) => new Ray2D(NewStart, this.Direction);
+		public Ray2D WithStart(Vector2 NewStart) => new Ray2D(NewStart, Direction);
 
 		/// <summary>
 		/// Create a new ray with a different direction, but same start.
 		/// </summary>
 		/// <param name="NewDirection">new direction vector to use</param>
 		/// <returns>New ray with a different direction, but same start.</returns>
-		public Ray2D WithDirection(Vector2 NewDirection) => new Ray2D(this.Start, NewDirection);
+		public Ray2D WithDirection(Vector2 NewDirection) => new Ray2D(Start, NewDirection);
 
 		/// <summary>
 		/// Create a line from the ray.
@@ -249,29 +249,29 @@ namespace PhotomatchCore.Logic
 
 			if (ray.Start.Y > corner1.Y)
 			{
-				var intersection = Intersections2D.GetLineLineIntersection(rayLine, top);
-				if (intersection.LineARelative >= 0 && (intersection.LineBRelative >= 0 && intersection.LineBRelative <= 1))
+				var intersection = GetLineLineIntersection(rayLine, top);
+				if (intersection.LineARelative >= 0 && intersection.LineBRelative >= 0 && intersection.LineBRelative <= 1)
 					return intersection.Intersection;
 			}
 
 			if (ray.Start.Y < corner2.Y)
 			{
-				var intersection = Intersections2D.GetLineLineIntersection(rayLine, bottom);
-				if (intersection.LineARelative >= 0 && (intersection.LineBRelative >= 0 && intersection.LineBRelative <= 1))
+				var intersection = GetLineLineIntersection(rayLine, bottom);
+				if (intersection.LineARelative >= 0 && intersection.LineBRelative >= 0 && intersection.LineBRelative <= 1)
 					return intersection.Intersection;
 			}
 
 			if (ray.Start.X > corner1.X)
 			{
-				var intersection = Intersections2D.GetLineLineIntersection(rayLine, left);
-				if (intersection.LineARelative >= 0 && (intersection.LineBRelative >= 0 && intersection.LineBRelative <= 1))
+				var intersection = GetLineLineIntersection(rayLine, left);
+				if (intersection.LineARelative >= 0 && intersection.LineBRelative >= 0 && intersection.LineBRelative <= 1)
 					return intersection.Intersection;
 			}
 
 			if (ray.Start.X < corner2.X)
 			{
-				var intersection = Intersections2D.GetLineLineIntersection(rayLine, right);
-				if (intersection.LineARelative >= 0 && (intersection.LineBRelative >= 0 && intersection.LineBRelative <= 1))
+				var intersection = GetLineLineIntersection(rayLine, right);
+				if (intersection.LineARelative >= 0 && intersection.LineBRelative >= 0 && intersection.LineBRelative <= 1)
 					return intersection.Intersection;
 			}
 
@@ -320,7 +320,7 @@ namespace PhotomatchCore.Logic
 		private static bool IsRight(Vector2 lineStart, Vector2 lineEnd, Vector2 point)
 		{
 			Vector2 startEnd = lineEnd - lineStart;
-			Vector2 startPoint = point -  lineStart;
+			Vector2 startPoint = point - lineStart;
 
 			double cross = startEnd.X * startPoint.Y - startEnd.Y * startPoint.X;
 
@@ -397,14 +397,14 @@ namespace PhotomatchCore.Logic
 		/// </summary>
 		/// <param name="NewStart">new start coordinate to use</param>
 		/// <returns>New line with a different start, but same end.</returns>
-		public Line3D WithStart(Vector3 NewStart) => new Line3D(NewStart, this.End);
+		public Line3D WithStart(Vector3 NewStart) => new Line3D(NewStart, End);
 
 		/// <summary>
 		/// Create a new line with a different end, but same start.
 		/// </summary>
 		/// <param name="NewEnd">new end coordinate to use</param>
 		/// <returns>New line with a different end, but same start.</returns>
-		public Line3D WithEnd(Vector3 NewEnd) => new Line3D(this.Start, NewEnd);
+		public Line3D WithEnd(Vector3 NewEnd) => new Line3D(Start, NewEnd);
 
 		/// <summary>
 		/// Create a ray from the line.
@@ -460,14 +460,14 @@ namespace PhotomatchCore.Logic
 		/// </summary>
 		/// <param name="NewStart">new start coordinate to use</param>
 		/// <returns>New ray with a different start, but same direction.</returns>
-		public Ray3D WithStart(Vector3 NewStart) => new Ray3D(NewStart, this.Direction);
+		public Ray3D WithStart(Vector3 NewStart) => new Ray3D(NewStart, Direction);
 
 		/// <summary>
 		/// Create a new ray with a different direction, but same start.
 		/// </summary>
 		/// <param name="NewDirection">new direction vector to use</param>
 		/// <returns>New ray with a different direction, but same start.</returns>
-		public Ray3D WithDirection(Vector3 NewDirection) => new Ray3D(this.Start, NewDirection);
+		public Ray3D WithDirection(Vector3 NewDirection) => new Ray3D(Start, NewDirection);
 
 		/// <summary>
 		/// Create a line from the ray.
@@ -515,8 +515,8 @@ namespace PhotomatchCore.Logic
 		/// <param name="normal">Doesn't need to be normalized.</param>
 		public Plane3D(Vector3 planePoint, Vector3 normal) : this()
 		{
-			this.PlanePoint = planePoint;
-			this.Normal = normal;
+			PlanePoint = planePoint;
+			Normal = normal;
 		}
 	}
 
@@ -659,11 +659,12 @@ namespace PhotomatchCore.Logic
 			Vector3 rightHandSide = RayB.Start - RayA.Start;
 			Vector3 solution = Solver.Solve(leftHandSide, rightHandSide);
 
-			return new ClosestPoint3D() { 
-				RayAClosest = RayA.Start + solution.X * RayA.Direction, 
+			return new ClosestPoint3D()
+			{
+				RayAClosest = RayA.Start + solution.X * RayA.Direction,
 				RayBClosest = RayB.Start + solution.Y * RayB.Direction,
-				RayARelative = solution.X, 
-				RayBRelative = solution.Y, 
+				RayARelative = solution.X,
+				RayBRelative = solution.Y,
 				Distance = Math.Abs(solution.Z)
 			};
 		}
@@ -693,7 +694,7 @@ namespace PhotomatchCore.Logic
 		public static RayPlaneIntersectionPoint GetRayPlaneIntersection(Ray3D ray, Plane3D plane)
 		{
 			double d = Vector3.Dot(plane.PlanePoint - ray.Start, plane.Normal) / Vector3.Dot(ray.Direction, plane.Normal);
-			return new RayPlaneIntersectionPoint() { Intersection = ray.Start + (d * ray.Direction), RayRelative = d };
+			return new RayPlaneIntersectionPoint() { Intersection = ray.Start + d * ray.Direction, RayRelative = d };
 		}
 
 		/// <summary>

@@ -1,11 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
-
+using PhotomatchCore.Data;
 using PhotomatchCore.Gui.GuiControls.Helper;
 using PhotomatchCore.Gui.GuiControls.ModelCreationToolHandlers;
+using PhotomatchCore.Interfaces;
 using PhotomatchCore.Logic;
-using PhotomatchCore.Utilities;
 
 namespace PhotomatchCore.Gui.GuiControls
 {

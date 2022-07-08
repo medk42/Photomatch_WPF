@@ -1,4 +1,5 @@
-﻿using PhotomatchCore.Gui.GuiControls.Helper;
+﻿using PhotomatchCore.Data;
+using PhotomatchCore.Gui.GuiControls.Helper;
 using PhotomatchCore.Gui.GuiControls.ModelCreationToolHandlers.ModelCreationToolEdgeHandlerHelpers;
 using PhotomatchCore.Logic;
 

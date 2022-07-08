@@ -1,4 +1,5 @@
-﻿using PhotomatchCore.Gui;
+﻿using PhotomatchCore.Data;
+using PhotomatchCore.Gui;
 using PhotomatchCore.Logic;
 using PhotomatchWPF.WPF.Helper;
 using System;

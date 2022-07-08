@@ -1,9 +1,8 @@
 ﻿using System;
 using System.IO;
+using PhotomatchCore.Interfaces;
 
-using PhotomatchCore.Utilities;
-
-namespace PhotomatchCore.Logic
+namespace PhotomatchCore.Data
 {
 	/// <summary>
 	/// Struct representing 3x3 matrix with double values.
@@ -197,7 +196,7 @@ namespace PhotomatchCore.Logic
 		/// <param name="vector">vector to add</param>
 		public void AddToRow(int row, Vector3 vector)
 		{
-			switch(row)
+			switch (row)
 			{
 				case 0:
 					A00 += vector.X;
@@ -273,9 +272,9 @@ namespace PhotomatchCore.Logic
 		/// <param name="z">Z coordinate</param>
 		public Vector3(Vector2 vect, double z)
 		{
-			this.X = vect.X;
-			this.Y = vect.Y;
-			this.Z = z;
+			X = vect.X;
+			Y = vect.Y;
+			Z = z;
 		}
 
 		public double X { get; set; }
@@ -302,8 +301,8 @@ namespace PhotomatchCore.Logic
 		/// </summary>
 		public Vector3 Normalized()
 		{
-			double mag = this.Magnitude;
-			return new Vector3() { X = this.X / mag, Y = this.Y / mag, Z = this.Z / mag };
+			double mag = Magnitude;
+			return new Vector3() { X = X / mag, Y = Y / mag, Z = Z / mag };
 		}
 
 		/// <summary>
@@ -429,8 +428,8 @@ namespace PhotomatchCore.Logic
 		/// </summary>
 		public Vector2(Vector3 vect)
 		{
-			this.X = vect.X;
-			this.Y = vect.Y;
+			X = vect.X;
+			Y = vect.Y;
 		}
 
 		public double X { get; set; }
@@ -456,8 +455,8 @@ namespace PhotomatchCore.Logic
 		/// </summary>
 		public Vector2 Normalized()
 		{
-			double mag = this.Magnitude;
-			return new Vector2() { X = this.X / mag, Y = this.Y / mag };
+			double mag = Magnitude;
+			return new Vector2() { X = X / mag, Y = Y / mag };
 		}
 
 		/// <summary>

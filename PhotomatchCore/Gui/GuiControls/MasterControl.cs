@@ -9,6 +9,8 @@ using PhotomatchCore.Utilities;
 using System.Globalization;
 using SixLabors.ImageSharp.PixelFormats;
 using PhotomatchCore.Gui.GuiControls.Helper;
+using PhotomatchCore.Data;
+using PhotomatchCore.Interfaces;
 
 namespace PhotomatchCore.Gui.GuiControls
 {

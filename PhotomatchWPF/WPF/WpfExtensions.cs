@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 using System.Windows;
-using PhotomatchCore.Logic;
+using PhotomatchCore.Data;
 
 namespace PhotomatchWPF.WPF
 {

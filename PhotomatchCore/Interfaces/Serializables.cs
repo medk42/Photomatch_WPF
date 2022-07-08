@@ -2,7 +2,7 @@
 using System.IO;
 using System.Text;
 
-namespace PhotomatchCore.Utilities
+namespace PhotomatchCore.Interfaces
 {
 	/// <summary>
 	/// Interface for implementing object serialization. 

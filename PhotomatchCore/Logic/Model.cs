@@ -2,8 +2,8 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
-
-using PhotomatchCore.Utilities;
+using PhotomatchCore.Data;
+using PhotomatchCore.Interfaces;
 
 namespace PhotomatchCore.Logic
 {

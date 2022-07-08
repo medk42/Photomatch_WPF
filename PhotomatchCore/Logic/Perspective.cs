@@ -1,9 +1,9 @@
 ﻿using System.IO;
 using System;
 using SixLabors.ImageSharp;
-
-using PhotomatchCore.Utilities;
 using SixLabors.ImageSharp.PixelFormats;
+using PhotomatchCore.Data;
+using PhotomatchCore.Interfaces;
 
 namespace PhotomatchCore.Logic
 {

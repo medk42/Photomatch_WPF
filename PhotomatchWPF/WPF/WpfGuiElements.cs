@@ -6,9 +6,9 @@ using System.Windows.Media;
 
 using PhotomatchWPF.WPF.ViewModel;
 using PhotomatchCore.Gui;
-using PhotomatchCore.Logic;
 using System.Windows.Shapes;
 using System.Collections.ObjectModel;
+using PhotomatchCore.Data;
 
 namespace PhotomatchWPF.WPF
 {
