@@ -2,12 +2,12 @@
 using System.Collections.Generic;
 using System.Text;
 
-using Photomatch.Gui.GuiControls.Helper;
-using Photomatch.Gui.GuiControls.ModelCreationToolHandlers;
-using Photomatch.Logic;
-using Photomatch.Utilities;
+using PhotomatchCore.Gui.GuiControls.Helper;
+using PhotomatchCore.Gui.GuiControls.ModelCreationToolHandlers;
+using PhotomatchCore.Logic;
+using PhotomatchCore.Utilities;
 
-namespace Photomatch.Gui.GuiControls
+namespace PhotomatchCore.Gui.GuiControls
 {
 	public class ModelCreationHandler
 	{

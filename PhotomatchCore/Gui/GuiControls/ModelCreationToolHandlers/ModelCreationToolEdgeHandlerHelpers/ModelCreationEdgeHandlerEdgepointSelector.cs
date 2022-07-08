@@ -1,11 +1,11 @@
-﻿using Photomatch.Gui.GuiControls.Helper;
-using Photomatch.Gui.GuiControls.ModelCreationToolHandlers.ModelCreationToolEdgeHandlerHelpers.Helper;
-using Photomatch.Logic;
+﻿using PhotomatchCore.Gui.GuiControls.Helper;
+using PhotomatchCore.Gui.GuiControls.ModelCreationToolHandlers.ModelCreationToolEdgeHandlerHelpers.Helper;
+using PhotomatchCore.Logic;
 using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace Photomatch.Gui.GuiControls.ModelCreationToolHandlers.ModelCreationToolEdgeHandlerHelpers
+namespace PhotomatchCore.Gui.GuiControls.ModelCreationToolHandlers.ModelCreationToolEdgeHandlerHelpers
 {
 	public class ModelCreationEdgeHandlerEdgepointSelector : IModelCreationEdgeHandlerSelector
 	{

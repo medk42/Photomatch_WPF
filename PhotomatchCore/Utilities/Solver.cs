@@ -1,9 +1,9 @@
-﻿using Photomatch.Logic;
+﻿using PhotomatchCore.Logic;
 using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace Photomatch.Utilities
+namespace PhotomatchCore.Utilities
 {
 	/// <summary>
 	/// Class for solving sets of linear equations.

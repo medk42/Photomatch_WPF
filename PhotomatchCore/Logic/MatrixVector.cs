@@ -1,9 +1,9 @@
 ﻿using System;
 using System.IO;
 
-using Photomatch.Utilities;
+using PhotomatchCore.Utilities;
 
-namespace Photomatch.Logic
+namespace PhotomatchCore.Logic
 {
 	/// <summary>
 	/// Struct representing 3x3 matrix with double values.

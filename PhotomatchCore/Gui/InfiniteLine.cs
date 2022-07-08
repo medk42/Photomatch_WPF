@@ -1,9 +1,9 @@
-﻿using Photomatch.Logic;
+﻿using PhotomatchCore.Logic;
 using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace Photomatch.Gui
+namespace PhotomatchCore.Gui
 {
 	/// <summary>
 	/// Class representing an infinite GUI line in a specified GUI window.

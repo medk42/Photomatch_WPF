@@ -1,11 +1,11 @@
-﻿using Photomatch.Gui.GuiControls.Helper;
-using Photomatch.Logic;
-using Photomatch.Utilities;
+﻿using PhotomatchCore.Gui.GuiControls.Helper;
+using PhotomatchCore.Logic;
+using PhotomatchCore.Utilities;
 using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace Photomatch.Gui.GuiControls.ModelCreationToolHandlers
+namespace PhotomatchCore.Gui.GuiControls.ModelCreationToolHandlers
 {
 	public class ModelCreationComplexFaceHandler : BaseModelCreationToolHandler
 	{

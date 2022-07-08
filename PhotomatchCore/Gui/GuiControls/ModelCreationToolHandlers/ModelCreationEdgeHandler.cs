@@ -1,8 +1,8 @@
-﻿using Photomatch.Gui.GuiControls.Helper;
-using Photomatch.Gui.GuiControls.ModelCreationToolHandlers.ModelCreationToolEdgeHandlerHelpers;
-using Photomatch.Logic;
+﻿using PhotomatchCore.Gui.GuiControls.Helper;
+using PhotomatchCore.Gui.GuiControls.ModelCreationToolHandlers.ModelCreationToolEdgeHandlerHelpers;
+using PhotomatchCore.Logic;
 
-namespace Photomatch.Gui.GuiControls.ModelCreationToolHandlers
+namespace PhotomatchCore.Gui.GuiControls.ModelCreationToolHandlers
 {
 	public class ModelCreationEdgeHandler : BaseModelCreationToolHandler
 	{

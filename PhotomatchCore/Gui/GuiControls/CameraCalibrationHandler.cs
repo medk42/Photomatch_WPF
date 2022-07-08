@@ -2,9 +2,9 @@
 using System.Collections.Generic;
 using System.Text;
 
-using Photomatch.Logic;
+using PhotomatchCore.Logic;
 
-namespace Photomatch.Gui.GuiControls
+namespace PhotomatchCore.Gui.GuiControls
 {
 	class CameraCalibrationHandler
 	{

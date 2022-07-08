@@ -1,7 +1,7 @@
-﻿<Application x:Class="Photomatch.App"
+﻿<Application x:Class="PhotomatchWPF.App"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:local="clr-namespace:Photomatch"
+             xmlns:local="clr-namespace:PhotomatchWPF"
              StartupUri="MainWindow.xaml">
     <Application.Resources>
          

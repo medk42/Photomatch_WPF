@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text;
 
-using Photomatch.Utilities;
+using PhotomatchCore.Utilities;
 
-namespace Photomatch.Logic
+namespace PhotomatchCore.Logic
 {
 	/// <summary>
 	/// Event handler for Vector3 position change.

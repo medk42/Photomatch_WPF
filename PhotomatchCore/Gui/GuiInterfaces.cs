@@ -3,11 +3,11 @@ using System.Collections.Generic;
 using System.Text;
 using SixLabors.ImageSharp;
 
-using Photomatch.Logic;
-using Photomatch.Utilities;
-using Photomatch.Gui.GuiControls;
+using PhotomatchCore.Logic;
+using PhotomatchCore.Utilities;
+using PhotomatchCore.Gui.GuiControls;
 
-namespace Photomatch.Gui
+namespace PhotomatchCore.Gui
 {
 	/// <summary>
 	/// Interface representing a GUI line.

@@ -2,10 +2,10 @@
 using System;
 using SixLabors.ImageSharp;
 
-using Photomatch.Utilities;
+using PhotomatchCore.Utilities;
 using SixLabors.ImageSharp.PixelFormats;
 
-namespace Photomatch.Logic
+namespace PhotomatchCore.Logic
 {
 	/// <summary>
 	/// First and second calibration axis written as [first][second].

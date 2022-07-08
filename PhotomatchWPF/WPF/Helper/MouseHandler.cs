@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.Windows.Input;
 
-namespace Photomatch.WPF.Helper
+namespace PhotomatchWPF.WPF.Helper
 {
 	public interface IMouseHandler
 	{

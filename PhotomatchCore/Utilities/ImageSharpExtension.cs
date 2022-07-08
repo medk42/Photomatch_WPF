@@ -1,10 +1,10 @@
-﻿using Photomatch.Logic;
+﻿using PhotomatchCore.Logic;
 using SixLabors.ImageSharp.PixelFormats;
 using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace Photomatch.Utilities
+namespace PhotomatchCore.Utilities
 {
 	/// <summary>
 	/// Extension methods for ImageSharp library.

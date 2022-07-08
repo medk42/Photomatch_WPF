@@ -1,9 +1,9 @@
-﻿using Photomatch.Logic;
+﻿using PhotomatchCore.Logic;
 using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace Photomatch.Gui.GuiControls.ModelCreationToolHandlers
+namespace PhotomatchCore.Gui.GuiControls.ModelCreationToolHandlers
 {
 	interface IModelCreationToolHandler
 	{

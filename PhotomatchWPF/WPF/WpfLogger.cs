@@ -2,9 +2,9 @@
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
-using Photomatch.Utilities;
+using PhotomatchCore.Utilities;
 
-namespace Photomatch.WPF
+namespace PhotomatchWPF.WPF
 {
 	public class WarningErrorGUILogger : ILogger
 	{

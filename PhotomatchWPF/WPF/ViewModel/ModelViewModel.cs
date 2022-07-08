@@ -1,6 +1,6 @@
-﻿using Photomatch.Gui;
-using Photomatch.Logic;
-using Photomatch.WPF.Helper;
+﻿using PhotomatchCore.Gui;
+using PhotomatchCore.Logic;
+using PhotomatchWPF.WPF.Helper;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -10,7 +10,7 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Media3D;
 
-namespace Photomatch.WPF.ViewModel
+namespace PhotomatchWPF.WPF.ViewModel
 {
 
 	class ModelViewModel : BaseViewModel, IKeyboardHandler, IMouseHandler, IModelView

@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace Photomatch.Gui
+namespace PhotomatchCore.Gui
 {
 	/// <summary>
 	/// Types of mouse click.

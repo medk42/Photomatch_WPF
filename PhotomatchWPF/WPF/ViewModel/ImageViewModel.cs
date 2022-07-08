@@ -9,16 +9,16 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 
-using Photomatch.WPF.Helper;
-using Photomatch.Gui;
-using Photomatch.Logic;
-using Photomatch.Utilities;
-using Photomatch.Gui.GuiControls;
-using Photomatch;
+using PhotomatchWPF.WPF.Helper;
+using PhotomatchCore.Gui;
+using PhotomatchCore.Logic;
+using PhotomatchCore.Utilities;
+using PhotomatchCore.Gui.GuiControls;
+using PhotomatchCore;
 using System.Windows.Shapes;
 using System.Collections.ObjectModel;
 
-namespace Photomatch.WPF.ViewModel
+namespace PhotomatchWPF.WPF.ViewModel
 {
 	public class ImageViewModel : BaseViewModel, IWindow, IMouseHandler, IKeyboardHandler
 	{
@@ -286,25 +286,25 @@ namespace Photomatch.WPF.ViewModel
 			IsClosed = true;
 		}
 
-		private Gui.MouseButton? GetMouseButton(System.Windows.Input.MouseButton button, int clickCount)
+		private PhotomatchCore.Gui.MouseButton? GetMouseButton(System.Windows.Input.MouseButton button, int clickCount)
 		{
 			if (button == System.Windows.Input.MouseButton.Left)
-				return clickCount == 1 ? Gui.MouseButton.Left : Gui.MouseButton.DoubleLeft;
+				return clickCount == 1 ? PhotomatchCore.Gui.MouseButton.Left : PhotomatchCore.Gui.MouseButton.DoubleLeft;
 			else if (button == System.Windows.Input.MouseButton.Right)
-				return clickCount == 1 ? Gui.MouseButton.Right : Gui.MouseButton.DoubleRight;
+				return clickCount == 1 ? PhotomatchCore.Gui.MouseButton.Right : PhotomatchCore.Gui.MouseButton.DoubleRight;
 			else if (button == System.Windows.Input.MouseButton.Middle)
-				return clickCount == 1 ? Gui.MouseButton.Middle : Gui.MouseButton.DoubleMiddle;
+				return clickCount == 1 ? PhotomatchCore.Gui.MouseButton.Middle : PhotomatchCore.Gui.MouseButton.DoubleMiddle;
 			else
 				return null;
 		}
 
 		public void MouseDown(object sender, MouseButtonEventArgs e)
 		{
-			Gui.MouseButton? button = GetMouseButton(e.ChangedButton, e.ClickCount);
+			PhotomatchCore.Gui.MouseButton? button = GetMouseButton(e.ChangedButton, e.ClickCount);
 			if (!button.HasValue)
 				return;
 
-			if (button.Value == Gui.MouseButton.Middle)
+			if (button.Value == PhotomatchCore.Gui.MouseButton.Middle)
 				ImageDrag = true;
 
 			if (ImageDrag)
@@ -328,13 +328,13 @@ namespace Photomatch.WPF.ViewModel
 
 		public void MouseUp(object sender, MouseButtonEventArgs e)
 		{
-			Gui.MouseButton? button = GetMouseButton(e.ChangedButton, e.ClickCount);
+			PhotomatchCore.Gui.MouseButton? button = GetMouseButton(e.ChangedButton, e.ClickCount);
 			if (!button.HasValue)
 				return;
 
 			if (ImageDrag)
 			{
-				if (button.Value == Gui.MouseButton.Middle)
+				if (button.Value == PhotomatchCore.Gui.MouseButton.Middle)
 					ImageDrag = false;
 			}
 			else if (ImageView != null)
@@ -380,9 +380,9 @@ namespace Photomatch.WPF.ViewModel
 				Point point = e.GetPosition(ImageView);
 
 				point = new Point(Math.Clamp(point.X, 0, Width - 1), Math.Clamp(point.X, 0, Height - 1));
-				ImageWindow.MouseUp(point.AsVector2(), Gui.MouseButton.Left);
-				ImageWindow.MouseUp(point.AsVector2(), Gui.MouseButton.Middle);
-				ImageWindow.MouseUp(point.AsVector2(), Gui.MouseButton.Right);
+				ImageWindow.MouseUp(point.AsVector2(), PhotomatchCore.Gui.MouseButton.Left);
+				ImageWindow.MouseUp(point.AsVector2(), PhotomatchCore.Gui.MouseButton.Middle);
+				ImageWindow.MouseUp(point.AsVector2(), PhotomatchCore.Gui.MouseButton.Right);
 			}
 		}
 

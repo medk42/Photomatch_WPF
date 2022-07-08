@@ -1,9 +1,9 @@
-﻿using Photomatch.Logic;
+﻿using PhotomatchCore.Logic;
 using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace Photomatch.Gui.GuiControls.Helper
+namespace PhotomatchCore.Gui.GuiControls.Helper
 {
 	public class FaceEventListener
 	{

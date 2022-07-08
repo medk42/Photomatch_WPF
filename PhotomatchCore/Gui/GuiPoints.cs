@@ -2,9 +2,9 @@
 using System.Collections.Generic;
 using System.Text;
 
-using Photomatch.Logic;
+using PhotomatchCore.Logic;
 
-namespace Photomatch.Gui
+namespace PhotomatchCore.Gui
 {
 	public delegate void UpdateValue<T>(T value);
 	public delegate T GetValue<T>();

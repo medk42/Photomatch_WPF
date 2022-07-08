@@ -4,13 +4,13 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text;
 
-using Photomatch.Logic;
-using Photomatch.Utilities;
+using PhotomatchCore.Logic;
+using PhotomatchCore.Utilities;
 using System.Globalization;
 using SixLabors.ImageSharp.PixelFormats;
-using Photomatch.Gui.GuiControls.Helper;
+using PhotomatchCore.Gui.GuiControls.Helper;
 
-namespace Photomatch.Gui.GuiControls
+namespace PhotomatchCore.Gui.GuiControls
 {
 	public class MasterControl : Actions
 	{

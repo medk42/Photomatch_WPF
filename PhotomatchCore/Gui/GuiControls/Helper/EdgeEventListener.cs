@@ -2,9 +2,9 @@
 using System.Collections.Generic;
 using System.Text;
 
-using Photomatch.Logic;
+using PhotomatchCore.Logic;
 
-namespace Photomatch.Gui.GuiControls.Helper
+namespace PhotomatchCore.Gui.GuiControls.Helper
 {
 	public class EdgeEventListener
 	{

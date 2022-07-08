@@ -1,4 +1,4 @@
-﻿using Photomatch.Logic;
+﻿using PhotomatchCore.Logic;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 using System;
@@ -7,7 +7,7 @@ using System.Globalization;
 using System.IO;
 using System.Text;
 
-namespace Photomatch.Utilities
+namespace PhotomatchCore.Utilities
 {
 
 	/// <summary>
