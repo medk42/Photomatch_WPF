@@ -1,6 +1,4 @@
-﻿using PhotomatchCore.Data;
-using PhotomatchCore.Interfaces;
-using PhotomatchCore.Logic;
+﻿using PhotomatchCore.Logic;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 using System;

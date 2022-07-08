@@ -2,7 +2,7 @@
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
-using PhotomatchCore.Interfaces;
+using PhotomatchCore.Utilities;
 
 namespace PhotomatchWPF.WPF
 {

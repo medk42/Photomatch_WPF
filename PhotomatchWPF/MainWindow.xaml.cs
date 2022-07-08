@@ -13,7 +13,7 @@ using System.ComponentModel;
 using System.Threading;
 using System.Collections.Generic;
 using System.Windows.Input;
-using PhotomatchCore.Interfaces;
+using PhotomatchCore.Utilities;
 
 namespace PhotomatchWPF
 {

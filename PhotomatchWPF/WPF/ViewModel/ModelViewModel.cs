@@ -1,6 +1,6 @@
-﻿using PhotomatchCore.Data;
-using PhotomatchCore.Gui;
+﻿using PhotomatchCore.Gui;
 using PhotomatchCore.Logic;
+using PhotomatchCore.Utilities;
 using PhotomatchWPF.WPF.Helper;
 using System;
 using System.Collections.Generic;

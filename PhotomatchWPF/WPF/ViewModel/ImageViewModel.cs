@@ -16,8 +16,7 @@ using PhotomatchCore.Gui.GuiControls;
 using PhotomatchCore;
 using System.Windows.Shapes;
 using System.Collections.ObjectModel;
-using PhotomatchCore.Data;
-using PhotomatchCore.Interfaces;
+using PhotomatchCore.Utilities;
 
 namespace PhotomatchWPF.WPF.ViewModel
 {

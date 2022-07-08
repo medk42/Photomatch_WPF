@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
-using PhotomatchCore.Data;
+using PhotomatchCore.Utilities;
 
 namespace PhotomatchCore.Gui
 {

@@ -5,8 +5,7 @@ using SixLabors.ImageSharp;
 
 using PhotomatchCore.Logic;
 using PhotomatchCore.Gui.GuiControls;
-using PhotomatchCore.Data;
-using PhotomatchCore.Interfaces;
+using PhotomatchCore.Utilities;
 
 namespace PhotomatchCore.Gui
 {

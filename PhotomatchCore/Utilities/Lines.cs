@@ -1,10 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using PhotomatchCore.Interfaces;
-using PhotomatchCore.Utilities;
+using PhotomatchCore.Logic;
 
-namespace PhotomatchCore.Data
+namespace PhotomatchCore.Utilities
 {
 	/// <summary>
 	/// Struct representing line in 2D as Vector2 of start and end.

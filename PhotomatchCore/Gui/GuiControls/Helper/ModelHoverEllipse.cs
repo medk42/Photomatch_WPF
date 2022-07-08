@@ -1,5 +1,5 @@
-﻿using PhotomatchCore.Data;
-using PhotomatchCore.Logic;
+﻿using PhotomatchCore.Logic;
+using PhotomatchCore.Utilities;
 using System;
 using System.Collections.Generic;
 using System.Text;

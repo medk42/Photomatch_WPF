@@ -1,7 +1,6 @@
-﻿using PhotomatchCore.Data;
-using PhotomatchCore.Gui.GuiControls.Helper;
-using PhotomatchCore.Interfaces;
+﻿using PhotomatchCore.Gui.GuiControls.Helper;
 using PhotomatchCore.Logic;
+using PhotomatchCore.Utilities;
 using System;
 using System.Collections.Generic;
 using System.Text;

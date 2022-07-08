@@ -2,8 +2,7 @@
 using System;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
-using PhotomatchCore.Data;
-using PhotomatchCore.Interfaces;
+using PhotomatchCore.Utilities;
 
 namespace PhotomatchCore.Logic
 {

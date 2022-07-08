@@ -1,8 +1,7 @@
 ﻿using System;
 using System.IO;
-using PhotomatchCore.Interfaces;
 
-namespace PhotomatchCore.Data
+namespace PhotomatchCore.Utilities
 {
 	/// <summary>
 	/// Struct representing 3x3 matrix with double values.

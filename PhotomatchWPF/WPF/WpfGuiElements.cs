@@ -8,7 +8,7 @@ using PhotomatchWPF.WPF.ViewModel;
 using PhotomatchCore.Gui;
 using System.Windows.Shapes;
 using System.Collections.ObjectModel;
-using PhotomatchCore.Data;
+using PhotomatchCore.Utilities;
 
 namespace PhotomatchWPF.WPF
 {
