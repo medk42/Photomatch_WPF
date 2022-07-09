@@ -3,12 +3,12 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
-
-using PhotomatchCore.Logic;
 using PhotomatchCore.Utilities;
 using System.Globalization;
 using SixLabors.ImageSharp.PixelFormats;
 using PhotomatchCore.Gui.GuiControls.Helper;
+using PhotomatchCore.Logic.Model;
+using PhotomatchCore.Logic.Perspective;
 
 namespace PhotomatchCore.Gui.GuiControls
 {

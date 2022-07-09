@@ -1,11 +1,12 @@
-﻿using PhotomatchCore.Logic;
-using SixLabors.ImageSharp;
+﻿using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Text;
+using PhotomatchCore.Logic.Model;
+using PhotomatchCore.Logic.Perspective;
 
 namespace PhotomatchCore.Utilities
 {

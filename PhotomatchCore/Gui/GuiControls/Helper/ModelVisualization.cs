@@ -1,8 +1,9 @@
-﻿using PhotomatchCore.Logic;
-using PhotomatchCore.Utilities;
+﻿using PhotomatchCore.Utilities;
 using System;
 using System.Collections.Generic;
 using System.Text;
+using PhotomatchCore.Logic.Model;
+using PhotomatchCore.Logic.Perspective;
 
 namespace PhotomatchCore.Gui.GuiControls.Helper
 {

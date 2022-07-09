@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
-using PhotomatchCore.Logic;
+using PhotomatchCore.Logic.Model;
 using PhotomatchCore.Utilities;
 
 namespace PhotomatchCore.Gui.GuiControls.Helper

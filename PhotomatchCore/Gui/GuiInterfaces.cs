@@ -2,10 +2,10 @@
 using System.Collections.Generic;
 using System.Text;
 using SixLabors.ImageSharp;
-
-using PhotomatchCore.Logic;
 using PhotomatchCore.Gui.GuiControls;
 using PhotomatchCore.Utilities;
+using PhotomatchCore.Logic.Model;
+using PhotomatchCore.Logic.Perspective;
 
 namespace PhotomatchCore.Gui
 {

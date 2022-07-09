@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using PhotomatchCore.Logic;
+using PhotomatchCore.Logic.Perspective;
 
 namespace PhotomatchCore.Utilities
 {

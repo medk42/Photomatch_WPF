@@ -1,7 +1,8 @@
 ﻿using PhotomatchCore.Gui.GuiControls.Helper;
 using PhotomatchCore.Gui.GuiControls.ModelCreationToolHandlers.ModelCreationToolEdgeHandlerHelpers;
-using PhotomatchCore.Logic;
 using PhotomatchCore.Utilities;
+using PhotomatchCore.Logic.Model;
+using PhotomatchCore.Logic.Perspective;
 
 namespace PhotomatchCore.Gui.GuiControls.ModelCreationToolHandlers
 {
