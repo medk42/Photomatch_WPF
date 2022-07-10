@@ -16,12 +16,12 @@ namespace PhotomatchCore.Gui.GuiControls.ModelCreationToolHandlers.ModelCreation
 		private ModelVisualization ModelVisualization;
 		private Model Model;
 		private PerspectiveData Perspective;
-		private IWindow Window;
+		private IImageView Window;
 
 		private double PointGrabRadius;
 		private bool Enabled = true;
 
-		public ModelCreationEdgeHandlerMidpointSelector(ModelVisualization modelVisualization, Model model, PerspectiveData perspective, IWindow window, double pointGrabRadius)
+		public ModelCreationEdgeHandlerMidpointSelector(ModelVisualization modelVisualization, Model model, PerspectiveData perspective, IImageView window, double pointGrabRadius)
 		{
 			this.ModelVisualization = modelVisualization;
 			this.Model = model;

@@ -78,7 +78,7 @@ namespace PhotomatchCore.Gui
 	/// <summary>
 	/// Interface for calling the main class of the used application GUI.
 	/// </summary>
-	public interface MasterGUI : ILogger
+	public interface IMasterView : ILogger
 	{
 		/// <summary>
 		/// Get a file path to an image from the user.
@@ -104,7 +104,7 @@ namespace PhotomatchCore.Gui
 		/// Create a sub-window for an ImageWindow with a specified title.
 		/// </summary>
 		/// <returns>Interface that represents the created window.</returns>
-		IWindow CreateImageWindow(ImageWindow imageWindow, string title);
+		IImageView CreateImageWindow(ImageWindow imageWindow, string title);
 
 		/// <summary>
 		/// Create a sub-window displaying the created 3D model.
@@ -155,7 +155,7 @@ namespace PhotomatchCore.Gui
 	/// <summary>
 	/// Interface for calling the class representing a sub-window for an ImageWindow of the used application GUI.
 	/// </summary>
-	public interface IWindow
+	public interface IImageView
 	{
 		/// <summary>
 		/// Width of the displayed image.
@@ -222,9 +222,9 @@ namespace PhotomatchCore.Gui
 	}
 
 	/// <summary>
-	/// Interface representing actions that can be done in the application GUI.
+	/// Interface representing actions that have to be sent to the application GUI.
 	/// </summary>
-	public interface Actions
+	public interface IMasterActions
 	{
 		void LoadImage_Pressed();
 		void NewProject_Pressed();
@@ -234,9 +234,27 @@ namespace PhotomatchCore.Gui
 		void ExportModel_Pressed();
 		void Undo_Pressed();
 		void Redo_Pressed();
+		void Exit_Pressed();
 		void DesignTool_Changed(DesignTool newDesignTool);
 		void ModelCreationTool_Changed(ModelCreationTool newModelCreationTool);
 		void CameraModelCalibrationTool_Changed(CameraModelCalibrationTool newCameraModelCalibrationTool);
-		void Exit_Pressed();
+		void KeyDown(KeyboardKey key);
+		void KeyUp(KeyboardKey key);
+	}
+
+	/// <summary>
+	/// Interface representing actions that have to be sent to the photo window.
+	/// </summary>
+	public interface IImageActions
+	{
+		void Close_Clicked();
+		void MouseMove(Vector2 mouseCoord);
+		void MouseDown(Vector2 mouseCoord, MouseButton button);
+		void MouseUp(Vector2 mouseCoord, MouseButton button);
+		void KeyDown(KeyboardKey key);
+		void KeyUp(KeyboardKey key);
+		void CalibrationAxes_Changed(CalibrationAxes calibrationAxes);
+		void InvertedAxes_Changed(InvertedAxes invertedAxes);
+		void Dispose();
 	}
 }

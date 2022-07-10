@@ -76,12 +76,12 @@ namespace PhotomatchCore.Gui
 
 		private IPoint CurrentPoint = null;
 		private Vector2 DraggingOffset;
-		private IWindow Window;
+		private IImageView Window;
 		private double MaxMouseDistance;
 
 		/// <param name="window">Window where the points are being dragged.</param>
 		/// <param name="maxMouseDistance">Maximum distance between mouse and point to start dragging it, in pixels on screen.</param>
-		public DraggablePoints(IWindow window, double maxMouseDistance)
+		public DraggablePoints(IImageView window, double maxMouseDistance)
 		{
 			this.Window = window;
 			this.MaxMouseDistance = maxMouseDistance;

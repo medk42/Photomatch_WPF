@@ -13,7 +13,7 @@ namespace PhotomatchCore.Gui.GuiControls.ModelCreationToolHandlers
 		private PerspectiveData Perspective;
 		private Model Model;
 		private ModelVisualization ModelVisualization;
-		private IWindow Window;
+		private IImageView Window;
 
 		private double PointDrawRadius;
 		private double PointGrabRadius;
@@ -29,7 +29,7 @@ namespace PhotomatchCore.Gui.GuiControls.ModelCreationToolHandlers
 		private IModelCreationEdgeHandlerVertex CurrentVertex;
 		private ModelCreationEdgeHandlerDirectionProjection CurrentDirection;
 
-		public ModelCreationEdgeHandler(PerspectiveData perspective, Model model, ModelVisualization modelVisualization, IWindow window, double pointDrawRadius, double pointGrabRadius)
+		public ModelCreationEdgeHandler(PerspectiveData perspective, Model model, ModelVisualization modelVisualization, IImageView window, double pointDrawRadius, double pointGrabRadius)
 		{
 			this.ModelVisualization = modelVisualization;
 			this.Perspective = perspective;

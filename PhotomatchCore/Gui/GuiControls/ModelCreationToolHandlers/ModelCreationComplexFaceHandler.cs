@@ -14,13 +14,13 @@ namespace PhotomatchCore.Gui.GuiControls.ModelCreationToolHandlers
 
 		private ModelVisualization ModelVisualization;
 		private Model Model;
-		private IWindow Window;
+		private IImageView Window;
 		private ILogger Logger;
 
 		private List<ILine> Lines = new List<ILine>();
 		private List<Vertex> Vertices = new List<Vertex>();
 
-		public ModelCreationComplexFaceHandler(ModelVisualization modelVisualization, Model model, IWindow window, ILogger logger)
+		public ModelCreationComplexFaceHandler(ModelVisualization modelVisualization, Model model, IImageView window, ILogger logger)
 		{
 			this.ModelVisualization = modelVisualization;
 			this.Model = model;

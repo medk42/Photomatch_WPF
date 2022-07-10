@@ -31,12 +31,12 @@ namespace PhotomatchCore.Gui.GuiControls
 		private DraggablePoints DraggablePoints;
 
 		private PerspectiveData Perspective;
-		private IWindow Window;
+		private IImageView Window;
 
 		private double PointGrabRadius;
 		private double PointDrawRadius;
 
-		public CameraCalibrationHandler(PerspectiveData perspective, IWindow window, double pointGrabRadius, double pointDrawRadius)
+		public CameraCalibrationHandler(PerspectiveData perspective, IImageView window, double pointGrabRadius, double pointDrawRadius)
 		{
 			this.Perspective = perspective;
 			this.Window = window;

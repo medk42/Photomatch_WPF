@@ -50,13 +50,13 @@ namespace PhotomatchCore.Gui
 			set => GuiLine.Visible = value; 
 		}
 
-		private IWindow Window;
+		private IImageView Window;
 		private ILine GuiLine;
 
 		/// <summary>
 		/// Create an infinite line in a specified GUI window and with a specified start, end and color.
 		/// </summary>
-		public InfiniteLine(IWindow window, Vector2 start, Vector2 end, ApplicationColor color)
+		public InfiniteLine(IImageView window, Vector2 start, Vector2 end, ApplicationColor color)
 		{
 			this.Window = window;
 			this.GuiLine = window.CreateLine(new Vector2(), new Vector2(), 0, color);

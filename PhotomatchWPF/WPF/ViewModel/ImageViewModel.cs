@@ -20,7 +20,7 @@ using PhotomatchCore.Logic.Perspective;
 
 namespace PhotomatchWPF.WPF.ViewModel
 {
-	public class ImageViewModel : BaseViewModel, IWindow, IMouseHandler, IKeyboardHandler
+	public class ImageViewModel : BaseViewModel, IImageView, IMouseHandler, IKeyboardHandler
 	{
 		private static readonly double DefaultLineStrokeThickness = 2;
 		private static readonly double ZoomAmount = 1.002;
@@ -125,7 +125,7 @@ namespace PhotomatchWPF.WPF.ViewModel
 		public List<IScalable> Scalables { get; } = new List<IScalable>();
 
 		private ILogger Logger;
-		private ImageWindow ImageWindow;
+		private IImageActions ImageWindowActions;
 		private double ViewboxImageScale = double.NaN;
 		private Image ImageView;
 		private Viewbox MoveViewbox;
@@ -156,7 +156,7 @@ namespace PhotomatchWPF.WPF.ViewModel
             this.IsClosed = false;
             this.CloseCommand = new RelayCommand(obj => Close());
 			this.Logger = logger;
-			this.ImageWindow = imageWindow;
+			this.ImageWindowActions = imageWindow;
 			this.MainWindow = mainWindow;
 
 			this.Viewbox_SizeChanged = new RelayCommand(Viewbox_SizeChanged_);
@@ -190,12 +190,12 @@ namespace PhotomatchWPF.WPF.ViewModel
 
         public void Close()
         {
-			ImageWindow.Close_Clicked();
+			ImageWindowActions.Close_Clicked();
         }
 
-		void IWindow.Close()
+		void IImageView.Close()
 		{
-			ImageWindow.Dispose();
+			ImageWindowActions.Dispose();
 			this.IsClosed = true;
 		}
 
@@ -322,7 +322,7 @@ namespace PhotomatchWPF.WPF.ViewModel
 				if (point.X < 0 || point.Y < 0 || point.X >= Width || point.Y >= Height)
 					return;
 
-				ImageWindow.MouseDown(point.AsVector2(), button.Value);
+				ImageWindowActions.MouseDown(point.AsVector2(), button.Value);
 			}
 		}
 
@@ -344,7 +344,7 @@ namespace PhotomatchWPF.WPF.ViewModel
 				if (point.X < 0 || point.Y < 0 || point.X >= Width || point.Y >= Height)
 					return;
 
-				ImageWindow.MouseUp(point.AsVector2(), button.Value);
+				ImageWindowActions.MouseUp(point.AsVector2(), button.Value);
 			}
 		}
 
@@ -365,7 +365,7 @@ namespace PhotomatchWPF.WPF.ViewModel
 				if (point.X < 0 || point.Y < 0 || point.X >= Width || point.Y >= Height)
 					return;
 
-				ImageWindow.MouseMove(point.AsVector2());
+				ImageWindowActions.MouseMove(point.AsVector2());
 			}
 		}
 
@@ -380,9 +380,9 @@ namespace PhotomatchWPF.WPF.ViewModel
 				Point point = e.GetPosition(ImageView);
 
 				point = new Point(Math.Clamp(point.X, 0, Width - 1), Math.Clamp(point.X, 0, Height - 1));
-				ImageWindow.MouseUp(point.AsVector2(), PhotomatchCore.Gui.MouseButton.Left);
-				ImageWindow.MouseUp(point.AsVector2(), PhotomatchCore.Gui.MouseButton.Middle);
-				ImageWindow.MouseUp(point.AsVector2(), PhotomatchCore.Gui.MouseButton.Right);
+				ImageWindowActions.MouseUp(point.AsVector2(), PhotomatchCore.Gui.MouseButton.Left);
+				ImageWindowActions.MouseUp(point.AsVector2(), PhotomatchCore.Gui.MouseButton.Middle);
+				ImageWindowActions.MouseUp(point.AsVector2(), PhotomatchCore.Gui.MouseButton.Right);
 			}
 		}
 
@@ -413,7 +413,7 @@ namespace PhotomatchWPF.WPF.ViewModel
 				if (point.X < 0 || point.Y < 0 || point.X >= Width || point.Y >= Height)
 					return;
 
-				ImageWindow.MouseMove(point.AsVector2());
+				ImageWindowActions.MouseMove(point.AsVector2());
 			}
 
 			
@@ -460,7 +460,7 @@ namespace PhotomatchWPF.WPF.ViewModel
 
 		public void CalibrationAxes_Changed(CalibrationAxes calibrationAxes)
 		{
-			ImageWindow.CalibrationAxes_Changed(calibrationAxes);
+			ImageWindowActions.CalibrationAxes_Changed(calibrationAxes);
 		}
 
 		public void DisplayInvertedAxes(CalibrationAxes calibrationAxes, InvertedAxes invertedAxes)
@@ -471,21 +471,21 @@ namespace PhotomatchWPF.WPF.ViewModel
 
 		public void InvertedAxes_Changed(InvertedAxes invertedAxes)
 		{
-			ImageWindow.InvertedAxes_Changed(invertedAxes);
+			ImageWindowActions.InvertedAxes_Changed(invertedAxes);
 		}
 
 		public void KeyUp(object sender, KeyEventArgs e)
 		{
 			KeyboardKey? key = e.Key.AsKeyboardKey();
 			if (key.HasValue)
-				ImageWindow.KeyUp(key.Value);
+				ImageWindowActions.KeyUp(key.Value);
 		}
 
 		public void KeyDown(object sender, KeyEventArgs e)
 		{
 			KeyboardKey? key = e.Key.AsKeyboardKey();
 			if (key.HasValue)
-				ImageWindow.KeyDown(key.Value);
+				ImageWindowActions.KeyDown(key.Value);
 		}
 	}
 }

@@ -21,15 +21,14 @@ namespace PhotomatchWPF
 	/// <summary>
 	/// Interaction logic for MainWindow.xaml
 	/// </summary>
-	public partial class MainWindow : Window, MasterGUI
+	public partial class MainWindow : Window, IMasterView
 	{
 		private static readonly string PhotomatcherProjectFileFilter = "Photomatcher Project Files (*.ppf)|*.ppf";
 		private static readonly string ImageFileFilter = "Image Files(*.BMP;*.JPG;*.JPEG;*.GIF;*.PNG;*.TIFF)|*.BMP;*.JPG;*.JPEG;*.GIF;*.PNG;*.TIFF";
 		private static readonly string ModelExportFileFilter = "3D Files(*.obj)|*.obj";
 		private static readonly string MainTitle = "Photomatcher";
 
-		private MasterControl AppControl;
-		private Actions ActionListener;
+		private IMasterActions ActionListener;
 		private ILogger Logger = null;
 		private MainViewModel MainViewModel;
 		private bool InvertedAxesCheckboxIgnore = false;
@@ -64,8 +63,7 @@ namespace PhotomatchWPF
 			MainViewModel = new MainViewModel();
 			this.DataContext = MainViewModel;
 
-			AppControl = new MasterControl(this);
-			ActionListener = AppControl;
+			ActionListener = new MasterControl(this);
 
 			MainDockMgr.ActiveContentChanged += MainDockMgr_ActiveContentChanged;
 			XInvertedCheckbox.Checked += AnyInvertedCheckbox_Changed;
@@ -133,7 +131,7 @@ namespace PhotomatchWPF
 		public string GetLoadProjectFilePath() => GetFilePath(PhotomatcherProjectFileFilter);
 		public string GetModelExportFilePath() => SaveFilePath(ModelExportFileFilter);
 
-		public IWindow CreateImageWindow(ImageWindow imageWindow, string title)
+		public IImageView CreateImageWindow(ImageWindow imageWindow, string title)
 		{
 			var window = new ImageViewModel(imageWindow, Logger, this) { Title = title };
 			MainViewModel.DockManagerViewModel.AddDocument(window);
@@ -441,7 +439,7 @@ namespace PhotomatchWPF
 
 				KeyboardKey? key = e.Key.AsKeyboardKey();
 				if (key.HasValue)
-					AppControl.KeyDown(key.Value);
+					ActionListener.KeyDown(key.Value);
 
 				if (MainDockMgr.ActiveContent != null)
 				{
@@ -459,7 +457,7 @@ namespace PhotomatchWPF
 
 			KeyboardKey? key = e.Key.AsKeyboardKey();
 			if (key.HasValue)
-				AppControl.KeyUp(key.Value);
+				ActionListener.KeyUp(key.Value);
 
 			if (MainDockMgr.ActiveContent != null)
 			{

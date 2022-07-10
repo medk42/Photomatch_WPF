@@ -12,14 +12,14 @@ using PhotomatchCore.Logic.Perspective;
 
 namespace PhotomatchCore.Gui.GuiControls
 {
-	public class MasterControl : Actions
+	public class MasterControl : IMasterActions
 	{
 		private enum ProjectState { None, NewProject, NamedProject }
 
 		private static readonly ulong ProjectFileChecksum = 0x54_07_02_47_23_43_94_42;
 		private static readonly string NewProjectName = "new project...";
 
-		private MasterGUI Gui;
+		private IMasterView Gui;
 		private ILogger Logger;
 		private List<ImageWindow> Windows;
 		private ProjectState State;
@@ -81,7 +81,7 @@ namespace PhotomatchCore.Gui.GuiControls
 			}
 		}
 
-		public MasterControl(MasterGUI gui)
+		public MasterControl(IMasterView gui)
 		{
 			this.Gui = gui;
 			this.Logger = gui;
@@ -424,7 +424,7 @@ namespace PhotomatchCore.Gui.GuiControls
 			}
 		}
 
-		public void MouseUp()
+		public void ImageMouseUp()
 		{
 			if (HistoryDirty)
 			{

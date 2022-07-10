@@ -16,7 +16,7 @@ namespace PhotomatchCore.Gui.GuiControls.ModelCreationToolHandlers
 
 		private ModelVisualization ModelVisualization;
 		private Model Model;
-		private IWindow Window;
+		private IImageView Window;
 		private PerspectiveData Perspective;
 
 		private List<Tuple<ILine, Face>> NormalLines = new List<Tuple<ILine, Face>>();
@@ -24,7 +24,7 @@ namespace PhotomatchCore.Gui.GuiControls.ModelCreationToolHandlers
 		private IPolygon Polygon;
 		private Face SelectedFace;
 
-		public ModelCreationFaceNormalsHandler(ModelVisualization modelVisualization, Model model, IWindow window, PerspectiveData perspective)
+		public ModelCreationFaceNormalsHandler(ModelVisualization modelVisualization, Model model, IImageView window, PerspectiveData perspective)
 		{
 			this.ModelVisualization = modelVisualization;
 			this.Model = model;

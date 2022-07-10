@@ -14,7 +14,7 @@ namespace PhotomatchCore.Gui.GuiControls.ModelCreationToolHandlers
 
 		private ModelVisualization ModelVisualization;
 		private Model Model;
-		private IWindow Window;
+		private IImageView Window;
 
 		private enum TriangleFaceState { None, FirstPoint, SecondPoint };
 		private Vertex first, second;
@@ -24,7 +24,7 @@ namespace PhotomatchCore.Gui.GuiControls.ModelCreationToolHandlers
 		private ILine Line2;
 		private ILine Line3;
 
-		public ModelCreationTriangleFaceHandler(ModelVisualization modelVisualization, Model model, IWindow window)
+		public ModelCreationTriangleFaceHandler(ModelVisualization modelVisualization, Model model, IImageView window)
 		{
 			this.ModelVisualization = modelVisualization;
 			this.Model = model;

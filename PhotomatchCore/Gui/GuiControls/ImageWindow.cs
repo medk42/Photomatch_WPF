@@ -9,17 +9,17 @@ using PhotomatchCore.Logic.Perspective;
 
 namespace PhotomatchCore.Gui.GuiControls
 {
-	public class ImageWindow
+	public class ImageWindow : IImageActions
 	{
 		public PerspectiveData Perspective;
 
 		private static readonly double PointGrabRadius = 16;
 		private static readonly double PointDrawRadius = 4;
 
-		private MasterGUI Gui;
+		private IMasterView Gui;
 		private MasterControl Control;
 		private ILogger Logger;
-		private IWindow Window { get; }
+		private IImageView Window { get; }
 		private ModelVisualization ModelVisualization;
 
 		private ModelCreationHandler ModelCreationHandler;
@@ -30,7 +30,7 @@ namespace PhotomatchCore.Gui.GuiControls
 
 		private bool Initialized = false;
 
-		public ImageWindow(PerspectiveData perspective, MasterGUI gui, MasterControl control, ILogger logger, Model model, DesignTool currentDesignTool, ModelCreationTool currentModelCreationTool, CameraModelCalibrationTool currentCameraModelCalibrationTool)
+		public ImageWindow(PerspectiveData perspective, IMasterView gui, MasterControl control, ILogger logger, Model model, DesignTool currentDesignTool, ModelCreationTool currentModelCreationTool, CameraModelCalibrationTool currentCameraModelCalibrationTool)
 		{
 			this.Gui = gui;
 			this.Control = control;
@@ -73,7 +73,7 @@ namespace PhotomatchCore.Gui.GuiControls
 			ModelCreationHandler.MouseUp(mouseCoord, button);
 			CameraModelCalibrationHandler.MouseUp(mouseCoord, button);
 
-			Control.MouseUp();
+			Control.ImageMouseUp();
 		}
 
 		public void KeyDown(KeyboardKey key)
