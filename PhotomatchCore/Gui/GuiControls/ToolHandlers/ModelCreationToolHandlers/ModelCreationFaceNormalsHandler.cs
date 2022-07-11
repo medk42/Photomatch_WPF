@@ -65,7 +65,7 @@ namespace PhotomatchCore.Gui.GuiControls.ToolHandlers.ModelCreationToolHandlers
 
 					ResetSelectedLine();
 					SelectedLine = NormalLines.Find(tuple => tuple.Item2 == SelectedFace).Item1;
-					SelectedLine.Color = ApplicationColor.Selected;
+					SelectedLine.Color = ApplicationColor.Highlight;
 				}
 				else if (Polygon != null)
 				{
