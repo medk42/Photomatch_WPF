@@ -26,11 +26,11 @@ namespace PhotomatchCore.Gui.GuiControls.Helper
 		public IEllipse Ellipse { get; set; }
 
 		private ModelVisualization ModelVisualization;
-		private IImageView Window;
+		private IWindow Window;
 		private double PointDrawRadius;
 		private Vector2 LastMouse;
 
-		public ModelHoverEllipse(ModelVisualization modelVisualization, IImageView window, double pointDrawRadius)
+		public ModelHoverEllipse(ModelVisualization modelVisualization, IWindow window, double pointDrawRadius)
 		{
 			this.ModelVisualization = modelVisualization;
 			this.Window = window;

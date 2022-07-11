@@ -6,7 +6,7 @@ using System.Collections.Generic;
 using System.Text;
 using PhotomatchCore.Logic.Model;
 
-namespace PhotomatchCore.Gui.GuiControls.ModelCreationToolHandlers
+namespace PhotomatchCore.Gui.GuiControls.ToolHandlers.ModelCreationToolHandlers
 {
 	public class ModelCreationTriangleFaceHandler : BaseModelCreationToolHandler
 	{
@@ -14,7 +14,7 @@ namespace PhotomatchCore.Gui.GuiControls.ModelCreationToolHandlers
 
 		private ModelVisualization ModelVisualization;
 		private Model Model;
-		private IImageView Window;
+		private IWindow Window;
 
 		private enum TriangleFaceState { None, FirstPoint, SecondPoint };
 		private Vertex first, second;
@@ -24,21 +24,21 @@ namespace PhotomatchCore.Gui.GuiControls.ModelCreationToolHandlers
 		private ILine Line2;
 		private ILine Line3;
 
-		public ModelCreationTriangleFaceHandler(ModelVisualization modelVisualization, Model model, IImageView window)
+		public ModelCreationTriangleFaceHandler(ModelVisualization modelVisualization, Model model, IWindow window)
 		{
-			this.ModelVisualization = modelVisualization;
-			this.Model = model;
-			this.Window = window;
+			ModelVisualization = modelVisualization;
+			Model = model;
+			Window = window;
 
-			this.Line1 = Window.CreateLine(new Vector2(), new Vector2(), 0, ApplicationColor.Selected);
-			this.Line2 = Window.CreateLine(new Vector2(), new Vector2(), 0, ApplicationColor.Selected);
-			this.Line3 = Window.CreateLine(new Vector2(), new Vector2(), 0, ApplicationColor.Selected);
+			Line1 = Window.CreateLine(new Vector2(), new Vector2(), 0, ApplicationColor.Selected);
+			Line2 = Window.CreateLine(new Vector2(), new Vector2(), 0, ApplicationColor.Selected);
+			Line3 = Window.CreateLine(new Vector2(), new Vector2(), 0, ApplicationColor.Selected);
 
-			this.Line1.Visible = false;
-			this.Line2.Visible = false;
-			this.Line3.Visible = false;
+			Line1.Visible = false;
+			Line2.Visible = false;
+			Line3.Visible = false;
 
-			this.Active = false;
+			Active = false;
 			SetActive(Active);
 		}
 

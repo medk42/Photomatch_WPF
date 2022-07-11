@@ -1,13 +1,13 @@
 ﻿using PhotomatchCore.Gui.GuiControls.Helper;
-using PhotomatchCore.Gui.GuiControls.ModelCreationToolHandlers.ModelCreationToolEdgeHandlerHelpers.Helper;
 using PhotomatchCore.Utilities;
 using System;
 using System.Collections.Generic;
 using System.Text;
 using PhotomatchCore.Logic.Model;
 using PhotomatchCore.Logic.Perspective;
+using PhotomatchCore.Gui.GuiControls.ToolHandlers.ModelCreationToolHandlers.ModelCreationToolEdgeHandlerHelpers.Helper;
 
-namespace PhotomatchCore.Gui.GuiControls.ModelCreationToolHandlers.ModelCreationToolEdgeHandlerHelpers
+namespace PhotomatchCore.Gui.GuiControls.ToolHandlers.ModelCreationToolHandlers.ModelCreationToolEdgeHandlerHelpers
 {
 	public class ModelCreationEdgeHandlerEdgepointSelector : IModelCreationEdgeHandlerSelector
 	{
@@ -19,9 +19,9 @@ namespace PhotomatchCore.Gui.GuiControls.ModelCreationToolHandlers.ModelCreation
 
 		public ModelCreationEdgeHandlerEdgepointSelector(ModelVisualization modelVisualization, Model model, PerspectiveData perspective)
 		{
-			this.ModelVisualization = modelVisualization;
-			this.Model = model;
-			this.Perspective = perspective;
+			ModelVisualization = modelVisualization;
+			Model = model;
+			Perspective = perspective;
 		}
 
 		public IModelCreationEdgeHandlerVertex GetVertex(Vector2 mouseCoord)
@@ -46,7 +46,7 @@ namespace PhotomatchCore.Gui.GuiControls.ModelCreationToolHandlers.ModelCreation
 
 		public void UpdateModel(Model model)
 		{
-			this.Model = model;
+			Model = model;
 		}
 
 		public void KeyDown(KeyboardKey key) { }

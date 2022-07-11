@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using PhotomatchCore.Utilities;
 
-namespace PhotomatchCore.Gui
+namespace PhotomatchCore.Gui.GuiControls.Helper
 {
 	public delegate void UpdateValue<T>(T value);
 	public delegate T GetValue<T>();
@@ -49,9 +49,9 @@ namespace PhotomatchCore.Gui
 		/// </summary>
 		public ActionPoint(Vector2 position, UpdateValue<Vector2> updateValue, GetValue<Vector2> getValue)
 		{
-			this.UpdateValue = updateValue;
-			this.GetValue = getValue;
-			this.Position = position;
+			UpdateValue = updateValue;
+			GetValue = getValue;
+			Position = position;
 		}
 
 		/// <summary>
@@ -76,15 +76,15 @@ namespace PhotomatchCore.Gui
 
 		private IPoint CurrentPoint = null;
 		private Vector2 DraggingOffset;
-		private IImageView Window;
+		private IWindow Window;
 		private double MaxMouseDistance;
 
 		/// <param name="window">Window where the points are being dragged.</param>
 		/// <param name="maxMouseDistance">Maximum distance between mouse and point to start dragging it, in pixels on screen.</param>
-		public DraggablePoints(IImageView window, double maxMouseDistance)
+		public DraggablePoints(IWindow window, double maxMouseDistance)
 		{
-			this.Window = window;
-			this.MaxMouseDistance = maxMouseDistance;
+			Window = window;
+			MaxMouseDistance = maxMouseDistance;
 		}
 
 		private double Clip(double value, double min, double max)

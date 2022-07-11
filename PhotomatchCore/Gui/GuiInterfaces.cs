@@ -104,7 +104,7 @@ namespace PhotomatchCore.Gui
 		/// Create a sub-window for an ImageWindow with a specified title.
 		/// </summary>
 		/// <returns>Interface that represents the created window.</returns>
-		IImageView CreateImageWindow(ImageWindow imageWindow, string title);
+		IWindow CreateImageWindow(ImageWindow imageWindow, string title);
 
 		/// <summary>
 		/// Create a sub-window displaying the created 3D model.
@@ -155,7 +155,7 @@ namespace PhotomatchCore.Gui
 	/// <summary>
 	/// Interface for calling the class representing a sub-window for an ImageWindow of the used application GUI.
 	/// </summary>
-	public interface IImageView
+	public interface IWindow
 	{
 		/// <summary>
 		/// Width of the displayed image.
@@ -224,7 +224,7 @@ namespace PhotomatchCore.Gui
 	/// <summary>
 	/// Interface representing actions that have to be sent to the application GUI.
 	/// </summary>
-	public interface IMasterActions
+	public interface IMasterControlActions
 	{
 		void LoadImage_Pressed();
 		void NewProject_Pressed();
@@ -245,7 +245,7 @@ namespace PhotomatchCore.Gui
 	/// <summary>
 	/// Interface representing actions that have to be sent to the photo window.
 	/// </summary>
-	public interface IImageActions
+	public interface IImageWindowActions
 	{
 		void Close_Clicked();
 		void MouseMove(Vector2 mouseCoord);

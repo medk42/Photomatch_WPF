@@ -7,7 +7,30 @@ namespace PhotomatchCore.Utilities
 	/// </summary>
 	public enum LogType
 	{
-		Error, SevereWarning, Warning, Info, Progress
+		/// <summary>
+		/// Should be reported to user visibly.
+		/// </summary>
+		Error,
+
+		/// <summary>
+		/// Should be reported to user visibly.
+		/// </summary>
+		SevereWarning, 
+		
+		/// <summary>
+		/// Should be reported to user in a non-intrusive way. Less serious warning.
+		/// </summary>
+		Warning,
+
+		/// <summary>
+		/// Information message. Should be reported to user in a non-intrusive way.
+		/// </summary>
+		Info,
+
+		/// <summary>
+		/// Progress message. Should be reported to user in a non-intrusive way.
+		/// </summary>
+		Progress
 	}
 
 	/// <summary>

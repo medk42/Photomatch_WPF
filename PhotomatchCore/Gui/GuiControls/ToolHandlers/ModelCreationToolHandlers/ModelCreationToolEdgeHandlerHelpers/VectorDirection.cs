@@ -4,7 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace PhotomatchCore.Gui.GuiControls.ModelCreationToolHandlers.ModelCreationToolEdgeHandlerHelpers
+namespace PhotomatchCore.Gui.GuiControls.ToolHandlers.ModelCreationToolHandlers.ModelCreationToolEdgeHandlerHelpers
 {
 	public class VectorDirection : IModelCreationEdgeHandlerDirection
 	{
@@ -15,9 +15,9 @@ namespace PhotomatchCore.Gui.GuiControls.ModelCreationToolHandlers.ModelCreation
 
 		public VectorDirection(Vector3 direction, PerspectiveData perspetive, ApplicationColor axisColor)
 		{
-			this.Direction = direction;
-			this.Perspetive = perspetive;
-			this.EdgeColor = axisColor;
+			Direction = direction;
+			Perspetive = perspetive;
+			EdgeColor = axisColor;
 		}
 
 		public ModelCreationEdgeHandlerDirectionProjection Project(Vector3 from, Vector2 mouseCoord)

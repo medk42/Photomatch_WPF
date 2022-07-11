@@ -6,7 +6,7 @@ using System.Text;
 using PhotomatchCore.Logic.Model;
 using PhotomatchCore.Logic.Perspective;
 
-namespace PhotomatchCore.Gui.GuiControls
+namespace PhotomatchCore.Gui.GuiControls.ToolHandlers
 {
 	class CameraModelCalibrationHandler
 	{
@@ -28,7 +28,7 @@ namespace PhotomatchCore.Gui.GuiControls
 
 		private Model Model;
 		private PerspectiveData Perspective;
-		private IImageView Window;
+		private IWindow Window;
 
 		private double PointGrabRadius;
 		private double PointDrawRadius;
@@ -40,21 +40,21 @@ namespace PhotomatchCore.Gui.GuiControls
 		private Vertex FixedVertex;
 		private IEllipse SelectedEllipse;
 
-		public CameraModelCalibrationHandler(ModelVisualization modelVisualization, Model model, PerspectiveData perspective, IImageView window, double pointGrabRadius, double pointDrawRadius)
+		public CameraModelCalibrationHandler(ModelVisualization modelVisualization, Model model, PerspectiveData perspective, IWindow window, double pointGrabRadius, double pointDrawRadius)
 		{
-			this.ModelVisualization = modelVisualization;
-			this.Model = model;
-			this.Perspective = perspective;
-			this.Window = window;
-			this.PointGrabRadius = pointGrabRadius;
-			this.PointDrawRadius = pointDrawRadius;
+			ModelVisualization = modelVisualization;
+			Model = model;
+			Perspective = perspective;
+			Window = window;
+			PointGrabRadius = pointGrabRadius;
+			PointDrawRadius = pointDrawRadius;
 
-			this.State = ToolState.CalibrateOriginSelectPoint;
+			State = ToolState.CalibrateOriginSelectPoint;
 
-			this.SelectedEllipse = Window.CreateEllipse(new Vector2(), PointDrawRadius, ApplicationColor.Selected);
-			this.SelectedEllipse.Visible = false;
+			SelectedEllipse = Window.CreateEllipse(new Vector2(), PointDrawRadius, ApplicationColor.Selected);
+			SelectedEllipse.Visible = false;
 
-			this.Active = false;
+			Active = false;
 			SetActive(Active);
 		}
 
@@ -169,7 +169,7 @@ namespace PhotomatchCore.Gui.GuiControls
 			ModelVisualization.ShowModel(active);
 
 			if (active)
-				SelectedEllipse.Visible = (State == ToolState.CalibrateScaleSelectPoint || State == ToolState.CalibrateScaleDraggingPoint);
+				SelectedEllipse.Visible = State == ToolState.CalibrateScaleSelectPoint || State == ToolState.CalibrateScaleDraggingPoint;
 			else
 				SelectedEllipse.Visible = false;
 		}

@@ -5,7 +5,7 @@ using System.Text;
 using PhotomatchCore.Logic.Model;
 using PhotomatchCore.Logic.Perspective;
 
-namespace PhotomatchCore.Gui.GuiControls.ModelCreationToolHandlers.ModelCreationToolEdgeHandlerHelpers.Helper
+namespace PhotomatchCore.Gui.GuiControls.ToolHandlers.ModelCreationToolHandlers.ModelCreationToolEdgeHandlerHelpers.Helper
 {
 	public class SelectedEdgepoint : IModelCreationEdgeHandlerVertex
 	{
@@ -18,10 +18,10 @@ namespace PhotomatchCore.Gui.GuiControls.ModelCreationToolHandlers.ModelCreation
 
 		public SelectedEdgepoint(Edge edge, Vector3 edgepoint, Model model, PerspectiveData perspective)
 		{
-			this.Edge = edge;
-			this.Edgepoint = edgepoint;
-			this.Model = model;
-			this.Perspective = perspective;
+			Edge = edge;
+			Edgepoint = edgepoint;
+			Model = model;
+			Perspective = perspective;
 		}
 
 		public Vector2 ScreenPosition => Perspective.WorldToScreen(Edgepoint);

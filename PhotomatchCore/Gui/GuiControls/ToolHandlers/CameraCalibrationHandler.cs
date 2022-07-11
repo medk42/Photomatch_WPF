@@ -1,10 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using PhotomatchCore.Gui.GuiControls.Helper;
 using PhotomatchCore.Logic.Perspective;
 using PhotomatchCore.Utilities;
 
-namespace PhotomatchCore.Gui.GuiControls
+namespace PhotomatchCore.Gui.GuiControls.ToolHandlers
 {
 	class CameraCalibrationHandler
 	{
@@ -31,25 +32,25 @@ namespace PhotomatchCore.Gui.GuiControls
 		private DraggablePoints DraggablePoints;
 
 		private PerspectiveData Perspective;
-		private IImageView Window;
+		private IWindow Window;
 
 		private double PointGrabRadius;
 		private double PointDrawRadius;
 
-		public CameraCalibrationHandler(PerspectiveData perspective, IImageView window, double pointGrabRadius, double pointDrawRadius)
+		public CameraCalibrationHandler(PerspectiveData perspective, IWindow window, double pointGrabRadius, double pointDrawRadius)
 		{
-			this.Perspective = perspective;
-			this.Window = window;
-			this.PointGrabRadius = pointGrabRadius;
-			this.PointDrawRadius = pointDrawRadius;
+			Perspective = perspective;
+			Window = window;
+			PointGrabRadius = pointGrabRadius;
+			PointDrawRadius = pointDrawRadius;
 
-			this.DraggablePoints = new DraggablePoints(Window, PointGrabRadius);
+			DraggablePoints = new DraggablePoints(Window, PointGrabRadius);
 			Window.DisplayCalibrationAxes(Perspective.CalibrationAxes);
 			Window.DisplayInvertedAxes(Perspective.CalibrationAxes, Perspective.InvertedAxes);
 			CreateCoordSystemLines();
 			CreatePerspectiveLines();
 
-			this.Active = false;
+			Active = false;
 			SetActive(Active);
 		}
 

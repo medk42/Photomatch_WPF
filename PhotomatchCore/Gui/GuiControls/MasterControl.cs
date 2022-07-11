@@ -12,14 +12,14 @@ using PhotomatchCore.Logic.Perspective;
 
 namespace PhotomatchCore.Gui.GuiControls
 {
-	public class MasterControl : IMasterActions
+	public class MasterControl : IMasterControlActions
 	{
 		private enum ProjectState { None, NewProject, NamedProject }
 
 		private static readonly ulong ProjectFileChecksum = 0x54_07_02_47_23_43_94_42;
 		private static readonly string NewProjectName = "new project...";
 
-		private IMasterView Gui;
+		private IMasterView MasterView;
 		private ILogger Logger;
 		private List<ImageWindow> Windows;
 		private ProjectState State;
@@ -83,7 +83,7 @@ namespace PhotomatchCore.Gui.GuiControls
 
 		public MasterControl(IMasterView gui)
 		{
-			this.Gui = gui;
+			this.MasterView = gui;
 			this.Logger = gui;
 			this.Windows = new List<ImageWindow>();
 			this.State = ProjectState.None;
@@ -99,7 +99,7 @@ namespace PhotomatchCore.Gui.GuiControls
 
 			ProjectName = NewProjectName;
 
-			ModelView = Gui.CreateModelWindow(Model);
+			ModelView = MasterView.CreateModelWindow(Model);
 
 			AddHistory();
 		}
@@ -109,7 +109,7 @@ namespace PhotomatchCore.Gui.GuiControls
 			if (Dirty)
 			{
 				string message = "Do you want to save the current project before continuing?";
-				if (Gui.DisplayWarningProceedMessage("Save...", message))
+				if (MasterView.DisplayWarningProceedMessage("Save...", message))
 					SaveProject_Pressed();
 			}
 		}
@@ -123,7 +123,7 @@ namespace PhotomatchCore.Gui.GuiControls
 
 		public void LoadImage_Pressed()
 		{
-			string filePath = Gui.GetImageFilePath();
+			string filePath = MasterView.GetImageFilePath();
 			if (filePath == null)
 			{
 				Logger.Log("Load Image", "No file was selected.", LogType.Info);
@@ -162,7 +162,7 @@ namespace PhotomatchCore.Gui.GuiControls
 			if (image != null)
 			{
 				Logger.Log("Load Image", "File loaded successfully.", LogType.Info);
-				Windows.Add(new ImageWindow(new PerspectiveData(image, imageData, filePath), Gui, this, Logger, Model, DesignTool, ModelCreationTool, CameraModelCalibrationTool));
+				Windows.Add(new ImageWindow(new PerspectiveData(image, imageData, filePath), MasterView, this, Logger, Model, DesignTool, ModelCreationTool, CameraModelCalibrationTool));
 				Dirty = true;
 				Windows[Windows.Count - 1].Perspective.PerspectiveChangedEvent += () => Dirty = true;
 				Windows[Windows.Count - 1].Perspective.PerspectiveChangedEvent += () => HistoryDirty = true;
@@ -170,9 +170,9 @@ namespace PhotomatchCore.Gui.GuiControls
 				if (State == ProjectState.None)
 					State = ProjectState.NewProject;
 
-				Gui.DisplayModelCreationTool(ModelCreationTool);
-				Gui.DisplayCameraModelCalibrationTool(CameraModelCalibrationTool);
-				Gui.DisplayDesignTool(DesignTool);
+				MasterView.DisplayModelCreationTool(ModelCreationTool);
+				MasterView.DisplayCameraModelCalibrationTool(CameraModelCalibrationTool);
+				MasterView.DisplayDesignTool(DesignTool);
 
 				UpdateHistoryWithNewWindow();
 			}
@@ -213,7 +213,7 @@ namespace PhotomatchCore.Gui.GuiControls
 					return;
 				case ProjectState.NewProject:
 				case ProjectState.NamedProject:
-					string filePath = Gui.GetSaveProjectFilePath();
+					string filePath = MasterView.GetSaveProjectFilePath();
 					if (filePath == null)
 					{
 						Logger.Log("Save Project", "No file was selected.", LogType.Info);
@@ -275,7 +275,7 @@ namespace PhotomatchCore.Gui.GuiControls
 		{
 			CheckDirty();
 
-			string filePath = Gui.GetLoadProjectFilePath();
+			string filePath = MasterView.GetLoadProjectFilePath();
 			if (filePath == null)
 			{
 				Logger.Log("Load Project", "No file was selected.", LogType.Info);
@@ -304,13 +304,13 @@ namespace PhotomatchCore.Gui.GuiControls
 					ModelView.UpdateModel(Model);
 
 					DesignTool = (DesignTool)reader.ReadInt32();
-					Gui.DisplayDesignTool(DesignTool);
+					MasterView.DisplayDesignTool(DesignTool);
 
 					int windowCount = reader.ReadInt32();
 					for (int i = 0; i < windowCount; i++)
 					{
 						PerspectiveData perspective = ISafeSerializable<PerspectiveData>.CreateDeserialize(reader);
-						Windows.Add(new ImageWindow(perspective, Gui, this, Logger, Model, DesignTool, ModelCreationTool, CameraModelCalibrationTool));
+						Windows.Add(new ImageWindow(perspective, MasterView, this, Logger, Model, DesignTool, ModelCreationTool, CameraModelCalibrationTool));
 						Windows[i].Perspective.PerspectiveChangedEvent += () => Dirty = true;
 						Windows[i].Perspective.PerspectiveChangedEvent += () => HistoryDirty = true;
 					}
@@ -352,7 +352,7 @@ namespace PhotomatchCore.Gui.GuiControls
 				return;
 			}
 
-			string filePath = Gui.GetModelExportFilePath();
+			string filePath = MasterView.GetModelExportFilePath();
 
 			List<PerspectiveData> perspectives = new List<PerspectiveData>();
 			foreach (ImageWindow window in Windows)
@@ -512,7 +512,7 @@ namespace PhotomatchCore.Gui.GuiControls
 			{
 				this.DesignTool = newDesignTool;
 
-				Gui.DisplayDesignTool(newDesignTool);
+				MasterView.DisplayDesignTool(newDesignTool);
 
 				foreach (ImageWindow window in Windows)
 					window.DesignTool_Changed(newDesignTool);
@@ -560,9 +560,9 @@ namespace PhotomatchCore.Gui.GuiControls
 			DesignTool = DesignTool.CameraCalibration;
 			ModelCreationTool = ModelCreationTool.Edge;
 			CameraModelCalibrationTool = CameraModelCalibrationTool.CalibrateOrigin;
-			Gui.DisplayModelCreationTool(ModelCreationTool);
-			Gui.DisplayCameraModelCalibrationTool(CameraModelCalibrationTool);
-			Gui.DisplayDesignTool(DesignTool);
+			MasterView.DisplayModelCreationTool(ModelCreationTool);
+			MasterView.DisplayCameraModelCalibrationTool(CameraModelCalibrationTool);
+			MasterView.DisplayDesignTool(DesignTool);
 
 			Dirty = false;
 			HistoryDirty = false;
@@ -582,7 +582,7 @@ namespace PhotomatchCore.Gui.GuiControls
 
 		private void DisplayProjectName()
 		{
-			Gui.DisplayProjectName(Dirty ? $"{ProjectName}*" : ProjectName);
+			MasterView.DisplayProjectName(Dirty ? $"{ProjectName}*" : ProjectName);
 		}
 	}
 }

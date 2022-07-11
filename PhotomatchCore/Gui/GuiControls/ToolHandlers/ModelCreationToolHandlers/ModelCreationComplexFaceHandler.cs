@@ -6,7 +6,7 @@ using System.Collections.Generic;
 using System.Text;
 using PhotomatchCore.Logic.Model;
 
-namespace PhotomatchCore.Gui.GuiControls.ModelCreationToolHandlers
+namespace PhotomatchCore.Gui.GuiControls.ToolHandlers.ModelCreationToolHandlers
 {
 	public class ModelCreationComplexFaceHandler : BaseModelCreationToolHandler
 	{
@@ -14,20 +14,20 @@ namespace PhotomatchCore.Gui.GuiControls.ModelCreationToolHandlers
 
 		private ModelVisualization ModelVisualization;
 		private Model Model;
-		private IImageView Window;
+		private IWindow Window;
 		private ILogger Logger;
 
 		private List<ILine> Lines = new List<ILine>();
 		private List<Vertex> Vertices = new List<Vertex>();
 
-		public ModelCreationComplexFaceHandler(ModelVisualization modelVisualization, Model model, IImageView window, ILogger logger)
+		public ModelCreationComplexFaceHandler(ModelVisualization modelVisualization, Model model, IWindow window, ILogger logger)
 		{
-			this.ModelVisualization = modelVisualization;
-			this.Model = model;
-			this.Window = window;
-			this.Logger = logger;
+			ModelVisualization = modelVisualization;
+			Model = model;
+			Window = window;
+			Logger = logger;
 
-			this.Active = false;
+			Active = false;
 			SetActive(Active);
 		}
 
@@ -47,7 +47,7 @@ namespace PhotomatchCore.Gui.GuiControls.ModelCreationToolHandlers
 			if (Vertices.Count <= 2)
 				return false;
 
-			for (int i = ((position == Lines[1].Start) ? 2 : 1); i < Lines.Count - 2; i++)
+			for (int i = position == Lines[1].Start ? 2 : 1; i < Lines.Count - 2; i++)
 			{
 				if (position == Lines[i].Start || position == Lines[i].End || Lines[Lines.Count - 1].Start == Lines[i].Start || Lines[Lines.Count - 1].Start == Lines[i].End)
 					continue;

@@ -6,7 +6,7 @@ using System.Collections.Generic;
 using System.Text;
 using PhotomatchCore.Logic.Model;
 
-namespace PhotomatchCore.Gui.GuiControls.ModelCreationToolHandlers.ModelCreationToolEdgeHandlerHelpers
+namespace PhotomatchCore.Gui.GuiControls.ToolHandlers.ModelCreationToolHandlers.ModelCreationToolEdgeHandlerHelpers
 {
 	public class ModelCreationEdgeHandlerVertexSelector : IModelCreationEdgeHandlerSelector
 	{
@@ -38,7 +38,7 @@ namespace PhotomatchCore.Gui.GuiControls.ModelCreationToolHandlers.ModelCreation
 
 		public ModelCreationEdgeHandlerVertexSelector(ModelVisualization modelVisualization)
 		{
-			this.ModelVisualization = modelVisualization;
+			ModelVisualization = modelVisualization;
 		}
 
 		public IModelCreationEdgeHandlerVertex GetVertex(Vector2 mouseCoord)

@@ -6,10 +6,11 @@ using PhotomatchCore.Gui.GuiControls.Helper;
 using PhotomatchCore.Utilities;
 using PhotomatchCore.Logic.Model;
 using PhotomatchCore.Logic.Perspective;
+using PhotomatchCore.Gui.GuiControls.ToolHandlers;
 
 namespace PhotomatchCore.Gui.GuiControls
 {
-	public class ImageWindow : IImageActions
+	public class ImageWindow : IImageWindowActions
 	{
 		public PerspectiveData Perspective;
 
@@ -19,7 +20,7 @@ namespace PhotomatchCore.Gui.GuiControls
 		private IMasterView Gui;
 		private MasterControl Control;
 		private ILogger Logger;
-		private IImageView Window { get; }
+		private IWindow Window { get; }
 		private ModelVisualization ModelVisualization;
 
 		private ModelCreationHandler ModelCreationHandler;

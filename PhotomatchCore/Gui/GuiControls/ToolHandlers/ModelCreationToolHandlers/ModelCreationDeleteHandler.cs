@@ -6,7 +6,7 @@ using System.Collections.Generic;
 using System.Text;
 using PhotomatchCore.Logic.Model;
 
-namespace PhotomatchCore.Gui.GuiControls.ModelCreationToolHandlers
+namespace PhotomatchCore.Gui.GuiControls.ToolHandlers.ModelCreationToolHandlers
 {
 	public class ModelCreationDeleteHandler : BaseModelCreationToolHandler
 	{
@@ -19,9 +19,9 @@ namespace PhotomatchCore.Gui.GuiControls.ModelCreationToolHandlers
 
 		public ModelCreationDeleteHandler(ModelVisualization modelVisualization)
 		{
-			this.ModelVisualization = modelVisualization;
+			ModelVisualization = modelVisualization;
 
-			this.Active = false;
+			Active = false;
 			SetActive(Active);
 		}
 
@@ -33,7 +33,7 @@ namespace PhotomatchCore.Gui.GuiControls.ModelCreationToolHandlers
 				HoverEdge = null;
 			}
 		}
-		
+
 		private void ResetHoverFace()
 		{
 			if (HoverFace != null)
@@ -66,7 +66,7 @@ namespace PhotomatchCore.Gui.GuiControls.ModelCreationToolHandlers
 					ResetHoverFace();
 					return;
 				}
-				else 
+				else
 					ResetHoverEdge();
 
 				IPolygon foundPolygon = ModelVisualization.GetFaceUnderMouse(mouseCoord)?.Item2;

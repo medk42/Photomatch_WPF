@@ -1,13 +1,13 @@
 ﻿using PhotomatchCore.Gui.GuiControls.Helper;
-using PhotomatchCore.Gui.GuiControls.ModelCreationToolHandlers.ModelCreationToolEdgeHandlerHelpers.Helper;
 using PhotomatchCore.Utilities;
 using System;
 using System.Collections.Generic;
 using System.Text;
 using PhotomatchCore.Logic.Model;
 using PhotomatchCore.Logic.Perspective;
+using PhotomatchCore.Gui.GuiControls.ToolHandlers.ModelCreationToolHandlers.ModelCreationToolEdgeHandlerHelpers.Helper;
 
-namespace PhotomatchCore.Gui.GuiControls.ModelCreationToolHandlers.ModelCreationToolEdgeHandlerHelpers
+namespace PhotomatchCore.Gui.GuiControls.ToolHandlers.ModelCreationToolHandlers.ModelCreationToolEdgeHandlerHelpers
 {
 	public class ModelCreationEdgeHandlerMidpointSelector : IModelCreationEdgeHandlerSelector
 	{
@@ -16,18 +16,18 @@ namespace PhotomatchCore.Gui.GuiControls.ModelCreationToolHandlers.ModelCreation
 		private ModelVisualization ModelVisualization;
 		private Model Model;
 		private PerspectiveData Perspective;
-		private IImageView Window;
+		private IWindow Window;
 
 		private double PointGrabRadius;
 		private bool Enabled = true;
 
-		public ModelCreationEdgeHandlerMidpointSelector(ModelVisualization modelVisualization, Model model, PerspectiveData perspective, IImageView window, double pointGrabRadius)
+		public ModelCreationEdgeHandlerMidpointSelector(ModelVisualization modelVisualization, Model model, PerspectiveData perspective, IWindow window, double pointGrabRadius)
 		{
-			this.ModelVisualization = modelVisualization;
-			this.Model = model;
-			this.Perspective = perspective;
-			this.Window = window;
-			this.PointGrabRadius = pointGrabRadius;
+			ModelVisualization = modelVisualization;
+			Model = model;
+			Perspective = perspective;
+			Window = window;
+			PointGrabRadius = pointGrabRadius;
 		}
 
 		public IModelCreationEdgeHandlerVertex GetVertex(Vector2 mouseCoord)
@@ -50,7 +50,7 @@ namespace PhotomatchCore.Gui.GuiControls.ModelCreationToolHandlers.ModelCreation
 
 		public void UpdateModel(Model model)
 		{
-			this.Model = model;
+			Model = model;
 		}
 
 		public void KeyDown(KeyboardKey key)

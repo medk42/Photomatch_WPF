@@ -3,7 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace PhotomatchCore.Gui
+namespace PhotomatchCore.Gui.GuiControls.ToolHandlers.ModelCreationToolHandlers.Helper
 {
 	/// <summary>
 	/// Class representing an infinite GUI line in a specified GUI window.
@@ -38,30 +38,30 @@ namespace PhotomatchCore.Gui
 			}
 		}
 
-		public ApplicationColor Color 
+		public ApplicationColor Color
 		{
 			get => GuiLine.Color;
-			set => GuiLine.Color = value; 
+			set => GuiLine.Color = value;
 		}
 
-		public bool Visible 
-		{ 
-			get => GuiLine.Visible; 
-			set => GuiLine.Visible = value; 
+		public bool Visible
+		{
+			get => GuiLine.Visible;
+			set => GuiLine.Visible = value;
 		}
 
-		private IImageView Window;
+		private IWindow Window;
 		private ILine GuiLine;
 
 		/// <summary>
 		/// Create an infinite line in a specified GUI window and with a specified start, end and color.
 		/// </summary>
-		public InfiniteLine(IImageView window, Vector2 start, Vector2 end, ApplicationColor color)
+		public InfiniteLine(IWindow window, Vector2 start, Vector2 end, ApplicationColor color)
 		{
-			this.Window = window;
-			this.GuiLine = window.CreateLine(new Vector2(), new Vector2(), 0, color);
-			this.Start = start;
-			this.End = end;
+			Window = window;
+			GuiLine = window.CreateLine(new Vector2(), new Vector2(), 0, color);
+			Start = start;
+			End = end;
 		}
 
 		public void Dispose() => GuiLine.Dispose();

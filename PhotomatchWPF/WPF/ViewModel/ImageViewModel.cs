@@ -20,7 +20,7 @@ using PhotomatchCore.Logic.Perspective;
 
 namespace PhotomatchWPF.WPF.ViewModel
 {
-	public class ImageViewModel : BaseViewModel, IImageView, IMouseHandler, IKeyboardHandler
+	public class ImageViewModel : BaseViewModel, IWindow, IMouseHandler, IKeyboardHandler
 	{
 		private static readonly double DefaultLineStrokeThickness = 2;
 		private static readonly double ZoomAmount = 1.002;
@@ -125,7 +125,7 @@ namespace PhotomatchWPF.WPF.ViewModel
 		public List<IScalable> Scalables { get; } = new List<IScalable>();
 
 		private ILogger Logger;
-		private IImageActions ImageWindowActions;
+		private IImageWindowActions ImageWindowActions;
 		private double ViewboxImageScale = double.NaN;
 		private Image ImageView;
 		private Viewbox MoveViewbox;
@@ -193,7 +193,7 @@ namespace PhotomatchWPF.WPF.ViewModel
 			ImageWindowActions.Close_Clicked();
         }
 
-		void IImageView.Close()
+		void IWindow.Close()
 		{
 			ImageWindowActions.Dispose();
 			this.IsClosed = true;

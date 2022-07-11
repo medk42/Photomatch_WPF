@@ -6,7 +6,7 @@ using System.Text;
 using PhotomatchCore.Logic.Model;
 using PhotomatchCore.Logic.Perspective;
 
-namespace PhotomatchCore.Gui.GuiControls.ModelCreationToolHandlers
+namespace PhotomatchCore.Gui.GuiControls.ToolHandlers.ModelCreationToolHandlers
 {
 	class ModelCreationFaceNormalsHandler : BaseModelCreationToolHandler
 	{
@@ -16,7 +16,7 @@ namespace PhotomatchCore.Gui.GuiControls.ModelCreationToolHandlers
 
 		private ModelVisualization ModelVisualization;
 		private Model Model;
-		private IImageView Window;
+		private IWindow Window;
 		private PerspectiveData Perspective;
 
 		private List<Tuple<ILine, Face>> NormalLines = new List<Tuple<ILine, Face>>();
@@ -24,12 +24,12 @@ namespace PhotomatchCore.Gui.GuiControls.ModelCreationToolHandlers
 		private IPolygon Polygon;
 		private Face SelectedFace;
 
-		public ModelCreationFaceNormalsHandler(ModelVisualization modelVisualization, Model model, IImageView window, PerspectiveData perspective)
+		public ModelCreationFaceNormalsHandler(ModelVisualization modelVisualization, Model model, IWindow window, PerspectiveData perspective)
 		{
-			this.ModelVisualization = modelVisualization;
-			this.Model = model;
-			this.Window = window;
-			this.Perspective = perspective;
+			ModelVisualization = modelVisualization;
+			Model = model;
+			Window = window;
+			Perspective = perspective;
 		}
 
 		public override void MouseMove(Vector2 mouseCoord)
@@ -141,7 +141,7 @@ namespace PhotomatchCore.Gui.GuiControls.ModelCreationToolHandlers
 
 		public override void UpdateModel(Model model)
 		{
-			this.Model = model;
+			Model = model;
 
 			if (Active)
 			{

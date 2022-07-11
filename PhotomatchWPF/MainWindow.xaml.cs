@@ -28,7 +28,7 @@ namespace PhotomatchWPF
 		private static readonly string ModelExportFileFilter = "3D Files(*.obj)|*.obj";
 		private static readonly string MainTitle = "Photomatcher";
 
-		private IMasterActions ActionListener;
+		private IMasterControlActions ActionListener;
 		private ILogger Logger = null;
 		private MainViewModel MainViewModel;
 		private bool InvertedAxesCheckboxIgnore = false;
@@ -131,7 +131,7 @@ namespace PhotomatchWPF
 		public string GetLoadProjectFilePath() => GetFilePath(PhotomatcherProjectFileFilter);
 		public string GetModelExportFilePath() => SaveFilePath(ModelExportFileFilter);
 
-		public IImageView CreateImageWindow(ImageWindow imageWindow, string title)
+		public IWindow CreateImageWindow(ImageWindow imageWindow, string title)
 		{
 			var window = new ImageViewModel(imageWindow, Logger, this) { Title = title };
 			MainViewModel.DockManagerViewModel.AddDocument(window);

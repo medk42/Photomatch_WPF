@@ -2,12 +2,12 @@
 using System.Collections.Generic;
 using System.Text;
 using PhotomatchCore.Gui.GuiControls.Helper;
-using PhotomatchCore.Gui.GuiControls.ModelCreationToolHandlers;
 using PhotomatchCore.Utilities;
 using PhotomatchCore.Logic.Model;
 using PhotomatchCore.Logic.Perspective;
+using PhotomatchCore.Gui.GuiControls.ToolHandlers.ModelCreationToolHandlers;
 
-namespace PhotomatchCore.Gui.GuiControls
+namespace PhotomatchCore.Gui.GuiControls.ToolHandlers
 {
 	public class ModelCreationHandler
 	{
@@ -32,11 +32,11 @@ namespace PhotomatchCore.Gui.GuiControls
 		private ModelCreationTool ModelCreationTool;
 		private IModelCreationToolHandler[] ModelCreationToolHandlers;
 
-		public ModelCreationHandler(Model model, IImageView window, PerspectiveData perspective, ModelVisualization modelVisualization, ILogger logger, double pointDrawRadius, double pointGrabRadius)
+		public ModelCreationHandler(Model model, IWindow window, PerspectiveData perspective, ModelVisualization modelVisualization, ILogger logger, double pointDrawRadius, double pointGrabRadius)
 		{
-			this.Model = model;
-			this.Perspective = perspective;
-			this.ModelVisualization = modelVisualization;
+			Model = model;
+			Perspective = perspective;
+			ModelVisualization = modelVisualization;
 
 			ModelCreationToolHandlers = new IModelCreationToolHandler[] {
 				new ModelCreationEdgeHandler(Perspective, Model, ModelVisualization, window, pointDrawRadius, pointGrabRadius),
@@ -44,9 +44,9 @@ namespace PhotomatchCore.Gui.GuiControls
 				new ModelCreationTriangleFaceHandler(ModelVisualization, Model, window),
 				new ModelCreationComplexFaceHandler(ModelVisualization, Model, window, logger),
 				new ModelCreationFaceNormalsHandler(ModelVisualization, model, window, Perspective)
-			}; 
+			};
 
-			this.Active = false;
+			Active = false;
 			SetActive(Active);
 		}
 

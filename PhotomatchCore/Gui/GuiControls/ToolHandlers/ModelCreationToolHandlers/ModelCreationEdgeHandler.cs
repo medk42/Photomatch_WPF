@@ -1,10 +1,11 @@
 ﻿using PhotomatchCore.Gui.GuiControls.Helper;
-using PhotomatchCore.Gui.GuiControls.ModelCreationToolHandlers.ModelCreationToolEdgeHandlerHelpers;
 using PhotomatchCore.Utilities;
 using PhotomatchCore.Logic.Model;
 using PhotomatchCore.Logic.Perspective;
+using PhotomatchCore.Gui.GuiControls.ToolHandlers.ModelCreationToolHandlers.Helper;
+using PhotomatchCore.Gui.GuiControls.ToolHandlers.ModelCreationToolHandlers.ModelCreationToolEdgeHandlerHelpers;
 
-namespace PhotomatchCore.Gui.GuiControls.ModelCreationToolHandlers
+namespace PhotomatchCore.Gui.GuiControls.ToolHandlers.ModelCreationToolHandlers
 {
 	public class ModelCreationEdgeHandler : BaseModelCreationToolHandler
 	{
@@ -13,7 +14,7 @@ namespace PhotomatchCore.Gui.GuiControls.ModelCreationToolHandlers
 		private PerspectiveData Perspective;
 		private Model Model;
 		private ModelVisualization ModelVisualization;
-		private IImageView Window;
+		private IWindow Window;
 
 		private double PointDrawRadius;
 		private double PointGrabRadius;
@@ -29,46 +30,46 @@ namespace PhotomatchCore.Gui.GuiControls.ModelCreationToolHandlers
 		private IModelCreationEdgeHandlerVertex CurrentVertex;
 		private ModelCreationEdgeHandlerDirectionProjection CurrentDirection;
 
-		public ModelCreationEdgeHandler(PerspectiveData perspective, Model model, ModelVisualization modelVisualization, IImageView window, double pointDrawRadius, double pointGrabRadius)
+		public ModelCreationEdgeHandler(PerspectiveData perspective, Model model, ModelVisualization modelVisualization, IWindow window, double pointDrawRadius, double pointGrabRadius)
 		{
-			this.ModelVisualization = modelVisualization;
-			this.Perspective = perspective;
-			this.Model = model;
-			this.Window = window;
+			ModelVisualization = modelVisualization;
+			Perspective = perspective;
+			Model = model;
+			Window = window;
 
-			this.PointDrawRadius = pointDrawRadius;
-			this.PointGrabRadius = pointGrabRadius;
+			PointDrawRadius = pointDrawRadius;
+			PointGrabRadius = pointGrabRadius;
 
-			this.ModelHoverEllipse = Window.CreateEllipse(new Vector2(), PointDrawRadius, ApplicationColor.Highlight);
-			this.ModelHoverEllipse.Visible = false;
+			ModelHoverEllipse = Window.CreateEllipse(new Vector2(), PointDrawRadius, ApplicationColor.Highlight);
+			ModelHoverEllipse.Visible = false;
 
-			this.ModelEdgeLine = Window.CreateLine(new Vector2(), new Vector2(), 0, ApplicationColor.Highlight);
-			this.ModelEdgeLine.Visible = false;
+			ModelEdgeLine = Window.CreateLine(new Vector2(), new Vector2(), 0, ApplicationColor.Highlight);
+			ModelEdgeLine.Visible = false;
 
-			this.CursorXLine = new InfiniteLine(window, new Vector2(), new Vector2(), ApplicationColor.XAxisDotted);
-			this.CursorXLine.Visible = false;
+			CursorXLine = new InfiniteLine(window, new Vector2(), new Vector2(), ApplicationColor.XAxisDotted);
+			CursorXLine.Visible = false;
 
-			this.CursorYLine = new InfiniteLine(window, new Vector2(), new Vector2(), ApplicationColor.YAxisDotted);
-			this.CursorYLine.Visible = false;
+			CursorYLine = new InfiniteLine(window, new Vector2(), new Vector2(), ApplicationColor.YAxisDotted);
+			CursorYLine.Visible = false;
 
-			this.CursorZLine = new InfiniteLine(window, new Vector2(), new Vector2(), ApplicationColor.ZAxisDotted);
-			this.CursorZLine.Visible = false;
+			CursorZLine = new InfiniteLine(window, new Vector2(), new Vector2(), ApplicationColor.ZAxisDotted);
+			CursorZLine.Visible = false;
 
-			this.VertexSelectors = new IModelCreationEdgeHandlerSelector[]
+			VertexSelectors = new IModelCreationEdgeHandlerSelector[]
 			{
 				new ModelCreationEdgeHandlerVertexSelector(ModelVisualization),
 				new ModelCreationEdgeHandlerMidpointSelector(ModelVisualization, Model, Perspective, Window, PointGrabRadius),
 				new ModelCreationEdgeHandlerEdgepointSelector(ModelVisualization, Model, Perspective)
 			};
 
-			this.DirectionSelectors = new IModelCreationEdgeHandlerDirection[]
+			DirectionSelectors = new IModelCreationEdgeHandlerDirection[]
 			{
 				new VectorDirection(new Vector3(1, 0, 0), Perspective, ApplicationColor.XAxis),
 				new VectorDirection(new Vector3(0, 1, 0), Perspective, ApplicationColor.YAxis),
 				new VectorDirection(new Vector3(0, 0, 1), Perspective, ApplicationColor.ZAxis)
 			};
 
-			this.Active = false;
+			Active = false;
 			SetActive(Active);
 		}
 
