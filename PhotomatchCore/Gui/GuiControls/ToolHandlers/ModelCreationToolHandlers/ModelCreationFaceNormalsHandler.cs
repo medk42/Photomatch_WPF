@@ -23,6 +23,7 @@ namespace PhotomatchCore.Gui.GuiControls.ToolHandlers.ModelCreationToolHandlers
 		private List<IEllipse> FacePointEllipses = new List<IEllipse>();
 		private IPolygon Polygon;
 		private Face SelectedFace;
+		private ILine SelectedLine;
 
 		public ModelCreationFaceNormalsHandler(ModelVisualization modelVisualization, Model model, IWindow window, PerspectiveData perspective)
 		{
@@ -61,13 +62,28 @@ namespace PhotomatchCore.Gui.GuiControls.ToolHandlers.ModelCreationToolHandlers
 						Polygon.Color = ApplicationColor.NormalOutside;
 					else
 						Polygon.Color = ApplicationColor.NormalInside;
+
+					ResetSelectedLine();
+					SelectedLine = NormalLines.Find(tuple => tuple.Item2 == SelectedFace).Item1;
+					SelectedLine.Color = ApplicationColor.Selected;
 				}
 				else if (Polygon != null)
 				{
 					Polygon.Dispose();
 					Polygon = null;
 					SelectedFace = null;
+
+					ResetSelectedLine();
 				}
+			}
+		}
+
+		private void ResetSelectedLine()
+		{
+			if (SelectedLine != null)
+			{
+				SelectedLine.Color = ApplicationColor.NormalLine;
+				SelectedLine = null;
 			}
 		}
 

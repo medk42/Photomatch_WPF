@@ -7,7 +7,7 @@ using PhotomatchCore.Logic.Model;
 
 namespace PhotomatchCore.Gui.GuiControls.ToolHandlers.ModelCreationToolHandlers
 {
-	public abstract class BaseModelCreationToolHandler : IModelCreationToolHandler
+	public abstract class BaseModelCreationToolHandler
 	{
 		private bool Active_;
 		public bool Active

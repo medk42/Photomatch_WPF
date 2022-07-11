@@ -30,7 +30,7 @@ namespace PhotomatchCore.Gui.GuiControls.ToolHandlers
 		private ModelVisualization ModelVisualization;
 
 		private ModelCreationTool ModelCreationTool;
-		private IModelCreationToolHandler[] ModelCreationToolHandlers;
+		private BaseModelCreationToolHandler[] ModelCreationToolHandlers;
 
 		public ModelCreationHandler(Model model, IWindow window, PerspectiveData perspective, ModelVisualization modelVisualization, ILogger logger, double pointDrawRadius, double pointGrabRadius)
 		{
@@ -38,7 +38,7 @@ namespace PhotomatchCore.Gui.GuiControls.ToolHandlers
 			Perspective = perspective;
 			ModelVisualization = modelVisualization;
 
-			ModelCreationToolHandlers = new IModelCreationToolHandler[] {
+			ModelCreationToolHandlers = new BaseModelCreationToolHandler[] {
 				new ModelCreationEdgeHandler(Perspective, Model, ModelVisualization, window, pointDrawRadius, pointGrabRadius),
 				new ModelCreationDeleteHandler(ModelVisualization),
 				new ModelCreationTriangleFaceHandler(ModelVisualization, Model, window),
@@ -94,7 +94,7 @@ namespace PhotomatchCore.Gui.GuiControls.ToolHandlers
 		{
 			ModelVisualization.ShowModel(active);
 
-			IModelCreationToolHandler handler = null;
+			BaseModelCreationToolHandler handler = null;
 			for (int i = 0; i < ModelCreationToolHandlers.Length; i++)
 			{
 				ModelCreationToolHandlers[i].Active = false;
@@ -122,7 +122,7 @@ namespace PhotomatchCore.Gui.GuiControls.ToolHandlers
 
 				if (Active)
 				{
-					IModelCreationToolHandler handler = null;
+					BaseModelCreationToolHandler handler = null;
 					for (int i = 0; i < ModelCreationToolHandlers.Length; i++)
 					{
 						ModelCreationToolHandlers[i].Active = false;
@@ -136,7 +136,7 @@ namespace PhotomatchCore.Gui.GuiControls.ToolHandlers
 
 		public void UpdateModel(Model model)
 		{
-			foreach (IModelCreationToolHandler handler in ModelCreationToolHandlers)
+			foreach (BaseModelCreationToolHandler handler in ModelCreationToolHandlers)
 				handler.UpdateModel(model);
 		}
 	}
