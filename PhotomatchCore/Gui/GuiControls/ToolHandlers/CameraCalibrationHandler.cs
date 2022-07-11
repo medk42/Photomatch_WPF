@@ -167,7 +167,7 @@ namespace PhotomatchCore.Gui.GuiControls.ToolHandlers
 
 		internal void UpdateDisplayedGeometry()
 		{
-			if (Perspective.Scale > 1)
+			if (Perspective.Scale > 0)
 			{
 				LineX.Visible = Active;
 				LineY.Visible = Active;
@@ -215,12 +215,19 @@ namespace PhotomatchCore.Gui.GuiControls.ToolHandlers
 
 			UpdateCalibrationAxesColors();
 			Window.DisplayInvertedAxes(Perspective.CalibrationAxes, Perspective.InvertedAxes);
+			Window.DisplayCalibrationAxes(Perspective.CalibrationAxes);
 		}
 
+		private bool UpdateCoordSystemLinesRunning = false;
 		private void UpdateCoordSystemLines()
 		{
-			UpdateDisplayedGeometry();
-			CoordSystemUpdateEvent?.Invoke();
+			if (!UpdateCoordSystemLinesRunning)
+			{
+				UpdateCoordSystemLinesRunning = true;
+				UpdateDisplayedGeometry();
+				CoordSystemUpdateEvent?.Invoke();
+				UpdateCoordSystemLinesRunning = false;
+			}
 		}
 
 		private void SetActive(bool active)

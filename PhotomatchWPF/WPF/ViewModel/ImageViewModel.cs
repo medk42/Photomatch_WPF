@@ -455,7 +455,7 @@ namespace PhotomatchWPF.WPF.ViewModel
 		public void DisplayCalibrationAxes(CalibrationAxes calibrationAxes)
 		{
 			CurrentCalibrationAxes = calibrationAxes;
-			MainWindow.DisplayCalibrationAxes(calibrationAxes);
+			MainWindow.DisplayCalibrationAxes(this, calibrationAxes);
 		}
 
 		public void CalibrationAxes_Changed(CalibrationAxes calibrationAxes)
@@ -466,7 +466,7 @@ namespace PhotomatchWPF.WPF.ViewModel
 		public void DisplayInvertedAxes(CalibrationAxes calibrationAxes, InvertedAxes invertedAxes)
 		{
 			CurrentInvertedAxes = invertedAxes;
-			MainWindow.DisplayInvertedAxes(calibrationAxes, invertedAxes);
+			MainWindow.DisplayInvertedAxes(this, calibrationAxes, invertedAxes);
 		}
 
 		public void InvertedAxes_Changed(InvertedAxes invertedAxes)

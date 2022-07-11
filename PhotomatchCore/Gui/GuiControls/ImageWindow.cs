@@ -74,7 +74,7 @@ namespace PhotomatchCore.Gui.GuiControls
 			ModelCreationHandler.MouseUp(mouseCoord, button);
 			CameraModelCalibrationHandler.MouseUp(mouseCoord, button);
 
-			Control.ImageMouseUp();
+			Control.ImageEndOperation();
 		}
 
 		public void KeyDown(KeyboardKey key)
@@ -102,6 +102,7 @@ namespace PhotomatchCore.Gui.GuiControls
 			if (Initialized)
 			{
 				CameraCalibrationHandler.CalibrationAxes_Changed(calibrationAxes);
+				Control.ImageEndOperation();
 			}
 		}
 
@@ -110,6 +111,7 @@ namespace PhotomatchCore.Gui.GuiControls
 			if (Initialized)
 			{
 				CameraCalibrationHandler.InvertedAxes_Changed(invertedAxes);
+				Control.ImageEndOperation();
 			}
 		}
 

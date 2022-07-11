@@ -424,7 +424,7 @@ namespace PhotomatchCore.Gui.GuiControls
 			}
 		}
 
-		public void ImageMouseUp()
+		public void ImageEndOperation()
 		{
 			if (HistoryDirty)
 			{

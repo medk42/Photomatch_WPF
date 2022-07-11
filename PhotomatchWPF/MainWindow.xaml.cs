@@ -203,8 +203,8 @@ namespace PhotomatchWPF
 				ImageViewModel imageViewModel = MainDockMgr.ActiveContent as ImageViewModel;
 				if (imageViewModel != null)
 				{
-					DisplayCalibrationAxes(imageViewModel.CurrentCalibrationAxes);
-					DisplayInvertedAxes(imageViewModel.CurrentCalibrationAxes, imageViewModel.CurrentInvertedAxes);
+					DisplayCalibrationAxes(imageViewModel, imageViewModel.CurrentCalibrationAxes);
+					DisplayInvertedAxes(imageViewModel, imageViewModel.CurrentCalibrationAxes, imageViewModel.CurrentInvertedAxes);
 
 					CameraCalibrationTools.IsEnabled = true;
 				}
@@ -224,8 +224,11 @@ namespace PhotomatchWPF
 			}
 		}
 
-		public void DisplayCalibrationAxes(CalibrationAxes calibrationAxes)
+		public void DisplayCalibrationAxes(ImageViewModel source, CalibrationAxes calibrationAxes)
 		{
+			if (source != MainDockMgr.ActiveContent)
+				return;
+
 			switch (calibrationAxes)
 			{
 				case CalibrationAxes.XY:
@@ -289,8 +292,11 @@ namespace PhotomatchWPF
 			}
 		}
 
-		public void DisplayInvertedAxes(CalibrationAxes calibrationAxes, InvertedAxes invertedAxes)
+		public void DisplayInvertedAxes(ImageViewModel source, CalibrationAxes calibrationAxes, InvertedAxes invertedAxes)
 		{
+			if (source != MainDockMgr.ActiveContent)
+				return;
+
 			InvertedAxesCheckboxIgnore = true;
 
 			XInvertedCheckbox.IsChecked = invertedAxes.X;
