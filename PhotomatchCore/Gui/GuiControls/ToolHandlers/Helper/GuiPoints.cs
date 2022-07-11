@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using PhotomatchCore.Utilities;
 
-namespace PhotomatchCore.Gui.GuiControls.Helper
+namespace PhotomatchCore.Gui.GuiControls.ToolHandlers.Helper
 {
 	public delegate void UpdateValue<T>(T value);
 	public delegate T GetValue<T>();

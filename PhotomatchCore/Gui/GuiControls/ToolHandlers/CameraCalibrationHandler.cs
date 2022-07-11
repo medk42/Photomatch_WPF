@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 using PhotomatchCore.Gui.GuiControls.Helper;
+using PhotomatchCore.Gui.GuiControls.ToolHandlers.Helper;
 using PhotomatchCore.Logic.Perspective;
 using PhotomatchCore.Utilities;
 
@@ -44,11 +45,29 @@ namespace PhotomatchCore.Gui.GuiControls.ToolHandlers
 			PointGrabRadius = pointGrabRadius;
 			PointDrawRadius = pointDrawRadius;
 
+			var origin = new Vector2();
+			LineA1 = Window.CreateLine(origin, origin, PointDrawRadius, ApplicationColor.XAxis);
+			LineA2 = Window.CreateLine(origin, origin, PointDrawRadius, ApplicationColor.XAxis);
+			LineB1 = Window.CreateLine(origin, origin, PointDrawRadius, ApplicationColor.YAxis);
+			LineB2 = Window.CreateLine(origin, origin, PointDrawRadius, ApplicationColor.YAxis);
+			LineX = Window.CreateLine(origin, origin, 0, ApplicationColor.XAxis);
+			LineY = Window.CreateLine(origin, origin, 0, ApplicationColor.YAxis);
+			LineZ = Window.CreateLine(origin, origin, 0, ApplicationColor.ZAxis);
+			Origin = Window.CreateEllipse(origin, PointDrawRadius, ApplicationColor.Vertex);
+
 			DraggablePoints = new DraggablePoints(Window, PointGrabRadius);
-			Window.DisplayCalibrationAxes(Perspective.CalibrationAxes);
-			Window.DisplayInvertedAxes(Perspective.CalibrationAxes, Perspective.InvertedAxes);
-			CreateCoordSystemLines();
-			CreatePerspectiveLines();
+			DraggablePoints.Points.Add(new ActionPoint(origin, (value) => Perspective.LineA1 = Perspective.LineA1.WithStart(value), () => Perspective.LineA1.Start));
+			DraggablePoints.Points.Add(new ActionPoint(origin, (value) => Perspective.LineA1 = Perspective.LineA1.WithEnd(value), () => Perspective.LineA1.End));
+			DraggablePoints.Points.Add(new ActionPoint(origin, (value) => Perspective.LineA2 = Perspective.LineA2.WithStart(value), () => Perspective.LineA2.Start));
+			DraggablePoints.Points.Add(new ActionPoint(origin, (value) => Perspective.LineA2 = Perspective.LineA2.WithEnd(value), () => Perspective.LineA2.End));
+			DraggablePoints.Points.Add(new ActionPoint(origin, (value) => Perspective.LineB1 = Perspective.LineB1.WithStart(value), () => Perspective.LineB1.Start));
+			DraggablePoints.Points.Add(new ActionPoint(origin, (value) => Perspective.LineB1 = Perspective.LineB1.WithEnd(value), () => Perspective.LineB1.End));
+			DraggablePoints.Points.Add(new ActionPoint(origin, (value) => Perspective.LineB2 = Perspective.LineB2.WithStart(value), () => Perspective.LineB2.Start));
+			DraggablePoints.Points.Add(new ActionPoint(origin, (value) => Perspective.LineB2 = Perspective.LineB2.WithEnd(value), () => Perspective.LineB2.End));
+			DraggablePoints.Points.Add(new ActionPoint(origin, (value) => Perspective.Origin = value, () => Perspective.Origin));
+
+			Perspective.PerspectiveChangedEvent += UpdateDisplayedGeometry;
+			UpdateDisplayedGeometry();
 
 			Active = false;
 			SetActive(Active);
@@ -72,101 +91,19 @@ namespace PhotomatchCore.Gui.GuiControls.ToolHandlers
 				DraggablePoints.MouseUp(mouseCoord, button);
 		}
 
-		private void CreatePerspectiveLines()
+		public void UpdateDisplayedGeometry()
 		{
-			Tuple<ApplicationColor, ApplicationColor> colors = GetColorsFromCalibrationAxes(Perspective.CalibrationAxes);
+			LineA1.Start = Perspective.LineA1.Start;
+			LineA1.End = Perspective.LineA1.End;
+			LineA2.Start = Perspective.LineA2.Start;
+			LineA2.End = Perspective.LineA2.End;
+			LineB1.Start = Perspective.LineB1.Start;
+			LineB1.End = Perspective.LineB1.End;
+			LineB2.Start = Perspective.LineB2.Start;
+			LineB2.End = Perspective.LineB2.End;
 
-			LineA1 = Window.CreateLine(Perspective.LineA1.Start, Perspective.LineA1.End, PointDrawRadius, colors.Item1);
-			LineA2 = Window.CreateLine(Perspective.LineA2.Start, Perspective.LineA2.End, PointDrawRadius, colors.Item1);
-			LineB1 = Window.CreateLine(Perspective.LineB1.Start, Perspective.LineB1.End, PointDrawRadius, colors.Item2);
-			LineB2 = Window.CreateLine(Perspective.LineB2.Start, Perspective.LineB2.End, PointDrawRadius, colors.Item2);
+			UpdateCalibrationAxesColors();
 
-			AddDraggablePointsForPerspectiveLine(LineA1,
-				(value) => Perspective.LineA1 = Perspective.LineA1.WithStart(value), () => Perspective.LineA1.Start,
-				(value) => Perspective.LineA1 = Perspective.LineA1.WithEnd(value), () => Perspective.LineA1.End);
-			AddDraggablePointsForPerspectiveLine(LineA2,
-				(value) => Perspective.LineA2 = Perspective.LineA2.WithStart(value), () => Perspective.LineA2.Start,
-				(value) => Perspective.LineA2 = Perspective.LineA2.WithEnd(value), () => Perspective.LineA2.End);
-			AddDraggablePointsForPerspectiveLine(LineB1,
-				(value) => Perspective.LineB1 = Perspective.LineB1.WithStart(value), () => Perspective.LineB1.Start,
-				(value) => Perspective.LineB1 = Perspective.LineB1.WithEnd(value), () => Perspective.LineB1.End);
-			AddDraggablePointsForPerspectiveLine(LineB2,
-				(value) => Perspective.LineB2 = Perspective.LineB2.WithStart(value), () => Perspective.LineB2.Start,
-				(value) => Perspective.LineB2 = Perspective.LineB2.WithEnd(value), () => Perspective.LineB2.End);
-		}
-
-		private Tuple<ApplicationColor, ApplicationColor> GetColorsFromCalibrationAxes(CalibrationAxes axes)
-		{
-			ApplicationColor colorA, colorB;
-
-			switch (axes)
-			{
-				case CalibrationAxes.XY:
-					colorA = ApplicationColor.XAxis;
-					colorB = ApplicationColor.YAxis;
-					break;
-				case CalibrationAxes.YX:
-					colorA = ApplicationColor.YAxis;
-					colorB = ApplicationColor.XAxis;
-					break;
-				case CalibrationAxes.XZ:
-					colorA = ApplicationColor.XAxis;
-					colorB = ApplicationColor.ZAxis;
-					break;
-				case CalibrationAxes.ZX:
-					colorA = ApplicationColor.ZAxis;
-					colorB = ApplicationColor.XAxis;
-					break;
-				case CalibrationAxes.YZ:
-					colorA = ApplicationColor.YAxis;
-					colorB = ApplicationColor.ZAxis;
-					break;
-				case CalibrationAxes.ZY:
-					colorA = ApplicationColor.ZAxis;
-					colorB = ApplicationColor.YAxis;
-					break;
-				default:
-					throw new Exception("Unexpected switch case.");
-			}
-
-			return new Tuple<ApplicationColor, ApplicationColor>(colorA, colorB);
-		}
-
-		private void AddDraggablePointsForPerspectiveLine(ILine line, UpdateValue<Vector2> updateValueStart, GetValue<Vector2> getValueStart, UpdateValue<Vector2> updateValueEnd, GetValue<Vector2> getValueEnd)
-		{
-			DraggablePoints.Points.Add(new ActionPoint(line.Start, (value) =>
-			{
-				line.Start = value;
-				updateValueStart(value);
-				UpdateCoordSystemLines();
-			}, getValueStart));
-			DraggablePoints.Points.Add(new ActionPoint(line.End, (value) =>
-			{
-				line.End = value;
-				updateValueEnd(value);
-				UpdateCoordSystemLines();
-			}, getValueEnd));
-		}
-
-		private void CreateCoordSystemLines()
-		{
-			var origin = new Vector2();
-			LineX = Window.CreateLine(origin, origin, 0, ApplicationColor.XAxis);
-			LineY = Window.CreateLine(origin, origin, 0, ApplicationColor.YAxis);
-			LineZ = Window.CreateLine(origin, origin, 0, ApplicationColor.ZAxis);
-			Origin = Window.CreateEllipse(origin, PointDrawRadius, ApplicationColor.Vertex);
-
-			DraggablePoints.Points.Add(new ActionPoint(Perspective.Origin, (value) =>
-			{
-				Perspective.Origin = value;
-				UpdateCoordSystemLines();
-			}, () => Perspective.Origin));
-
-			UpdateCoordSystemLines();
-		}
-
-		internal void UpdateDisplayedGeometry()
-		{
 			if (Perspective.Scale > 0)
 			{
 				LineX.Visible = Active;
@@ -213,21 +150,58 @@ namespace PhotomatchCore.Gui.GuiControls.ToolHandlers
 			foreach (IPoint point in DraggablePoints.Points)
 				((ActionPoint)point).UpdateSelf();
 
-			UpdateCalibrationAxesColors();
 			Window.DisplayInvertedAxes(Perspective.CalibrationAxes, Perspective.InvertedAxes);
 			Window.DisplayCalibrationAxes(Perspective.CalibrationAxes);
+
+			CoordSystemUpdateEvent?.Invoke();
+		}
+		private void UpdateCalibrationAxesColors()
+		{
+			Tuple<ApplicationColor, ApplicationColor> colors = GetColorsFromCalibrationAxes(Perspective.CalibrationAxes);
+			if (LineA1 != null)
+			{
+				LineA1.Color = colors.Item1;
+				LineA2.Color = colors.Item1;
+				LineB1.Color = colors.Item2;
+				LineB2.Color = colors.Item2;
+			}
 		}
 
-		private bool UpdateCoordSystemLinesRunning = false;
-		private void UpdateCoordSystemLines()
+		private Tuple<ApplicationColor, ApplicationColor> GetColorsFromCalibrationAxes(CalibrationAxes axes)
 		{
-			if (!UpdateCoordSystemLinesRunning)
+			ApplicationColor colorA, colorB;
+
+			switch (axes)
 			{
-				UpdateCoordSystemLinesRunning = true;
-				UpdateDisplayedGeometry();
-				CoordSystemUpdateEvent?.Invoke();
-				UpdateCoordSystemLinesRunning = false;
+				case CalibrationAxes.XY:
+					colorA = ApplicationColor.XAxis;
+					colorB = ApplicationColor.YAxis;
+					break;
+				case CalibrationAxes.YX:
+					colorA = ApplicationColor.YAxis;
+					colorB = ApplicationColor.XAxis;
+					break;
+				case CalibrationAxes.XZ:
+					colorA = ApplicationColor.XAxis;
+					colorB = ApplicationColor.ZAxis;
+					break;
+				case CalibrationAxes.ZX:
+					colorA = ApplicationColor.ZAxis;
+					colorB = ApplicationColor.XAxis;
+					break;
+				case CalibrationAxes.YZ:
+					colorA = ApplicationColor.YAxis;
+					colorB = ApplicationColor.ZAxis;
+					break;
+				case CalibrationAxes.ZY:
+					colorA = ApplicationColor.ZAxis;
+					colorB = ApplicationColor.YAxis;
+					break;
+				default:
+					throw new Exception("Unexpected switch case.");
 			}
+
+			return new Tuple<ApplicationColor, ApplicationColor>(colorA, colorB);
 		}
 
 		private void SetActive(bool active)
@@ -241,9 +215,6 @@ namespace PhotomatchCore.Gui.GuiControls.ToolHandlers
 			LineY.Visible = active;
 			LineZ.Visible = active;
 			Origin.Visible = active;
-
-			if (active)
-				UpdateCoordSystemLines();
 		}
 
 		public void Dispose()
@@ -251,35 +222,7 @@ namespace PhotomatchCore.Gui.GuiControls.ToolHandlers
 			Perspective = null;
 		}
 
-		public void CalibrationAxes_Changed(CalibrationAxes calibrationAxes)
-		{
-			Perspective.CalibrationAxes = calibrationAxes;
-			Window.DisplayCalibrationAxes(Perspective.CalibrationAxes);
-			Window.DisplayInvertedAxes(Perspective.CalibrationAxes, Perspective.InvertedAxes);
-
-			UpdateCoordSystemLines();
-
-			UpdateCalibrationAxesColors();
-		}
-
-		private void UpdateCalibrationAxesColors()
-		{
-			Tuple<ApplicationColor, ApplicationColor> colors = GetColorsFromCalibrationAxes(Perspective.CalibrationAxes);
-			if (LineA1 != null)
-			{
-				LineA1.Color = colors.Item1;
-				LineA2.Color = colors.Item1;
-				LineB1.Color = colors.Item2;
-				LineB2.Color = colors.Item2;
-			}
-		}
-
-		public void InvertedAxes_Changed(InvertedAxes invertedAxes)
-		{
-			Perspective.InvertedAxes = invertedAxes;
-			Window.DisplayInvertedAxes(Perspective.CalibrationAxes, Perspective.InvertedAxes);
-
-			UpdateCoordSystemLines();
-		}
+		public void CalibrationAxes_Changed(CalibrationAxes calibrationAxes) => Perspective.CalibrationAxes = calibrationAxes;
+		public void InvertedAxes_Changed(InvertedAxes invertedAxes) => Perspective.InvertedAxes = invertedAxes;
 	}
 }
