@@ -20,7 +20,7 @@ namespace PhotomatchCore.Gui.GuiControls
 		private IMasterView Gui;
 		private MasterControl Control;
 		private ILogger Logger;
-		private IWindow Window { get; }
+		private IImageView Window { get; }
 		private ModelVisualization ModelVisualization;
 
 		private ModelCreationHandler ModelCreationHandler;

@@ -15,7 +15,7 @@ namespace PhotomatchCore.Gui.GuiControls.Helper
 		public List<Tuple<IPolygon, Face, FaceEventListener>> ModelFaces { get; } = new List<Tuple<IPolygon, Face, FaceEventListener>>();
 
 		private Model Model;
-		private IWindow Window;
+		private IImageView Window;
 		private PerspectiveData Perspective;
 		private ViewFrustum ViewFrustum;
 
@@ -24,7 +24,7 @@ namespace PhotomatchCore.Gui.GuiControls.Helper
 
 		private bool Show = true;
 
-		public ModelVisualization(PerspectiveData perspective, IWindow window, Model model, double pointGrabRadius, double pointDrawRadius)
+		public ModelVisualization(PerspectiveData perspective, IImageView window, Model model, double pointGrabRadius, double pointDrawRadius)
 		{
 			this.Perspective = perspective;
 			this.Window = window;

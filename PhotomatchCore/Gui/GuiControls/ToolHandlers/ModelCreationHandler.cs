@@ -32,7 +32,7 @@ namespace PhotomatchCore.Gui.GuiControls.ToolHandlers
 		private ModelCreationTool ModelCreationTool;
 		private BaseModelCreationToolHandler[] ModelCreationToolHandlers;
 
-		public ModelCreationHandler(Model model, IWindow window, PerspectiveData perspective, ModelVisualization modelVisualization, ILogger logger, double pointDrawRadius, double pointGrabRadius)
+		public ModelCreationHandler(Model model, IImageView window, PerspectiveData perspective, ModelVisualization modelVisualization, ILogger logger, double pointDrawRadius, double pointGrabRadius)
 		{
 			Model = model;
 			Perspective = perspective;

@@ -28,7 +28,7 @@ namespace PhotomatchCore.Gui.GuiControls.ToolHandlers
 
 		private Model Model;
 		private PerspectiveData Perspective;
-		private IWindow Window;
+		private IImageView Window;
 
 		private double PointGrabRadius;
 		private double PointDrawRadius;
@@ -40,7 +40,7 @@ namespace PhotomatchCore.Gui.GuiControls.ToolHandlers
 		private Vertex FixedVertex;
 		private IEllipse SelectedEllipse;
 
-		public CameraModelCalibrationHandler(ModelVisualization modelVisualization, Model model, PerspectiveData perspective, IWindow window, double pointGrabRadius, double pointDrawRadius)
+		public CameraModelCalibrationHandler(ModelVisualization modelVisualization, Model model, PerspectiveData perspective, IImageView window, double pointGrabRadius, double pointDrawRadius)
 		{
 			ModelVisualization = modelVisualization;
 			Model = model;

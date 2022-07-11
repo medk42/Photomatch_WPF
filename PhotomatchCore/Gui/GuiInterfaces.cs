@@ -104,7 +104,7 @@ namespace PhotomatchCore.Gui
 		/// Create a sub-window for an ImageWindow with a specified title.
 		/// </summary>
 		/// <returns>Interface that represents the created window.</returns>
-		IWindow CreateImageWindow(ImageWindow imageWindow, string title);
+		IImageView CreateImageWindow(ImageWindow imageWindow, string title);
 
 		/// <summary>
 		/// Create a sub-window displaying the created 3D model.
@@ -155,7 +155,7 @@ namespace PhotomatchCore.Gui
 	/// <summary>
 	/// Interface for calling the class representing a sub-window for an ImageWindow of the used application GUI.
 	/// </summary>
-	public interface IWindow
+	public interface IImageView
 	{
 		/// <summary>
 		/// Width of the displayed image.

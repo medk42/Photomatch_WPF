@@ -131,7 +131,7 @@ namespace PhotomatchWPF
 		public string GetLoadProjectFilePath() => GetFilePath(PhotomatcherProjectFileFilter);
 		public string GetModelExportFilePath() => SaveFilePath(ModelExportFileFilter);
 
-		public IWindow CreateImageWindow(ImageWindow imageWindow, string title)
+		public IImageView CreateImageWindow(ImageWindow imageWindow, string title)
 		{
 			var window = new ImageViewModel(imageWindow, Logger, this) { Title = title };
 			MainViewModel.DockManagerViewModel.AddDocument(window);
