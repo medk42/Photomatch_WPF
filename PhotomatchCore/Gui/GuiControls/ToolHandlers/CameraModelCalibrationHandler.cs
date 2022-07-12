@@ -68,8 +68,11 @@ namespace PhotomatchCore.Gui.GuiControls.ToolHandlers
 		{
 			Vector3 originScale = Perspective.MatchScreenWorldPoints(Perspective.WorldToScreen(FixedVertex.Position), FixedVertex.Position, mouseCoord, SelectedVertex.Position);
 
-			Perspective.Scale = originScale.Z;
-			Perspective.Origin = new Vector2(originScale.X, originScale.Y);
+			if (originScale.Z > 0)
+			{
+				Perspective.Scale = originScale.Z;
+				Perspective.Origin = new Vector2(originScale.X, originScale.Y);
+			}
 
 			ModelVisualization.UpdateDisplayedGeometry();
 		}

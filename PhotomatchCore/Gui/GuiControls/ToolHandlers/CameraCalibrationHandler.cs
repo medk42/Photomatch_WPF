@@ -104,47 +104,37 @@ namespace PhotomatchCore.Gui.GuiControls.ToolHandlers
 
 			UpdateCalibrationAxesColors();
 
-			if (Perspective.Scale > 0)
+			LineX.Visible = Active;
+			LineY.Visible = Active;
+			LineZ.Visible = Active;
+			Origin.Visible = Active;
+
+			Vector2 dirX = Perspective.GetXDirAt(Perspective.Origin);
+			Vector2 dirY = Perspective.GetYDirAt(Perspective.Origin);
+			Vector2 dirZ = Perspective.GetZDirAt(Perspective.Origin);
+
+			LineX.Start = Perspective.Origin;
+			LineY.Start = Perspective.Origin;
+			LineZ.Start = Perspective.Origin;
+			Origin.Position = Perspective.Origin;
+
+			if (dirX.Valid && dirY.Valid && dirZ.Valid)
 			{
-				LineX.Visible = Active;
-				LineY.Visible = Active;
-				LineZ.Visible = Active;
-				Origin.Visible = Active;
+				Vector2 imageSize = new Vector2(Perspective.Image.Width, Perspective.Image.Height);
 
-				Vector2 dirX = Perspective.GetXDirAt(Perspective.Origin);
-				Vector2 dirY = Perspective.GetYDirAt(Perspective.Origin);
-				Vector2 dirZ = Perspective.GetZDirAt(Perspective.Origin);
+				Vector2 endX = Intersections2D.GetRayInsideBoxIntersection(new Ray2D(Perspective.Origin, dirX), new Vector2(), imageSize);
+				Vector2 endY = Intersections2D.GetRayInsideBoxIntersection(new Ray2D(Perspective.Origin, dirY), new Vector2(), imageSize);
+				Vector2 endZ = Intersections2D.GetRayInsideBoxIntersection(new Ray2D(Perspective.Origin, dirZ), new Vector2(), imageSize);
 
-				LineX.Start = Perspective.Origin;
-				LineY.Start = Perspective.Origin;
-				LineZ.Start = Perspective.Origin;
-				Origin.Position = Perspective.Origin;
-
-				if (dirX.Valid && dirY.Valid && dirZ.Valid)
-				{
-					Vector2 imageSize = new Vector2(Perspective.Image.Width, Perspective.Image.Height);
-
-					Vector2 endX = Intersections2D.GetRayInsideBoxIntersection(new Ray2D(Perspective.Origin, dirX), new Vector2(), imageSize);
-					Vector2 endY = Intersections2D.GetRayInsideBoxIntersection(new Ray2D(Perspective.Origin, dirY), new Vector2(), imageSize);
-					Vector2 endZ = Intersections2D.GetRayInsideBoxIntersection(new Ray2D(Perspective.Origin, dirZ), new Vector2(), imageSize);
-
-					LineX.End = endX.Valid ? endX : Perspective.Origin;
-					LineY.End = endY.Valid ? endY : Perspective.Origin;
-					LineZ.End = endZ.Valid ? endZ : Perspective.Origin;
-				}
-				else
-				{
-					LineX.End = LineX.Start + new Vector2(Perspective.Image.Height * 0.1, 0);
-					LineY.End = LineY.Start + new Vector2(0, Perspective.Image.Height * 0.1);
-					LineZ.End = LineZ.Start;
-				}
+				LineX.End = endX.Valid ? endX : Perspective.Origin;
+				LineY.End = endY.Valid ? endY : Perspective.Origin;
+				LineZ.End = endZ.Valid ? endZ : Perspective.Origin;
 			}
 			else
 			{
-				LineX.Visible = false;
-				LineY.Visible = false;
-				LineZ.Visible = false;
-				Origin.Visible = false;
+				LineX.End = LineX.Start + new Vector2(Perspective.Image.Height * 0.1, 0);
+				LineY.End = LineY.Start + new Vector2(0, Perspective.Image.Height * 0.1);
+				LineZ.End = LineZ.Start;
 			}
 
 			foreach (IPoint point in DraggablePoints.Points)
