@@ -4,11 +4,14 @@ using PhotomatchCore.Logic.Model;
 using PhotomatchCore.Logic.Perspective;
 using PhotomatchCore.Gui.GuiControls.ToolHandlers.ModelCreationToolHandlers.Helper;
 using PhotomatchCore.Gui.GuiControls.ToolHandlers.ModelCreationToolHandlers.ModelCreationToolEdgeHandlerHelpers;
+using System;
 
 namespace PhotomatchCore.Gui.GuiControls.ToolHandlers.ModelCreationToolHandlers
 {
 	public class ModelCreationEdgeHandler : BaseModelCreationToolHandler
 	{
+		private enum EdgeState { Nothing, MouseAboveModel, FirstVertexSelected, EdgeMouseAboveModel, EdgeXYZ, EdgeHoldDirToModel, EdgeHoldDir }
+
 		public override ModelCreationTool ToolType => ModelCreationTool.Edge;
 
 		private PerspectiveData Perspective;
@@ -19,16 +22,27 @@ namespace PhotomatchCore.Gui.GuiControls.ToolHandlers.ModelCreationToolHandlers
 		private double PointDrawRadius;
 		private double PointGrabRadius;
 
-		private IModelCreationEdgeHandlerDirection HoldDirectionSelector;
 		private IEllipse ModelHoverEllipse;
 		private ILine ModelEdgeLine;
-		private ILine CursorXLine, CursorYLine, CursorZLine;
 		private IModelCreationEdgeHandlerSelector[] VertexSelectors;
-		private IModelCreationEdgeHandlerDirection[] DirectionSelectors;
-		private IModelCreationEdgeHandlerVertex FirstVertex;
+		private VectorDirection[] DirectionSelectors;
+		private Cursor Cursor;
 
+		private VectorDirection HoldDirectionSelector;
+		private IModelCreationEdgeHandlerVertex FirstVertex;
 		private IModelCreationEdgeHandlerVertex CurrentVertex;
 		private ModelCreationEdgeHandlerDirectionProjection CurrentDirection;
+
+		private EdgeState State_;
+		private EdgeState State
+		{
+			get => State_;
+			set
+			{
+				State_ = value;
+				ModelEdgeLine.Visible = !(State_ == EdgeState.Nothing || State_ == EdgeState.MouseAboveModel);
+			}
+		}
 
 		public ModelCreationEdgeHandler(PerspectiveData perspective, Model model, ModelVisualization modelVisualization, IImageView window, double pointDrawRadius, double pointGrabRadius)
 		{
@@ -46,15 +60,6 @@ namespace PhotomatchCore.Gui.GuiControls.ToolHandlers.ModelCreationToolHandlers
 			ModelEdgeLine = Window.CreateLine(new Vector2(), new Vector2(), 0, ApplicationColor.Highlight);
 			ModelEdgeLine.Visible = false;
 
-			CursorXLine = new InfiniteLine(window, new Vector2(), new Vector2(), ApplicationColor.XAxisDotted);
-			CursorXLine.Visible = false;
-
-			CursorYLine = new InfiniteLine(window, new Vector2(), new Vector2(), ApplicationColor.YAxisDotted);
-			CursorYLine.Visible = false;
-
-			CursorZLine = new InfiniteLine(window, new Vector2(), new Vector2(), ApplicationColor.ZAxisDotted);
-			CursorZLine.Visible = false;
-
 			VertexSelectors = new IModelCreationEdgeHandlerSelector[]
 			{
 				new ModelCreationEdgeHandlerVertexSelector(ModelVisualization),
@@ -62,128 +67,151 @@ namespace PhotomatchCore.Gui.GuiControls.ToolHandlers.ModelCreationToolHandlers
 				new ModelCreationEdgeHandlerEdgepointSelector(ModelVisualization, Model, Perspective)
 			};
 
-			DirectionSelectors = new IModelCreationEdgeHandlerDirection[]
+			DirectionSelectors = new VectorDirection[]
 			{
 				new VectorDirection(new Vector3(1, 0, 0), Perspective, ApplicationColor.XAxis),
 				new VectorDirection(new Vector3(0, 1, 0), Perspective, ApplicationColor.YAxis),
 				new VectorDirection(new Vector3(0, 0, 1), Perspective, ApplicationColor.ZAxis)
 			};
 
+			this.Cursor = new Cursor(window, perspective);
+
+			this.State = EdgeState.Nothing;
+
 			Active = false;
 			SetActive(Active);
 		}
 
-		private void ResetCursor()
+		private IModelCreationEdgeHandlerVertex GetVisualizeVertexUnderMouse(Vector2 mouseCoord)
 		{
-			CursorXLine.Visible = false;
-			CursorYLine.Visible = false;
-			CursorZLine.Visible = false;
-		}
-		private void SetCursor(Vector3 worldPos, Vector2 screenPos)
-		{
-			Vector2 endX = Perspective.WorldToScreen(worldPos + new Vector3(1, 0, 0));
-			Vector2 endY = Perspective.WorldToScreen(worldPos + new Vector3(0, 1, 0));
-			Vector2 endZ = Perspective.WorldToScreen(worldPos + new Vector3(0, 0, 1));
+			ModelHoverEllipse.Visible = false;
+			Cursor.Visible = false;
 
-			CursorXLine.Start = screenPos;
-			CursorYLine.Start = screenPos;
-			CursorZLine.Start = screenPos;
-			CursorXLine.End = endX;
-			CursorYLine.End = endY;
-			CursorZLine.End = endZ;
-			CursorXLine.Visible = true;
-			CursorYLine.Visible = true;
-			CursorZLine.Visible = true;
+			foreach (var selector in VertexSelectors)
+			{
+				IModelCreationEdgeHandlerVertex vertexUnderMouse = selector.GetVertex(mouseCoord);
+				if (vertexUnderMouse != null)
+				{
+					ModelHoverEllipse.Position = vertexUnderMouse.ScreenPosition;
+					ModelHoverEllipse.Visible = true;
+					ModelHoverEllipse.Color = selector.VertexColor;
+
+					Cursor.Visible = true;
+					Cursor.Position = vertexUnderMouse.WorldPosition;
+					return vertexUnderMouse;
+				}
+			}
+
+			return null;
+		}
+
+		private Tuple<ApplicationColor, ModelCreationEdgeHandlerDirectionProjection> GetBestDirection(Vector2 mouseCoord)
+		{
+			var bestColor = DirectionSelectors[0].EdgeColor;
+			var bestDirection = DirectionSelectors[0].Project(FirstVertex.WorldPosition, mouseCoord);
+			foreach (var selector in DirectionSelectors)
+			{
+				var direction = selector.Project(FirstVertex.WorldPosition, mouseCoord);
+				if (direction.DistanceScreen < bestDirection.DistanceScreen)
+				{
+					bestDirection = direction;
+					bestColor = selector.EdgeColor;
+				}
+			}
+
+			return new Tuple<ApplicationColor, ModelCreationEdgeHandlerDirectionProjection>(bestColor, bestDirection);
 		}
 
 		public override void MouseMove(Vector2 mouseCoord)
 		{
 			if (Active)
 			{
-				CurrentVertex = null;
-				CurrentDirection = null;
-				ModelHoverEllipse.Visible = false;
-				ResetCursor();
-				foreach (var selector in VertexSelectors)
-				{
-					CurrentVertex = selector.GetVertex(mouseCoord);
-					if (CurrentVertex != null)
-					{
-						ModelHoverEllipse.Position = CurrentVertex.ScreenPosition;
-						ModelHoverEllipse.Visible = true;
-						ModelHoverEllipse.Color = selector.VertexColor;
+				CurrentVertex = GetVisualizeVertexUnderMouse(mouseCoord);
 
-						SetCursor(CurrentVertex.WorldPosition, CurrentVertex.ScreenPosition);
-						break;
+				if (CurrentVertex == null)
+				{
+					switch (State)
+					{
+						case EdgeState.MouseAboveModel:
+							State = EdgeState.Nothing;
+							break;
+						case EdgeState.FirstVertexSelected:
+							State = EdgeState.EdgeXYZ;
+							break;
+						case EdgeState.EdgeMouseAboveModel:
+							State = EdgeState.EdgeXYZ;
+							break;
+						case EdgeState.EdgeHoldDirToModel:
+							State = EdgeState.EdgeHoldDir;
+							break;
+					}
+				}
+				else
+				{
+					switch (State)
+					{
+						case EdgeState.Nothing:
+							State = EdgeState.MouseAboveModel;
+							break;
+						case EdgeState.FirstVertexSelected:
+							State = EdgeState.EdgeMouseAboveModel;
+							break;
+						case EdgeState.EdgeXYZ:
+							State = EdgeState.EdgeMouseAboveModel;
+							break;
+						case EdgeState.EdgeHoldDir:
+							State = EdgeState.EdgeHoldDirToModel;
+							break;
 					}
 				}
 
-				if (FirstVertex != null)
+				switch (State)
 				{
-					if (HoldDirectionSelector != null)
-					{
-						CurrentDirection = HoldDirectionSelector.Project(FirstVertex.WorldPosition, mouseCoord);
-						if (CurrentVertex != null)
-						{
-							Ray3D CurrentDirectionRay = new Ray3D(FirstVertex.WorldPosition, CurrentDirection.Direction);
-							Vector3RayProj currentVertexProj = Intersections3D.ProjectVectorToRay(CurrentVertex.WorldPosition, CurrentDirectionRay);
+					case EdgeState.EdgeMouseAboveModel:
+						ModelEdgeLine.End = CurrentVertex.ScreenPosition;
+						ModelEdgeLine.Color = ApplicationColor.Highlight;
+						break;
 
+					case EdgeState.EdgeXYZ:
+					case EdgeState.EdgeHoldDir:
+						var bestDirection = GetBestDirection(mouseCoord);
+						if (State == EdgeState.EdgeHoldDir)
+							bestDirection = new Tuple<ApplicationColor, ModelCreationEdgeHandlerDirectionProjection>
+							(HoldDirectionSelector.EdgeColor, HoldDirectionSelector.Project(FirstVertex.WorldPosition, mouseCoord));
+
+						CurrentDirection = bestDirection.Item2;
+
+						ModelEdgeLine.End = Perspective.WorldToScreen(CurrentDirection.ProjectedWorld);
+						ModelEdgeLine.Color = bestDirection.Item1;
+
+						Cursor.Position = CurrentDirection.ProjectedWorld;
+						Cursor.Visible = true;
+						break;
+
+					case EdgeState.EdgeHoldDirToModel:						
+						Ray3D CurrentDirectionRay = new Ray3D(FirstVertex.WorldPosition, HoldDirectionSelector.Direction);
+
+						if (!CurrentVertex.UpdateToHoldRay(CurrentDirectionRay))
+						{
+							Vector3RayProj currentVertexProj = Intersections3D.ProjectVectorToRay(CurrentVertex.WorldPosition, CurrentDirectionRay);
 							CurrentDirection = new ModelCreationEdgeHandlerDirectionProjection()
 							{
 								ProjectedWorld = currentVertexProj.Projection,
 								DistanceWorld = currentVertexProj.Distance,
 								Direction = CurrentDirection.Direction
 							};
-
-							if (!CurrentVertex.UpdateToHoldRay(CurrentDirectionRay))
-							{
-								CurrentVertex = null;
-								ModelEdgeLine.End = Perspective.WorldToScreen(CurrentDirection.ProjectedWorld);
-							}
-							else
-							{
-								ModelHoverEllipse.Position = CurrentVertex.ScreenPosition;
-								ModelHoverEllipse.Color = ApplicationColor.Edgepoint;
-								ModelEdgeLine.End = CurrentVertex.ScreenPosition;
-							}
+							CurrentVertex = null;
+							ModelEdgeLine.End = Perspective.WorldToScreen(CurrentDirection.ProjectedWorld);
 						}
 						else
 						{
-							Vector2 ProjectedWorldScreen = Perspective.WorldToScreen(CurrentDirection.ProjectedWorld);
-							ModelEdgeLine.End = ProjectedWorldScreen;
-							SetCursor(CurrentDirection.ProjectedWorld, ProjectedWorldScreen);
-						}
-						ModelEdgeLine.Color = HoldDirectionSelector.EdgeColor;
-					}
-					else
-					{
-						if (CurrentVertex != null)
-						{
+							ModelHoverEllipse.Position = CurrentVertex.ScreenPosition;
+							ModelHoverEllipse.Color = ApplicationColor.Edgepoint;
 							ModelEdgeLine.End = CurrentVertex.ScreenPosition;
-							ModelEdgeLine.Color = ApplicationColor.Highlight;
 						}
-						else
-						{
-							var bestColor = DirectionSelectors[0].EdgeColor;
-							var bestDirection = DirectionSelectors[0].Project(FirstVertex.WorldPosition, mouseCoord);
-							foreach (var selector in DirectionSelectors)
-							{
-								var direction = selector.Project(FirstVertex.WorldPosition, mouseCoord);
-								if (direction.DistanceScreen < bestDirection.DistanceScreen)
-								{
-									bestDirection = direction;
-									bestColor = selector.EdgeColor;
-								}
-							}
-							Vector2 ProjectedWorldScreen = Perspective.WorldToScreen(bestDirection.ProjectedWorld);
-							ModelEdgeLine.End = ProjectedWorldScreen;
-							SetCursor(bestDirection.ProjectedWorld, ProjectedWorldScreen);
 
-							ModelEdgeLine.Color = bestColor;
-
-							CurrentDirection = bestDirection;
-						}
-					}
+						ModelEdgeLine.Color = HoldDirectionSelector.EdgeColor;
+						break;
 				}
 			}
 		}
@@ -192,25 +220,35 @@ namespace PhotomatchCore.Gui.GuiControls.ToolHandlers.ModelCreationToolHandlers
 		{
 			if (Active)
 			{
-				if (FirstVertex == null)
+				switch (State)
 				{
-					if (CurrentVertex != null)
-					{
+					case EdgeState.MouseAboveModel:
 						FirstVertex = CurrentVertex;
 						ModelEdgeLine.Start = CurrentVertex.ScreenPosition;
 						ModelEdgeLine.End = CurrentVertex.ScreenPosition;
-						ModelEdgeLine.Visible = true;
-					}
-				}
-				else
-				{
-					if (CurrentVertex == null)
+
+						State = EdgeState.FirstVertexSelected;
+						break;
+					case EdgeState.EdgeXYZ:
+					case EdgeState.EdgeHoldDir:
 						Model.AddEdge(FirstVertex.ModelVertex, Model.AddVertex(CurrentDirection.ProjectedWorld));
-					else
+
+						State = EdgeState.Nothing;
+						break;
+					case EdgeState.EdgeMouseAboveModel:
 						Model.AddEdge(FirstVertex.ModelVertex, CurrentVertex.ModelVertex);
 
-					ModelEdgeLine.Visible = false;
-					FirstVertex = null;
+						State = EdgeState.MouseAboveModel;
+						break;
+					case EdgeState.EdgeHoldDirToModel:
+						if (CurrentVertex != null)
+							Model.AddEdge(FirstVertex.ModelVertex, CurrentVertex.ModelVertex);
+						else
+							Model.AddEdge(FirstVertex.ModelVertex, Model.AddVertex(CurrentDirection.ProjectedWorld));
+
+						State = EdgeState.MouseAboveModel;
+						break;
+
 				}
 			}
 		}
@@ -222,17 +260,36 @@ namespace PhotomatchCore.Gui.GuiControls.ToolHandlers.ModelCreationToolHandlers
 				foreach (var selector in VertexSelectors)
 					selector.KeyDown(key);
 
-				switch (key)
+				if (key == KeyboardKey.LeftShift)
 				{
-					case KeyboardKey.LeftShift:
-						if (CurrentDirection != null)
+					switch (State)
+					{
+						case EdgeState.EdgeXYZ:
+							State = EdgeState.EdgeHoldDir;
 							HoldDirectionSelector = new VectorDirection(CurrentDirection.Direction, Perspective, ApplicationColor.Highlight);
-						else if (FirstVertex != null && CurrentVertex != null)
+							break;
+						case EdgeState.EdgeMouseAboveModel:
+							State = EdgeState.EdgeHoldDirToModel;
 							HoldDirectionSelector = new VectorDirection((CurrentVertex.WorldPosition - FirstVertex.WorldPosition).Normalized(), Perspective, ApplicationColor.Highlight);
-						break;
-					case KeyboardKey.Escape:
-						CancelLineCreate();
-						break;
+							break;
+					}
+				}
+				else if (key == KeyboardKey.Escape)
+				{
+					switch (State)
+					{
+						case EdgeState.EdgeXYZ:
+						case EdgeState.EdgeHoldDir:
+							State = EdgeState.Nothing;
+							break;
+						case EdgeState.EdgeMouseAboveModel:
+						case EdgeState.EdgeHoldDirToModel:
+						case EdgeState.FirstVertexSelected:
+							State = EdgeState.MouseAboveModel;
+							break;
+					}
+
+					Cursor.Visible = false;
 				}
 			}
 		}
@@ -244,11 +301,17 @@ namespace PhotomatchCore.Gui.GuiControls.ToolHandlers.ModelCreationToolHandlers
 				foreach (var selector in VertexSelectors)
 					selector.KeyUp(key);
 
-				switch (key)
+				if (key == KeyboardKey.LeftShift)
 				{
-					case KeyboardKey.LeftShift:
-						HoldDirectionSelector = null;
-						break;
+					switch (State)
+					{
+						case EdgeState.EdgeHoldDirToModel:
+							State = EdgeState.EdgeMouseAboveModel;
+							break;
+						case EdgeState.EdgeHoldDir:
+							State = EdgeState.EdgeXYZ;
+							break;
+					}
 				}
 			}
 		}
@@ -257,18 +320,9 @@ namespace PhotomatchCore.Gui.GuiControls.ToolHandlers.ModelCreationToolHandlers
 		{
 			if (!active)
 			{
-				CancelLineCreate();
+				State = EdgeState.Nothing;
 				ModelHoverEllipse.Visible = false;
-				ResetCursor();
-			}
-		}
-
-		private void CancelLineCreate()
-		{
-			if (FirstVertex != null)
-			{
-				FirstVertex = null;
-				ModelEdgeLine.Visible = false;
+				Cursor.Visible = false;
 			}
 		}
 
@@ -279,9 +333,7 @@ namespace PhotomatchCore.Gui.GuiControls.ToolHandlers.ModelCreationToolHandlers
 			DirectionSelectors = null;
 			ModelEdgeLine.Dispose();
 			ModelHoverEllipse.Dispose();
-			CursorXLine.Dispose();
-			CursorYLine.Dispose();
-			CursorZLine.Dispose();
+			Cursor.Dispose();
 		}
 
 		public override void UpdateModel(Model model)

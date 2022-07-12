@@ -6,11 +6,11 @@ using System.Text;
 
 namespace PhotomatchCore.Gui.GuiControls.ToolHandlers.ModelCreationToolHandlers.ModelCreationToolEdgeHandlerHelpers
 {
-	public class VectorDirection : IModelCreationEdgeHandlerDirection
+	public class VectorDirection
 	{
 		public ApplicationColor EdgeColor { get; private set; }
 
-		private Vector3 Direction;
+		public Vector3 Direction { get; private set; }
 		private PerspectiveData Perspetive;
 
 		public VectorDirection(Vector3 direction, PerspectiveData perspetive, ApplicationColor axisColor)
