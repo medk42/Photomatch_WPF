@@ -3,14 +3,13 @@ using System.Collections.Generic;
 using System.Text;
 using System.Windows;
 using System.Windows.Media;
-
-using PhotomatchWPF.WPF.ViewModel;
 using PhotomatchCore.Gui;
 using System.Windows.Shapes;
 using System.Collections.ObjectModel;
 using PhotomatchCore.Utilities;
+using PhotomatchWPF.ViewModel;
 
-namespace PhotomatchWPF.WPF
+namespace PhotomatchWPF
 {
 	public abstract class WpfGuiElement
 	{
@@ -124,7 +123,7 @@ namespace PhotomatchWPF.WPF
 
 	public static class ApplicationColorBrushes
 	{
-		private static SolidColorBrush FaceBrush = new SolidColorBrush(System.Windows.Media.Color.FromArgb(128, 255, 255, 255));
+		private static SolidColorBrush FaceBrush = new SolidColorBrush(Color.FromArgb(128, 255, 255, 255));
 
 		public static Brush GetColor(ApplicationColor color)
 		{
@@ -216,7 +215,7 @@ namespace PhotomatchWPF.WPF
 
 		public WpfPolygon(ObservableCollection<Polygon> polygons, ApplicationColor color)
 		{
-			this.Polygons = polygons;
+			Polygons = polygons;
 
 			Polygon = new Polygon();
 			Polygons.Add(Polygon);
@@ -260,7 +259,7 @@ namespace PhotomatchWPF.WPF
 		private Vector2 Start_;
 		public Vector2 Start
 		{
-			get => Start_; 
+			get => Start_;
 			set
 			{
 				Start_ = value;

@@ -11,7 +11,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 
-namespace PhotomatchWPF.WPF.View
+namespace PhotomatchWPF.View
 {
 	/// <summary>
 	/// Interaction logic for ModelView.xaml

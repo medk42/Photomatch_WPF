@@ -8,8 +8,6 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
-
-using PhotomatchWPF.WPF.Helper;
 using PhotomatchCore.Gui;
 using PhotomatchCore.Gui.GuiControls;
 using PhotomatchCore;
@@ -17,8 +15,9 @@ using System.Windows.Shapes;
 using System.Collections.ObjectModel;
 using PhotomatchCore.Utilities;
 using PhotomatchCore.Logic.Perspective;
+using PhotomatchWPF.Helper;
 
-namespace PhotomatchWPF.WPF.ViewModel
+namespace PhotomatchWPF.ViewModel
 {
 	public class ImageViewModel : BaseViewModel, IImageView, IMouseHandler, IKeyboardHandler
 	{
@@ -78,7 +77,7 @@ namespace PhotomatchWPF.WPF.ViewModel
 			private set
 			{
 				_Scale = value;
-				LineStrokeThickness = DefaultLineStrokeThickness / ViewboxImageScale / Scale; 
+				LineStrokeThickness = DefaultLineStrokeThickness / ViewboxImageScale / Scale;
 				foreach (var scalable in Scalables)
 				{
 					scalable.SetNewScale(ViewboxImageScale * Scale);
@@ -151,18 +150,18 @@ namespace PhotomatchWPF.WPF.ViewModel
 		}
 
 		public ImageViewModel(ImageWindow imageWindow, ILogger logger, MainWindow mainWindow)
-        {
-            this.CanClose = true;
-            this.IsClosed = false;
-            this.CloseCommand = new RelayCommand(obj => Close());
-			this.Logger = logger;
-			this.ImageWindowActions = imageWindow;
-			this.MainWindow = mainWindow;
+		{
+			CanClose = true;
+			IsClosed = false;
+			CloseCommand = new RelayCommand(obj => Close());
+			Logger = logger;
+			ImageWindowActions = imageWindow;
+			MainWindow = mainWindow;
 
-			this.Viewbox_SizeChanged = new RelayCommand(Viewbox_SizeChanged_);
-			this.Image_Loaded = new RelayCommand(Image_Loaded_);
-			this.MoveViewbox_Loaded = new RelayCommand(MoveViewbox_Loaded_);
-			this.FixedGrid_Loaded = new RelayCommand(FixedGrid_Loaded_);
+			Viewbox_SizeChanged = new RelayCommand(Viewbox_SizeChanged_);
+			Image_Loaded = new RelayCommand(Image_Loaded_);
+			MoveViewbox_Loaded = new RelayCommand(MoveViewbox_Loaded_);
+			FixedGrid_Loaded = new RelayCommand(FixedGrid_Loaded_);
 
 			SetupGeometry();
 		}
@@ -188,15 +187,15 @@ namespace PhotomatchWPF.WPF.ViewModel
 			ZAxisDottedLinesGeometry.FillRule = FillRule.Nonzero;
 		}
 
-        public void Close()
-        {
+		public void Close()
+		{
 			ImageWindowActions.Close_Clicked();
-        }
+		}
 
 		void IImageView.Close()
 		{
 			ImageWindowActions.Dispose();
-			this.IsClosed = true;
+			IsClosed = true;
 		}
 
 		public bool DisplayWarningProceedMessage(string title, string message)
@@ -251,7 +250,7 @@ namespace PhotomatchWPF.WPF.ViewModel
 			var wpfEllipse = new WpfEllipse(position.AsPoint(), radius, this, color);
 
 			wpfEllipse.SetNewScale(ViewboxImageScale * Scale);
-			Scalables.Add(wpfEllipse);				
+			Scalables.Add(wpfEllipse);
 
 			return wpfEllipse;
 		}
@@ -280,7 +279,7 @@ namespace PhotomatchWPF.WPF.ViewModel
 			XAxisDottedLinesGeometry.Children.Clear();
 			YAxisDottedLinesGeometry.Children.Clear();
 			ZAxisDottedLinesGeometry.Children.Clear();
-			Scalables.Clear(); 
+			Scalables.Clear();
 			ImageSource = null;
 
 			IsClosed = true;
@@ -416,7 +415,7 @@ namespace PhotomatchWPF.WPF.ViewModel
 				ImageWindowActions.MouseMove(point.AsVector2());
 			}
 
-			
+
 		}
 
 		private void Viewbox_SizeChanged_(object args)
@@ -426,7 +425,7 @@ namespace PhotomatchWPF.WPF.ViewModel
 			{
 				throw new ArgumentException("args is not of type SizeChangedEventArgs");
 			}
-			
+
 			Size viewboxSize = sizeArgs.NewSize;
 			ViewboxImageScale = viewboxSize.Height / ImageSource.Height;
 			LineStrokeThickness = DefaultLineStrokeThickness / ViewboxImageScale / Scale;
@@ -444,7 +443,7 @@ namespace PhotomatchWPF.WPF.ViewModel
 			{
 				throw new ArgumentException("obj is not of type Image");
 			}
-			
+
 			ImageView = image;
 		}
 

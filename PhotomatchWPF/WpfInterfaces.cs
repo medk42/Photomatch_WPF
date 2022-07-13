@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace PhotomatchWPF.WPF
+namespace PhotomatchWPF
 {
 	/// <summary>
 	/// Implemented by objects that want to be updated when some scale changes.

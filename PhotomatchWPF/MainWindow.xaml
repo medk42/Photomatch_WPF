@@ -6,8 +6,8 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:PhotomatchWPF"
         
-        xmlns:v="clr-namespace:PhotomatchWPF.WPF.View"
-        xmlns:vm="clr-namespace:PhotomatchWPF.WPF.ViewModel"
+        xmlns:v="clr-namespace:PhotomatchWPF.View"
+        xmlns:vm="clr-namespace:PhotomatchWPF.ViewModel"
         xmlns:dock="https://github.com/Dirkster99/AvalonDock"
         xmlns:dockctrl="clr-namespace:AvalonDock.Controls;assembly=AvalonDock"
         

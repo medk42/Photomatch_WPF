@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Text;
 
-namespace PhotomatchWPF.WPF.ViewModel
+namespace PhotomatchWPF.ViewModel
 {
 	public class BaseViewModel : INotifyPropertyChanged
 	{
@@ -53,7 +53,7 @@ namespace PhotomatchWPF.WPF.ViewModel
 
 		protected virtual void OnPropertyChanged(string propertyName)
 		{
-			this.PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+			PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
 		}
 	}
 }

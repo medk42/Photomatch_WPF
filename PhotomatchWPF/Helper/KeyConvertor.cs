@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.Windows.Input;
 
-namespace PhotomatchWPF.WPF.Helper
+namespace PhotomatchWPF.Helper
 {
 	public static class KeyConvertor
 	{

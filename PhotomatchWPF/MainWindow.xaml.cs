@@ -2,10 +2,6 @@
 using System;
 using System.Windows;
 using System.Windows.Controls;
-
-using PhotomatchWPF.WPF;
-using PhotomatchWPF.WPF.ViewModel;
-using PhotomatchWPF.WPF.Helper;
 using PhotomatchCore.Gui;
 using PhotomatchCore.Gui.GuiControls;
 using System.ComponentModel;
@@ -15,6 +11,8 @@ using System.Windows.Input;
 using PhotomatchCore.Utilities;
 using PhotomatchCore.Logic.Perspective;
 using PhotomatchCore.Logic.Model;
+using PhotomatchWPF.ViewModel;
+using PhotomatchWPF.Helper;
 
 namespace PhotomatchWPF
 {
