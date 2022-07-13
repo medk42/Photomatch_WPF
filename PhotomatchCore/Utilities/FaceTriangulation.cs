@@ -285,7 +285,7 @@ namespace PhotomatchCore.Utilities
 
 			triangulated.Clear();
 			foreach (TriangleIndices triangle in triangles)
-				triangulated.Add(new Logic.Model.Triangle()
+				triangulated.Add(new Triangle()
 				{
 					A = uniqueFaceVertices[triangle.A],
 					B = uniqueFaceVertices[triangle.B],
