@@ -4,7 +4,7 @@ using System.Text;
 using System.Windows;
 using PhotomatchCore.Utilities;
 
-namespace PhotomatchWPF
+namespace PhotomatchWPF.ViewModel.Helper
 {
 	static class PointExtensions
 	{

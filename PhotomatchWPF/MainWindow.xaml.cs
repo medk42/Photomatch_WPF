@@ -13,6 +13,7 @@ using PhotomatchCore.Logic.Perspective;
 using PhotomatchCore.Logic.Model;
 using PhotomatchWPF.ViewModel;
 using PhotomatchWPF.Helper;
+using PhotomatchWPF.ViewModel.Helper;
 
 namespace PhotomatchWPF
 {

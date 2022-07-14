@@ -7,9 +7,8 @@ using PhotomatchCore.Gui;
 using System.Windows.Shapes;
 using System.Collections.ObjectModel;
 using PhotomatchCore.Utilities;
-using PhotomatchWPF.ViewModel;
 
-namespace PhotomatchWPF
+namespace PhotomatchWPF.ViewModel.Helper
 {
 	public abstract class WpfGuiElement
 	{

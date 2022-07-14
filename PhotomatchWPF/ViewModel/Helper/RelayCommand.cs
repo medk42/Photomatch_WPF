@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.Windows.Input;
 
-namespace PhotomatchWPF.Helper
+namespace PhotomatchWPF.ViewModel.Helper
 {
 	public class RelayCommand : ICommand
 	{

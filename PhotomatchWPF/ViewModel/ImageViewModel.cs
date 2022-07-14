@@ -16,6 +16,7 @@ using System.Collections.ObjectModel;
 using PhotomatchCore.Utilities;
 using PhotomatchCore.Logic.Perspective;
 using PhotomatchWPF.Helper;
+using PhotomatchWPF.ViewModel.Helper;
 
 namespace PhotomatchWPF.ViewModel
 {
