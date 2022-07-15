@@ -31,6 +31,8 @@ namespace PhotomatchCore.Gui.GuiControls.ToolHandlers.ModelCreationToolHandlers
 			Model = model;
 			Window = window;
 			Perspective = perspective;
+
+			Model.ModelChangedEvent += ModelChanged;
 		}
 
 		public override void MouseMove(Vector2 mouseCoord)
@@ -152,6 +154,17 @@ namespace PhotomatchCore.Gui.GuiControls.ToolHandlers.ModelCreationToolHandlers
 					Polygon = null;
 					SelectedFace = null;
 				}
+			}
+		}
+
+		private void ModelChanged()
+		{
+			if (NormalLines == null)
+				return;
+
+			foreach (var lineTuple in NormalLines)
+			{
+				lineTuple.Item1.End = Perspective.WorldToScreen(lineTuple.Item2.FacePoint + lineTuple.Item2.Normal * (lineTuple.Item2.Reversed ? -0.1 : 0.1));
 			}
 		}
 
