@@ -121,14 +121,23 @@ namespace PhotomatchCore.Gui.GuiControls.ToolHandlers.Helper
 		{
 			if (button == MouseButton.Left)
 			{
+				IPoint best = null;
+				double bestDistance = double.MaxValue;
+
 				foreach (IPoint p in Points)
 				{
-					if (Window.ScreenDistance(mouseCoord, p.Position) < MaxMouseDistance)
+					double distance = Window.ScreenDistance(mouseCoord, p.Position);
+					if (distance < MaxMouseDistance && distance < bestDistance)
 					{
-						DraggingOffset = p.Position - mouseCoord;
-						CurrentPoint = p;
-						break;
+						best = p;
+						bestDistance = distance;
 					}
+				}
+
+				if (best != null)
+				{
+					DraggingOffset = best.Position - mouseCoord;
+					CurrentPoint = best;
 				}
 			}
 		}
