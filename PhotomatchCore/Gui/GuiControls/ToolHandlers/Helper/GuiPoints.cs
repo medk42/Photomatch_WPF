@@ -78,13 +78,16 @@ namespace PhotomatchCore.Gui.GuiControls.ToolHandlers.Helper
 		private Vector2 DraggingOffset;
 		private IImageView Window;
 		private double MaxMouseDistance;
+		private double PointEdgeLimit;
 
 		/// <param name="window">Window where the points are being dragged.</param>
 		/// <param name="maxMouseDistance">Maximum distance between mouse and point to start dragging it, in pixels on screen.</param>
-		public DraggablePoints(IImageView window, double maxMouseDistance)
+		/// <param name="pointEdgeLimit">The closest allowed distance between a point and an edge of the image, in pixels on screen.</param>
+		public DraggablePoints(IImageView window, double maxMouseDistance, double pointEdgeLimit)
 		{
 			Window = window;
 			MaxMouseDistance = maxMouseDistance;
+			PointEdgeLimit = pointEdgeLimit;
 		}
 
 		private double Clip(double value, double min, double max)
@@ -104,7 +107,7 @@ namespace PhotomatchCore.Gui.GuiControls.ToolHandlers.Helper
 
 				double scale = Window.ScreenDistance(new Vector2(), new Vector2(1, 0));
 
-				double maxDistance = MaxMouseDistance / scale;
+				double maxDistance = PointEdgeLimit / scale;
 
 
 				CurrentPoint.Position = new Vector2(

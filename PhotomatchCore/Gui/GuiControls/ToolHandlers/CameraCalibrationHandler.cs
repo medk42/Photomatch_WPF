@@ -55,7 +55,7 @@ namespace PhotomatchCore.Gui.GuiControls.ToolHandlers
 			LineZ = Window.CreateLine(origin, origin, 0, ApplicationColor.ZAxis);
 			Origin = Window.CreateEllipse(origin, PointDrawRadius, ApplicationColor.Vertex);
 
-			DraggablePoints = new DraggablePoints(Window, PointGrabRadius);
+			DraggablePoints = new DraggablePoints(Window, PointGrabRadius, PointDrawRadius*1.3);
 			DraggablePoints.Points.Add(new ActionPoint(origin, (value) => Perspective.LineA1 = Perspective.LineA1.WithStart(value), () => Perspective.LineA1.Start));
 			DraggablePoints.Points.Add(new ActionPoint(origin, (value) => Perspective.LineA1 = Perspective.LineA1.WithEnd(value), () => Perspective.LineA1.End));
 			DraggablePoints.Points.Add(new ActionPoint(origin, (value) => Perspective.LineA2 = Perspective.LineA2.WithStart(value), () => Perspective.LineA2.Start));
