@@ -377,8 +377,9 @@ namespace PhotomatchWPF.ViewModel.Helper
 
 		private Vector2 LimitPointRayToImageBox(Vector2 point, Vector2 rayOrigin)
 		{
-			if (point.X >= ImageViewModel.Width || point.Y >= ImageViewModel.Height || point.X < 0 || point.Y < 0)
-				return Intersections2D.GetRayInsideBoxIntersection(new Line2D(rayOrigin, point).AsRay(), new Vector2(), new Vector2(ImageViewModel.Width, ImageViewModel.Height));
+			double limit = 5;
+			if (point.X >= ImageViewModel.Width - limit || point.Y >= ImageViewModel.Height - limit || point.X < limit || point.Y < limit)
+				return Intersections2D.GetRayInsideBoxIntersection(new Line2D(rayOrigin, point).AsRay(), new Vector2(limit, limit), new Vector2(ImageViewModel.Width - limit, ImageViewModel.Height - limit));
 
 			return point;
 		}
