@@ -32,6 +32,7 @@ namespace PhotomatchCore.Gui.GuiControls.ToolHandlers.ModelCreationToolHandlers
 		private IModelCreationEdgeHandlerVertex FirstVertex;
 		private IModelCreationEdgeHandlerVertex CurrentVertex;
 		private ModelCreationEdgeHandlerDirectionProjection CurrentDirection;
+		private bool EdgeHoldingDirToModel = false;
 
 		private EdgeState State_;
 		private EdgeState State
@@ -200,7 +201,7 @@ namespace PhotomatchCore.Gui.GuiControls.ToolHandlers.ModelCreationToolHandlers
 								DistanceWorld = currentVertexProj.Distance,
 								Direction = CurrentDirection.Direction
 							};
-							CurrentVertex = null;
+							EdgeHoldingDirToModel = false;
 							ModelEdgeLine.End = Perspective.WorldToScreen(CurrentDirection.ProjectedWorld);
 						}
 						else
@@ -208,6 +209,7 @@ namespace PhotomatchCore.Gui.GuiControls.ToolHandlers.ModelCreationToolHandlers
 							ModelHoverEllipse.Position = CurrentVertex.ScreenPosition;
 							ModelHoverEllipse.Color = ApplicationColor.Edgepoint;
 							ModelEdgeLine.End = CurrentVertex.ScreenPosition;
+							EdgeHoldingDirToModel = true;
 						}
 
 						ModelEdgeLine.Color = HoldDirectionSelector.EdgeColor;
@@ -241,7 +243,7 @@ namespace PhotomatchCore.Gui.GuiControls.ToolHandlers.ModelCreationToolHandlers
 						State = EdgeState.MouseAboveModel;
 						break;
 					case EdgeState.EdgeHoldDirToModel:
-						if (CurrentVertex != null)
+						if (EdgeHoldingDirToModel)
 							Model.AddEdge(FirstVertex.ModelVertex, CurrentVertex.ModelVertex);
 						else
 							Model.AddEdge(FirstVertex.ModelVertex, Model.AddVertex(CurrentDirection.ProjectedWorld));
