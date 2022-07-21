@@ -1,0 +1,5 @@
+This project uses third-party libraries distributed under the following licences.
+
+ImageSharp: Apache License 2.0 (https://github.com/SixLabors/ImageSharp/blob/main/LICENSE)
+
+AvalonDock: Microsoft Public License (https://github.com/Dirkster99/AvalonDock/blob/master/LICENSE)
