@@ -6,13 +6,25 @@ using System.Text;
 
 namespace PhotomatchCore.Gui.GuiControls.ToolHandlers.ModelCreationToolHandlers.ModelCreationToolEdgeHandlerHelpers
 {
+	
+	/// <summary>
+	/// Class representing a direction in 3d space for EdgeHandler.
+	/// </summary>
 	public class VectorDirection
 	{
+		/// <summary>
+		/// Color of this direction.
+		/// </summary>
 		public ApplicationColor EdgeColor { get; private set; }
 
+		/// <summary>
+		/// The actual direction.
+		/// </summary>
 		public Vector3 Direction { get; private set; }
+
 		private PerspectiveData Perspetive;
 
+		/// <param name="perspetive">For converting between world and screen space.</param>
 		public VectorDirection(Vector3 direction, PerspectiveData perspetive, ApplicationColor axisColor)
 		{
 			Direction = direction;
@@ -20,6 +32,11 @@ namespace PhotomatchCore.Gui.GuiControls.ToolHandlers.ModelCreationToolHandlers.
 			EdgeColor = axisColor;
 		}
 
+		/// <summary>
+		/// Find a closest point on a ray specified by point "from" and direction "Direction" 
+		/// to "mouseCoord" on screen or to a ray created from "mouseCoord" in 3d space.
+		/// </summary>
+		/// <returns>Class representing the closest point.</returns>
 		public ModelCreationEdgeHandlerDirectionProjection Project(Vector3 from, Vector2 mouseCoord)
 		{
 			Ray2D screenRay = new Line2D(Perspetive.WorldToScreen(from), Perspetive.WorldToScreen(from + Direction)).AsRay();

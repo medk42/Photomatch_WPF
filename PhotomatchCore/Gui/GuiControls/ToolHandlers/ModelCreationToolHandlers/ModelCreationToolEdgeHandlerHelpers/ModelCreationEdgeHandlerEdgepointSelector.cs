@@ -9,6 +9,9 @@ using PhotomatchCore.Gui.GuiControls.ToolHandlers.ModelCreationToolHandlers.Mode
 
 namespace PhotomatchCore.Gui.GuiControls.ToolHandlers.ModelCreationToolHandlers.ModelCreationToolEdgeHandlerHelpers
 {
+	/// <summary>
+	/// Class representing a selector for points on an edge.
+	/// </summary>
 	public class ModelCreationEdgeHandlerEdgepointSelector : IModelCreationEdgeHandlerSelector
 	{
 		public ApplicationColor VertexColor => ApplicationColor.Edgepoint;
@@ -17,6 +20,9 @@ namespace PhotomatchCore.Gui.GuiControls.ToolHandlers.ModelCreationToolHandlers.
 		private Model Model;
 		private PerspectiveData Perspective;
 
+		/// <param name="modelVisualization">Selector uses ModelVisualization to get edge under mouse.</param>
+		/// <param name="model">Passed to found SelectedEdgepoint</param>
+		/// <param name="perspective">Used for ScreenToWorldRay transformation.</param>
 		public ModelCreationEdgeHandlerEdgepointSelector(ModelVisualization modelVisualization, Model model, PerspectiveData perspective)
 		{
 			ModelVisualization = modelVisualization;
@@ -24,6 +30,10 @@ namespace PhotomatchCore.Gui.GuiControls.ToolHandlers.ModelCreationToolHandlers.
 			Perspective = perspective;
 		}
 
+		/// <summary>
+		/// Try to find a point on an edge under mouse.
+		/// </summary>
+		/// <returns>Reference to data about the found point on an edge or null.</returns>
 		public IModelCreationEdgeHandlerVertex GetVertex(Vector2 mouseCoord)
 		{
 			var edgeTuple = ModelVisualization.GetEdgeUnderMouse(mouseCoord);

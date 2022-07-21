@@ -9,6 +9,9 @@ using PhotomatchCore.Gui.GuiControls.ToolHandlers.ModelCreationToolHandlers.Mode
 
 namespace PhotomatchCore.Gui.GuiControls.ToolHandlers.ModelCreationToolHandlers.ModelCreationToolEdgeHandlerHelpers
 {
+	/// <summary>
+	/// Class representing a selector for edge midpoints.
+	/// </summary>
 	public class ModelCreationEdgeHandlerMidpointSelector : IModelCreationEdgeHandlerSelector
 	{
 		public ApplicationColor VertexColor => ApplicationColor.Midpoint;
@@ -21,6 +24,11 @@ namespace PhotomatchCore.Gui.GuiControls.ToolHandlers.ModelCreationToolHandlers.
 		private double PointGrabRadius;
 		private bool Enabled = true;
 
+		/// <param name="modelVisualization">Selector uses ModelVisualization to get edge under mouse.</param>
+		/// <param name="model">Passed to found SelectedEdgepoint</param>
+		/// <param name="perspective">Used for WorldToScreen transformation.</param>
+		/// <param name="window">Used to find distance on a screen between mouse and edge midpoint.</param>
+		/// <param name="pointGrabRadius">Screen distance in pixels, from which a midpoint can be selected.</param>
 		public ModelCreationEdgeHandlerMidpointSelector(ModelVisualization modelVisualization, Model model, PerspectiveData perspective, IImageView window, double pointGrabRadius)
 		{
 			ModelVisualization = modelVisualization;
@@ -30,6 +38,10 @@ namespace PhotomatchCore.Gui.GuiControls.ToolHandlers.ModelCreationToolHandlers.
 			PointGrabRadius = pointGrabRadius;
 		}
 
+		/// <summary>
+		/// Try to find midpoint under mouse.
+		/// </summary>
+		/// <returns>Reference to data about the found point on an edge or null.</returns>
 		public IModelCreationEdgeHandlerVertex GetVertex(Vector2 mouseCoord)
 		{
 			var edgeTuple = ModelVisualization.GetEdgeUnderMouse(mouseCoord);
@@ -53,12 +65,18 @@ namespace PhotomatchCore.Gui.GuiControls.ToolHandlers.ModelCreationToolHandlers.
 			Model = model;
 		}
 
+		/// <summary>
+		/// Disable selector when CTRL is down.
+		/// </summary>
 		public void KeyDown(KeyboardKey key)
 		{
 			if (key == KeyboardKey.LeftCtrl)
 				Enabled = false;
 		}
 
+		/// <summary>
+		/// Enable selector when CTRL is up.
+		/// </summary>
 		public void KeyUp(KeyboardKey key)
 		{
 			if (key == KeyboardKey.LeftCtrl)

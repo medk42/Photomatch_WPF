@@ -7,6 +7,10 @@ using PhotomatchCore.Logic.Perspective;
 
 namespace PhotomatchCore.Gui.GuiControls.ToolHandlers.ModelCreationToolHandlers.ModelCreationToolEdgeHandlerHelpers.Helper
 {
+
+	/// <summary>
+	/// Class representing a found point on an edge of a model.
+	/// </summary>
 	public class SelectedEdgepoint : IModelCreationEdgeHandlerVertex
 	{
 		private Model Model;
@@ -16,6 +20,10 @@ namespace PhotomatchCore.Gui.GuiControls.ToolHandlers.ModelCreationToolHandlers.
 		private Vector3 Edgepoint;
 		private Vertex Vertex;
 
+		/// <param name="edge">Found edge.</param>
+		/// <param name="edgepoint">Point on the edge in 3d space.</param>
+		/// <param name="model">Model containing the edge.</param>
+		/// <param name="perspective">Perspective for world to screen transformations.</param>
 		public SelectedEdgepoint(Edge edge, Vector3 edgepoint, Model model, PerspectiveData perspective)
 		{
 			Edge = edge;
@@ -24,10 +32,19 @@ namespace PhotomatchCore.Gui.GuiControls.ToolHandlers.ModelCreationToolHandlers.
 			Perspective = perspective;
 		}
 
+		/// <summary>
+		/// WorldToScreen transformation of WorldPosition.
+		/// </summary>
 		public Vector2 ScreenPosition => Perspective.WorldToScreen(Edgepoint);
 
+		/// <summary>
+		/// Point in 3d space.
+		/// </summary>
 		public Vector3 WorldPosition => Edgepoint;
 
+		/// <summary>
+		/// Gets created on first call by splitting the edge into two at WorldPosition.
+		/// </summary>
 		public Vertex ModelVertex
 		{
 			get
@@ -38,6 +55,11 @@ namespace PhotomatchCore.Gui.GuiControls.ToolHandlers.ModelCreationToolHandlers.
 			}
 		}
 
+		/// <summary>
+		/// If the holdRay intersects the edge which contains the selected point, change
+		/// WorldPosition to the intersection and select this point instead of closest
+		/// point.
+		/// </summary>
 		public bool UpdateToHoldRay(Ray3D holdRay)
 		{
 			Line3D edge = new Line3D(Edge.Start.Position, Edge.End.Position);
