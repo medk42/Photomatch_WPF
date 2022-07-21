@@ -6,18 +6,29 @@ using System.Text;
 
 namespace PhotomatchCore.Gui.GuiControls.Helper
 {
+
+	/// <summary>
+	/// Class representing a view frustum of a camera.
+	/// </summary>
 	public class ViewFrustum
 	{
 		private PerspectiveData Perspective;
 
 		private Plane3D Left, Top, Right, Bottom;
 
+		/// <summary>
+		/// Create the view frustum as an intersection of 4 half-planes represented by camera edges.
+		/// </summary>
+		/// <param name="perspective">Camera for the view frustum.</param>
 		public ViewFrustum(PerspectiveData perspective)
 		{
 			this.Perspective = perspective;
 			UpdateFrustum();
 		}
 
+		/// <summary>
+		/// Update the view frustum.
+		/// </summary>
 		public void UpdateFrustum()
 		{
 			Ray3D topLeft = Perspective.ScreenToWorldRay(new Vector2(0, 0));
@@ -31,6 +42,9 @@ namespace PhotomatchCore.Gui.GuiControls.Helper
 			Top = new Plane3D(topRight.Start, -Vector3.Cross(topRight.Direction, topLeft.Start - topRight.Start));
 		}
 
+		/// <summary>
+		/// Return true if a 3d vector is inside the frustum.
+		/// </summary>
 		public bool IsVectorInside(Vector3 vector)
 		{
 			return
@@ -40,6 +54,9 @@ namespace PhotomatchCore.Gui.GuiControls.Helper
 				Intersections3D.ProjectVectorToPlane(vector, Top).SignedDistance >= -1e-6;
 		}
 
+		/// <summary>
+		/// Get the intersection between the ray and frustum edge.
+		/// </summary>
 		private Vector3 GetClosestIntersection(Ray3D ray)
 		{
 			Vector3 closest = Vector3.InvalidInstance;
@@ -64,6 +81,9 @@ namespace PhotomatchCore.Gui.GuiControls.Helper
 			return closest;
 		}
 
+		/// <summary>
+		/// Clip a 3d line using the frustum.
+		/// </summary>
 		public Line3D ClipLine(Line3D line)
 		{
 			bool startIn = IsVectorInside(line.Start);

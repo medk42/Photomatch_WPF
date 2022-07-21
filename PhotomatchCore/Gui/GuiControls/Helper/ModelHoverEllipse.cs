@@ -7,6 +7,9 @@ using PhotomatchCore.Logic.Model;
 
 namespace PhotomatchCore.Gui.GuiControls.Helper
 {
+	/// <summary>
+	/// Class for displaying the vertex under mouse.
+	/// </summary>
 	public class ModelHoverEllipse
 	{
 		private bool Active_ = true;
@@ -23,6 +26,9 @@ namespace PhotomatchCore.Gui.GuiControls.Helper
 			}
 		}
 
+		/// <summary>
+		/// Reference to the ellipse, for changing properties (for example color).
+		/// </summary>
 		public IEllipse Ellipse { get; set; }
 
 		private ModelVisualization ModelVisualization;
@@ -30,6 +36,9 @@ namespace PhotomatchCore.Gui.GuiControls.Helper
 		private double PointDrawRadius;
 		private Vector2 LastMouse;
 
+		/// <param name="modelVisualization">ModelVisualization object for passed window.</param>
+		/// <param name="window">Window in which the point will be displayed.</param>
+		/// <param name="pointDrawRadius">Radius of the displayed point in pixels on screen.</param>
 		public ModelHoverEllipse(ModelVisualization modelVisualization, IImageView window, double pointDrawRadius)
 		{
 			this.ModelVisualization = modelVisualization;
@@ -40,6 +49,10 @@ namespace PhotomatchCore.Gui.GuiControls.Helper
 			this.Ellipse.Visible = false;
 		}
 
+		/// <summary>
+		/// Get vertex under mouse and move the point above it.
+		/// </summary>
+		/// <returns>True if there is a vertex under mouse.</returns>
 		public bool MouseEvent(Vector2 mouseCoord)
 		{
 			this.LastMouse = mouseCoord;
