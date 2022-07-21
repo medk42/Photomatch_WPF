@@ -5,7 +5,7 @@ using System.Text;
 namespace PhotomatchCore.Gui
 {
 	/// <summary>
-	/// Types of mouse click.
+	/// Types of mouse button clicks.
 	/// </summary>
 	public enum MouseButton { Left, Right, Middle, DoubleLeft, DoubleRight, DoubleMiddle }
 

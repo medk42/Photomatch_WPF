@@ -265,16 +265,42 @@ namespace PhotomatchCore.Logic.Perspective
 			_camera.UpdateScale(Scale);
 		}
 
+		/// <summary>
+		/// Transform vector from screen space (with 1 as z coordinate) to world space.
+		/// </summary>
 		public Vector3 ScreenToWorld(Vector2 point) => _camera.ScreenToWorld(point);
 
+		/// <summary>
+		/// Transform vector from world space to screen space (with z normalized).
+		/// </summary>
 		public Vector2 WorldToScreen(Vector3 point) => _camera.WorldToScreen(point);
 
+		/// <summary>
+		/// Create a ray in world space from Vector3(screenPoint, 1) in the direction 
+		/// of the view of the camera at that point. 
+		/// </summary>
 		public Ray3D ScreenToWorldRay(Vector2 screenPoint) => _camera.ScreenToWorldRay(screenPoint);
 
+		/// <summary>
+		/// Calculate perspective origin screen position, based on transformation matrices and scale, 
+		/// so that the WorldToScreen projection of the worldPoint is at screenPoint.
+		/// </summary>
 		public Vector2 MatchScreenWorldPoint(Vector2 screenPoint, Vector3 worldPoint) => _camera.MatchScreenWorldPoint(screenPoint, worldPoint);
 
+		/// <summary>
+		/// Calculate perspective origin screen position and scale, based on transformation matrices,
+		/// so that the WorldToScreen projection of the worldPointPos is at screenPointPos and
+		/// the WorldToScreen projection of worldPointScale is closest to screenPointScale.
+		/// </summary>
+		/// <returns>
+		/// Vector3 containing the calculated perspective origin as x and y coordinates and 
+		/// the calculated scale as the z coordinate.
+		/// </returns>
 		public Vector3 MatchScreenWorldPoints(Vector2 screenPointPos, Vector3 worldPointPos, Vector2 screenPointScale, Vector3 worldPointScale) => _camera.MatchScreenWorldPoints(screenPointPos, worldPointPos, screenPointScale, worldPointScale);
 
+		/// <summary>
+		/// Get the direction (on the screen) of the x axis at a certain point on the screen.
+		/// </summary>
 		public Vector2 GetXDirAt(Vector2 screenPoint)
 		{
 			Vector2 screenPointMoved = _camera.WorldToScreen(_camera.ScreenToWorld(screenPoint) + new Vector3(1, 0, 0));
@@ -282,6 +308,9 @@ namespace PhotomatchCore.Logic.Perspective
 			return direction;
 		}
 
+		/// <summary>
+		/// Get the direction (on the screen) of the y axis at a certain point on the screen.
+		/// </summary>
 		public Vector2 GetYDirAt(Vector2 screenPoint)
 		{
 			Vector2 screenPointMoved = _camera.WorldToScreen(_camera.ScreenToWorld(screenPoint) + new Vector3(0, 1, 0));
@@ -289,6 +318,9 @@ namespace PhotomatchCore.Logic.Perspective
 			return direction;
 		}
 
+		/// <summary>
+		/// Get the direction (on the screen) of the z axis at a certain point on the screen.
+		/// </summary>
 		public Vector2 GetZDirAt(Vector2 screenPoint)
 		{
 			Vector2 screenPointMoved = _camera.WorldToScreen(_camera.ScreenToWorld(screenPoint) + new Vector3(0, 0, 1));

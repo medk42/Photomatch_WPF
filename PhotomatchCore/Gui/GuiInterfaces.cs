@@ -10,7 +10,7 @@ using PhotomatchCore.Logic.Perspective;
 namespace PhotomatchCore.Gui
 {
 	/// <summary>
-	/// Interface representing a GUI line.
+	/// Interface representing a View line.
 	/// </summary>
 	public interface ILine
 	{
@@ -26,7 +26,7 @@ namespace PhotomatchCore.Gui
 	}
 
 	/// <summary>
-	/// Interface representing a filled ellipse.
+	/// Interface representing a View filled ellipse.
 	/// </summary>
 	public interface IEllipse
 	{
@@ -41,7 +41,7 @@ namespace PhotomatchCore.Gui
 	}
 
 	/// <summary>
-	/// Interface representing a filled polygon.
+	/// Interface representing a View filled polygon.
 	/// </summary>
 	public interface IPolygon
 	{
@@ -76,7 +76,7 @@ namespace PhotomatchCore.Gui
 	}
 
 	/// <summary>
-	/// Interface for calling the main class of the used application GUI.
+	/// Interface for calling the main class of the used application GUI on the View layer.
 	/// </summary>
 	public interface IMasterView : ILogger
 	{
@@ -142,7 +142,7 @@ namespace PhotomatchCore.Gui
 	}
 
 	/// <summary>
-	/// Interface for calling the class displaying the created 3D model.
+	/// Interface for calling the class displaying the created 3D model on the View layer.
 	/// </summary>
 	public interface IModelView
 	{
@@ -153,7 +153,7 @@ namespace PhotomatchCore.Gui
 	}
 
 	/// <summary>
-	/// Interface for calling the class representing a sub-window for an ImageWindow of the used application GUI.
+	/// Interface for calling the class representing a sub-window for an ImageWindow of the used application GUI on the View layer.
 	/// </summary>
 	public interface IImageView
 	{
@@ -234,6 +234,10 @@ namespace PhotomatchCore.Gui
 		void ExportModel_Pressed();
 		void Undo_Pressed();
 		void Redo_Pressed();
+
+		/// <summary>
+		/// User requests to close the app.
+		/// </summary>
 		void Exit_Pressed();
 		void DesignTool_Changed(DesignTool newDesignTool);
 		void ModelCreationTool_Changed(ModelCreationTool newModelCreationTool);
@@ -247,6 +251,9 @@ namespace PhotomatchCore.Gui
 	/// </summary>
 	public interface IImageWindowActions
 	{
+		/// <summary>
+		/// User requests to close the image.
+		/// </summary>
 		void Close_Clicked();
 		void MouseMove(Vector2 mouseCoord);
 		void MouseDown(Vector2 mouseCoord, MouseButton button);
