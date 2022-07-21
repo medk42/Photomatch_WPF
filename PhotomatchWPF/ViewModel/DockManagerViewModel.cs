@@ -6,6 +6,9 @@ using System.Text;
 
 namespace PhotomatchWPF.ViewModel
 {
+	/// <summary>
+	/// Class for AvalonDock containing the opened windows.
+	/// </summary>
 	public class DockManagerViewModel
 	{
 		public ObservableCollection<BaseViewModel> Documents { get; private set; }
@@ -23,6 +26,9 @@ namespace PhotomatchWPF.ViewModel
 			}
 		}
 
+		/// <summary>
+		/// Open a new window --- AvalonDock automatically creates corresponding View class (based on the setup in MainWindow.xaml).
+		/// </summary>
 		public void AddDocument(BaseViewModel doc)
 		{
 			doc.PropertyChanged += DockWindowViewModel_PropertyChanged;

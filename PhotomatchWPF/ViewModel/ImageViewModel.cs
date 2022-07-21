@@ -20,6 +20,10 @@ using PhotomatchWPF.ViewModel.Helper;
 
 namespace PhotomatchWPF.ViewModel
 {
+
+	/// <summary>
+	/// Represents the window with an image at the View layer.
+	/// </summary>
 	public class ImageViewModel : BaseViewModel, IImageView, IMouseHandler, IKeyboardHandler
 	{
 		private static readonly double DefaultLineStrokeThickness = 2;
@@ -38,6 +42,7 @@ namespace PhotomatchWPF.ViewModel
 			}
 		}
 
+		// geometry inside these objects will be drawn on screen
 		public GeometryGroup XAxisLinesGeometry { get; } = new GeometryGroup();
 		public GeometryGroup YAxisLinesGeometry { get; } = new GeometryGroup();
 		public GeometryGroup ZAxisLinesGeometry { get; } = new GeometryGroup();
@@ -60,7 +65,9 @@ namespace PhotomatchWPF.ViewModel
 		public ICommand MoveViewbox_Loaded { get; private set; }
 		public ICommand FixedGrid_Loaded { get; private set; }
 
-		private double _LineStrokeThickness = DefaultLineStrokeThickness;
+		/// <summary>
+		/// Thickness of drawn lines.
+		/// </summary>
 		public double LineStrokeThickness
 		{
 			get => _LineStrokeThickness;
@@ -70,8 +77,11 @@ namespace PhotomatchWPF.ViewModel
 				OnPropertyChanged(nameof(LineStrokeThickness));
 			}
 		}
+		private double _LineStrokeThickness = DefaultLineStrokeThickness;
 
-		private double _Scale = 1;
+		/// <summary>
+		/// Photo scale. Change LineStrokeThickness based on scale to keep it constant. Send new scale to scalable objects. For pan&zoom.
+		/// </summary>
 		public double Scale
 		{
 			get => _Scale;
@@ -86,8 +96,11 @@ namespace PhotomatchWPF.ViewModel
 				OnPropertyChanged(nameof(Scale));
 			}
 		}
+		private double _Scale = 1;
 
-		private Vector2 _Translate = new Vector2();
+		/// <summary>
+		/// Translate the displayed photo and geometry - for pan&zoom.
+		/// </summary>
 		public Vector2 Translate
 		{
 			get => _Translate;
@@ -97,8 +110,11 @@ namespace PhotomatchWPF.ViewModel
 				OnPropertyChanged(nameof(Translate));
 			}
 		}
+		private Vector2 _Translate = new Vector2();
 
-		private Cursor _Cursor = Cursors.Arrow;
+		/// <summary>
+		/// Reference to mouse cursor.
+		/// </summary>
 		public Cursor Cursor
 		{
 			get => _Cursor;
@@ -108,7 +124,11 @@ namespace PhotomatchWPF.ViewModel
 				OnPropertyChanged(nameof(Cursor));
 			}
 		}
+		private Cursor _Cursor = Cursors.Arrow;
 
+		/// <summary>
+		/// Polygons inside this collection will be drawn on screen.
+		/// </summary>
 		public ObservableCollection<Polygon> Polygons { get; } = new ObservableCollection<Polygon>();
 
 		public IMouseHandler MouseHandler
@@ -116,12 +136,22 @@ namespace PhotomatchWPF.ViewModel
 			get => this;
 		}
 
+		/// <summary>
+		/// Image width.
+		/// </summary>
 		public double Width => ImageSource.Width;
 
+		/// <summary>
+		/// Image height.
+		/// </summary>
 		public double Height => ImageSource.Height;
 
 		public CalibrationAxes CurrentCalibrationAxes { get; private set; }
 		public InvertedAxes CurrentInvertedAxes { get; private set; }
+
+		/// <summary>
+		/// List of objects that have to be notified about new scale.
+		/// </summary>
 		public List<IScalable> Scalables { get; } = new List<IScalable>();
 
 		private ILogger Logger;
@@ -135,7 +165,9 @@ namespace PhotomatchWPF.ViewModel
 		private Vector2 OrigTranslate;
 		private Vector2 OrigScreen;
 
-		private bool ImageDrag_;
+		/// <summary>
+		/// Set true if we are dragging the image - changes cursor.
+		/// </summary>
 		private bool ImageDrag
 		{
 			get => ImageDrag_;
@@ -149,7 +181,11 @@ namespace PhotomatchWPF.ViewModel
 				}
 			}
 		}
+		private bool ImageDrag_;
 
+		/// <param name="imageWindow">Connection to ViewModel layer.</param>
+		/// <param name="logger">Gui logger.</param>
+		/// <param name="mainWindow">Reference to the main window.</param>
 		public ImageViewModel(ImageWindow imageWindow, ILogger logger, MainWindow mainWindow)
 		{
 			CanClose = true;
@@ -227,6 +263,9 @@ namespace PhotomatchWPF.ViewModel
 			ImageSource = imageCopy;
 		}
 
+		/// <summary>
+		/// Calculate distance on the screen using scale.
+		/// </summary>
 		public double ScreenDistance(Vector2 pointA, Vector2 pointB)
 		{
 			if (double.IsNaN(ViewboxImageScale))
@@ -235,6 +274,9 @@ namespace PhotomatchWPF.ViewModel
 				return Scale * ViewboxImageScale * (pointA - pointB).Magnitude;
 		}
 
+		/// <summary>
+		/// Create and return a WpfLine with specified start, end and color. Add to scalables if it has drawn points in the endpoints (endRadius is non-zero).
+		/// </summary>
 		public ILine CreateLine(Vector2 start, Vector2 end, double endRadius, ApplicationColor color)
 		{
 			var wpfLine = new WpfLine(start.AsPoint(), end.AsPoint(), endRadius, this, color);
@@ -246,6 +288,9 @@ namespace PhotomatchWPF.ViewModel
 			return wpfLine;
 		}
 
+		/// <summary>
+		/// Create and return a WpfEllipse with specified position, radius and color. Add to scalables.
+		/// </summary>
 		public IEllipse CreateEllipse(Vector2 position, double radius, ApplicationColor color)
 		{
 			var wpfEllipse = new WpfEllipse(position.AsPoint(), radius, this, color);
@@ -256,11 +301,17 @@ namespace PhotomatchWPF.ViewModel
 			return wpfEllipse;
 		}
 
+		/// <summary>
+		/// Create and return a WpfPolygon with specified color.
+		/// </summary>
 		public IPolygon CreateFilledPolygon(ApplicationColor color)
 		{
 			return new WpfPolygon(Polygons, color);
 		}
 
+		/// <summary>
+		/// Dispose of all data owned by the class.
+		/// </summary>
 		public void DisposeAll()
 		{
 			XAxisLinesGeometry.Children.Clear();
@@ -286,6 +337,9 @@ namespace PhotomatchWPF.ViewModel
 			IsClosed = true;
 		}
 
+		/// <summary>
+		/// Convert from System.Windows.Input.MouseButton to PhotomatchCore.Gui.MouseButton.
+		/// </summary>
 		private PhotomatchCore.Gui.MouseButton? GetMouseButton(System.Windows.Input.MouseButton button, int clickCount)
 		{
 			if (button == System.Windows.Input.MouseButton.Left)
@@ -298,6 +352,9 @@ namespace PhotomatchWPF.ViewModel
 				return null;
 		}
 
+		/// <summary>
+		/// Handle drag&drop or pass MouseDown to ViewModel.
+		/// </summary>
 		public void MouseDown(object sender, MouseButtonEventArgs e)
 		{
 			PhotomatchCore.Gui.MouseButton? button = GetMouseButton(e.ChangedButton, e.ClickCount);
@@ -326,6 +383,9 @@ namespace PhotomatchWPF.ViewModel
 			}
 		}
 
+		/// <summary>
+		/// Handle drag&drop or pass MouseUp to ViewModel.
+		/// </summary>
 		public void MouseUp(object sender, MouseButtonEventArgs e)
 		{
 			PhotomatchCore.Gui.MouseButton? button = GetMouseButton(e.ChangedButton, e.ClickCount);
@@ -348,6 +408,9 @@ namespace PhotomatchWPF.ViewModel
 			}
 		}
 
+		/// <summary>
+		/// Handle drag&drop or pass MouseMove to ViewModel.
+		/// </summary>
 		public void MouseMove(object sender, MouseEventArgs e)
 		{
 			if (ImageDrag)
@@ -371,6 +434,10 @@ namespace PhotomatchWPF.ViewModel
 
 		public void MouseEnter(object sender, MouseEventArgs e) { }
 
+		/// <summary>
+		/// Handle drag&drop or pass MouseUp to ViewModel (so that there are no weird issues when mouse leaves 
+		/// the window pressed down, and then returns).
+		/// </summary>
 		public void MouseLeave(object sender, MouseEventArgs e)
 		{
 			if (ImageDrag)
@@ -386,6 +453,9 @@ namespace PhotomatchWPF.ViewModel
 			}
 		}
 
+		/// <summary>
+		/// Handle pan&zoom. Pass MouseMove to ViewModel (mouse can move to a different part of the photo on zoom).
+		/// </summary>
 		public void MouseWheel(object sender, MouseWheelEventArgs e)
 		{
 			if (MoveViewbox != null)
@@ -419,6 +489,9 @@ namespace PhotomatchWPF.ViewModel
 
 		}
 
+		/// <summary>
+		/// Update geometry scale if ViewBox size changed.
+		/// </summary>
 		private void Viewbox_SizeChanged_(object args)
 		{
 			SizeChangedEventArgs sizeArgs = args as SizeChangedEventArgs;
@@ -437,6 +510,9 @@ namespace PhotomatchWPF.ViewModel
 			}
 		}
 
+		/// <summary>
+		/// Set ImageView to loaded image.
+		/// </summary>
 		private void Image_Loaded_(object obj)
 		{
 			Image image = obj as Image;
@@ -448,8 +524,14 @@ namespace PhotomatchWPF.ViewModel
 			ImageView = image;
 		}
 
+		/// <summary>
+		/// Set FixedGrid to loaded Grid.
+		/// </summary>
 		private void FixedGrid_Loaded_(object obj) => FixedGrid = obj as Grid;
 
+		/// <summary>
+		/// Set MoveViewbox to loaded Viewbox.
+		/// </summary>
 		private void MoveViewbox_Loaded_(object obj) => MoveViewbox = obj as Viewbox;
 
 		public void DisplayCalibrationAxes(CalibrationAxes calibrationAxes)
@@ -474,6 +556,9 @@ namespace PhotomatchWPF.ViewModel
 			ImageWindowActions.InvertedAxes_Changed(invertedAxes);
 		}
 
+		/// <summary>
+		/// Pass KeyUp to ViewModel layer.
+		/// </summary>
 		public void KeyUp(object sender, KeyEventArgs e)
 		{
 			KeyboardKey? key = e.Key.AsKeyboardKey();
@@ -481,6 +566,9 @@ namespace PhotomatchWPF.ViewModel
 				ImageWindowActions.KeyUp(key.Value);
 		}
 
+		/// <summary>
+		/// Pass KeyDown to ViewModel layer.
+		/// </summary>
 		public void KeyDown(object sender, KeyEventArgs e)
 		{
 			KeyboardKey? key = e.Key.AsKeyboardKey();

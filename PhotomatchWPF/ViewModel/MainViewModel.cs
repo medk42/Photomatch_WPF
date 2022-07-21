@@ -4,6 +4,9 @@ using System.Text;
 
 namespace PhotomatchWPF.ViewModel
 {
+	/// <summary>
+	/// Class for AvalonDock.
+	/// </summary>
 	public class MainViewModel
 	{
 		public DockManagerViewModel DockManagerViewModel { get; private set; }

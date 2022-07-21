@@ -10,9 +10,15 @@ using PhotomatchCore.Utilities;
 
 namespace PhotomatchWPF.ViewModel.Helper
 {
+
+	/// <summary>
+	/// Abstract class containing useful methods for other gui elements.
+	/// </summary>
 	public abstract class WpfGuiElement
 	{
-		private protected ApplicationColor Color_;
+		/// <summary>
+		/// Set color of the GUI element (by removing geometry from the geometry group representing old color and adding it to the one representing new color).
+		/// </summary>
 		public virtual ApplicationColor Color
 		{
 			get => Color_;
@@ -29,8 +35,11 @@ namespace PhotomatchWPF.ViewModel.Helper
 				}
 			}
 		}
+		private protected ApplicationColor Color_;
 
-		private protected bool Visible_ = true;
+		/// <summary>
+		/// Set visibility of the GUI element (set to false to remove geometry from its current geometry group or true to add it to the geometry group based on Color).
+		/// </summary>
 		public virtual bool Visible
 		{
 			get => Visible_;
@@ -51,7 +60,11 @@ namespace PhotomatchWPF.ViewModel.Helper
 				}
 			}
 		}
+		private protected bool Visible_ = true;
 
+		/// <summary>
+		/// Get geometry group from specified ImageViewModel for a specified color.
+		/// </summary>
 		protected GeometryGroup GetGeometry(ApplicationColor color, ImageViewModel imageViewModel)
 		{
 			GeometryGroup geometry;
@@ -116,7 +129,14 @@ namespace PhotomatchWPF.ViewModel.Helper
 			return geometry;
 		}
 
+		/// <summary>
+		/// Remove geometry from the geometry group specified by color.
+		/// </summary>
 		private protected abstract void RemoveOldColor(ApplicationColor color);
+
+		/// <summary>
+		/// Add geometry to the geometry group specified by color.
+		/// </summary>
 		private protected abstract void AddNewColor(ApplicationColor color);
 	}
 
@@ -124,6 +144,9 @@ namespace PhotomatchWPF.ViewModel.Helper
 	{
 		private static SolidColorBrush FaceBrush = new SolidColorBrush(Color.FromArgb(128, 255, 255, 255));
 
+		/// <summary>
+		/// Get brush for a specified color.
+		/// </summary>
 		public static Brush GetColor(ApplicationColor color)
 		{
 			switch (color)
@@ -168,6 +191,9 @@ namespace PhotomatchWPF.ViewModel.Helper
 		}
 	}
 
+	/// <summary>
+	/// Class implementing a visualization of a polygon in WPF.
+	/// </summary>
 	public class WpfPolygon : IPolygon
 	{
 		private ApplicationColor Color_;
@@ -212,6 +238,11 @@ namespace PhotomatchWPF.ViewModel.Helper
 		private ObservableCollection<Polygon> Polygons;
 		private Polygon Polygon;
 
+		/// <summary>
+		/// Create a polygon.
+		/// </summary>
+		/// <param name="polygons">Reference to a collection which contains displayed polygons.</param>
+		/// <param name="color">Chosen color of the polygon.</param>
 		public WpfPolygon(ObservableCollection<Polygon> polygons, ApplicationColor color)
 		{
 			Polygons = polygons;
@@ -223,6 +254,9 @@ namespace PhotomatchWPF.ViewModel.Helper
 			SetColor(Color_);
 		}
 
+		/// <summary>
+		/// Change the fill color of the polygon.
+		/// </summary>
 		private void SetColor(ApplicationColor color)
 		{
 			Polygon.Fill = ApplicationColorBrushes.GetColor(color);
@@ -246,16 +280,32 @@ namespace PhotomatchWPF.ViewModel.Helper
 		}
 	}
 
+	/// <summary>
+	/// Class implementing a visualization of a line with endpoints in WPF.
+	/// </summary>
 	public class WpfLine : WpfGuiElement, ILine, IScalable
 	{
+		/// <summary>
+		/// Geometry for the line.
+		/// </summary>
 		public LineGeometry Line { get; private set; }
+
+		/// <summary>
+		/// Geometry for the first endpoint.
+		/// </summary>
 		public EllipseGeometry StartEllipse { get; private set; }
+
+		/// <summary>
+		/// Geometry for the second endpoint.
+		/// </summary>
 		public EllipseGeometry EndEllipse { get; private set; }
 
 		private double EndRadius;
 		private ImageViewModel ImageViewModel;
 
-		private Vector2 Start_;
+		/// <summary>
+		/// Clip line on set.
+		/// </summary>
 		public Vector2 Start
 		{
 			get => Start_;
@@ -265,8 +315,11 @@ namespace PhotomatchWPF.ViewModel.Helper
 				UpdateDrawnLine();
 			}
 		}
+		private Vector2 Start_;
 
-		private Vector2 End_;
+		/// <summary>
+		/// Clip line on set.
+		/// </summary>
 		public Vector2 End
 		{
 			get => End_;
@@ -276,8 +329,17 @@ namespace PhotomatchWPF.ViewModel.Helper
 				UpdateDrawnLine();
 			}
 		}
+		private Vector2 End_;
 
+		/// <summary>
+		/// True if the line is not above the image even partly.
+		/// </summary>
 		private bool OutsideView_ = false;
+
+		/// <summary>
+		/// Controls whether the line is displayed (line is displayed based on Visible if line is at least 
+		/// partly above the image, otherwise it will not be visible).
+		/// </summary>
 		public override bool Visible
 		{
 			get => Visible_;
@@ -302,6 +364,14 @@ namespace PhotomatchWPF.ViewModel.Helper
 			}
 		}
 
+		/// <summary>
+		/// Create a line.
+		/// </summary>
+		/// <param name="Start">First endpoint.</param>
+		/// <param name="End">Second endpoint.</param>
+		/// <param name="endRadius">Radius of the endpoints (there will no endpoints created if 0).</param>
+		/// <param name="imageViewModel">Reference to ImageViewModel, so that the line can be displayed.</param>
+		/// <param name="color">Chosen color of the line.</param>
 		public WpfLine(Point Start, Point End, double endRadius, ImageViewModel imageViewModel, ApplicationColor color)
 		{
 			Line = new LineGeometry();
@@ -327,6 +397,9 @@ namespace PhotomatchWPF.ViewModel.Helper
 			this.End = End.AsVector2();
 		}
 
+		/// <summary>
+		/// Scale the endpoints.
+		/// </summary>
 		public void SetNewScale(double scale)
 		{
 			if (StartEllipse != null)
@@ -341,6 +414,9 @@ namespace PhotomatchWPF.ViewModel.Helper
 			}
 		}
 
+		/// <summary>
+		/// Clip the line to the image borders.
+		/// </summary>
 		private void UpdateDrawnLine()
 		{
 			Vector2 startVector = LimitPointRayToImageBox(Start, End);
@@ -375,6 +451,9 @@ namespace PhotomatchWPF.ViewModel.Helper
 				EndEllipse.Center = end;
 		}
 
+		/// <summary>
+		/// Return "point" if it is inside image borders or the point closest to it on a ray from "rayOrigin" to "point".
+		/// </summary>
 		private Vector2 LimitPointRayToImageBox(Vector2 point, Vector2 rayOrigin)
 		{
 			double limit = 5;
@@ -419,8 +498,14 @@ namespace PhotomatchWPF.ViewModel.Helper
 		}
 	}
 
+	/// <summary>
+	/// Class implementing a visualization of an ellipse in WPF.
+	/// </summary>
 	public class WpfEllipse : WpfGuiElement, IEllipse, IScalable
 	{
+		/// <summary>
+		/// Geometry for the ellipse.
+		/// </summary>
 		public EllipseGeometry Ellipse { get; private set; }
 
 		private double Radius;
@@ -445,7 +530,16 @@ namespace PhotomatchWPF.ViewModel.Helper
 			}
 		}
 
+		/// <summary>
+		/// Contains the result of IsInside call after last position changed.
+		/// In other words, whether the ellipse is inside image borders.
+		/// </summary>
 		private bool WasInside_ = false;
+
+		/// <summary>
+		/// Controls whether the ellipse is displayed (only if the ellipse is inside image borders, 
+		/// if it is not, it is not displayed).
+		/// </summary>
 		public override bool Visible
 		{
 			get => Visible_;
@@ -470,6 +564,9 @@ namespace PhotomatchWPF.ViewModel.Helper
 			}
 		}
 
+		/// <summary>
+		/// True if ellipse is currently inside image borders.
+		/// </summary>
 		private bool IsInside
 		{
 			get
@@ -482,6 +579,14 @@ namespace PhotomatchWPF.ViewModel.Helper
 			}
 		}
 
+
+		/// <summary>
+		/// Create an ellipse.
+		/// </summary>
+		/// <param name="position">Ellipse position.</param>
+		/// <param name="radius">Radius of the ellipse.</param>
+		/// <param name="imageViewModel">Reference to ImageViewModel, so that the ellipse can be displayed.</param>
+		/// <param name="color">Chosen color of the ellipse.</param>
 		public WpfEllipse(Point position, double radius, ImageViewModel imageViewModel, ApplicationColor color)
 		{
 			Radius = radius;
@@ -495,6 +600,10 @@ namespace PhotomatchWPF.ViewModel.Helper
 				AddNewColor(Color);
 		}
 
+
+		/// <summary>
+		/// Scale the ellipse (radius).
+		/// </summary>
 		public void SetNewScale(double scale)
 		{
 			Ellipse.RadiusX = Radius / scale;

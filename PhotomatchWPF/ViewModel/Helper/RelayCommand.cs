@@ -5,6 +5,9 @@ using System.Windows.Input;
 
 namespace PhotomatchWPF.ViewModel.Helper
 {
+	/// <summary>
+	/// Class for passing actions using databinding.
+	/// </summary>
 	public class RelayCommand : ICommand
 	{
 		private readonly Action<object> Action;

@@ -15,6 +15,9 @@ using PhotomatchWPF.ViewModel.Helper;
 namespace PhotomatchWPF.ViewModel
 {
 
+	/// <summary>
+	/// Represents the window with a 3d model at the View layer.
+	/// </summary>
 	class ModelViewModel : BaseViewModel, IKeyboardHandler, IMouseHandler, IModelView
 	{
 		private static readonly double CameraZOffset = 1;
@@ -24,7 +27,9 @@ namespace PhotomatchWPF.ViewModel
 			get => this;
 		}
 
-		private Point3D CameraPosition_ = new Point3D(0, 0, 10);
+		/// <summary>
+		/// Position of the camera.
+		/// </summary>
 		public Point3D CameraPosition
 		{
 			get => CameraPosition_;
@@ -34,8 +39,11 @@ namespace PhotomatchWPF.ViewModel
 				OnPropertyChanged(nameof(CameraPosition));
 			}
 		}
+		private Point3D CameraPosition_ = new Point3D(0, 0, 10);
 
-		private Vector3 ModelRotate_;
+		/// <summary>
+		/// Rotation of the model.
+		/// </summary>
 		public Vector3 ModelRotate
 		{
 			get => ModelRotate_;
@@ -44,10 +52,12 @@ namespace PhotomatchWPF.ViewModel
 				ModelRotate_ = value;
 				OnPropertyChanged(nameof(ModelRotate));
 			}
-
 		}
+		private Vector3 ModelRotate_;
 
-		private Vector3 Translate_;
+		/// <summary>
+		/// Translation of the model.
+		/// </summary>
 		public Vector3 Translate
 		{
 			get => Translate_;
@@ -56,12 +66,19 @@ namespace PhotomatchWPF.ViewModel
 				Translate_ = value;
 				OnPropertyChanged(nameof(Translate));
 			}
-
 		}
+		private Vector3 Translate_;
 
 		public ICommand ViewportLoaded { get; }
 
+		/// <summary>
+		/// Front faces (green).
+		/// </summary>
 		public MeshGeometry3D MeshGeometryFront { get; } = new MeshGeometry3D();
+
+		/// <summary>
+		/// Back faces (red).
+		/// </summary>
 		public MeshGeometry3D MeshGeometryBack { get; } = new MeshGeometry3D();
 
 		private Model Model;
@@ -76,6 +93,7 @@ namespace PhotomatchWPF.ViewModel
 
 		private Vector2 DraggingOffset = Vector2.InvalidInstance;
 
+		/// <param name="model">Model to be displayed.</param>
 		public ModelViewModel(Model model)
 		{
 			SetModel(model);
@@ -101,6 +119,10 @@ namespace PhotomatchWPF.ViewModel
 			Viewport = viewport;
 		}
 
+		/// <summary>
+		/// Set model, register for change event, recalculate.
+		/// </summary>
+		/// <param name="model"></param>
 		private void SetModel(Model model)
 		{
 			Model = model;
@@ -110,8 +132,14 @@ namespace PhotomatchWPF.ViewModel
 			Recalculate();
 		}
 
+		/// <summary>
+		/// Recalculate.
+		/// </summary>
 		private void ModelChanged() => Recalculate();
 
+		/// <summary>
+		/// Clear all data and rebuild faces from model and translation as average of vertices.
+		/// </summary>
 		private void Recalculate()
 		{
 			VertexNormalsFront.Clear();
@@ -131,6 +159,9 @@ namespace PhotomatchWPF.ViewModel
 			Translate = -vertexPositionsSum / Model.Vertices.Count;
 		}
 
+		/// <summary>
+		/// Create triangles for specified face.
+		/// </summary>
 		private void AddFace(Face face)
 		{
 			foreach (var triangle in face.Triangulated)
@@ -142,6 +173,9 @@ namespace PhotomatchWPF.ViewModel
 			}
 		}
 
+		/// <summary>
+		/// Add vertex normals, positions and indices for a triangle.
+		/// </summary>
 		private void AddTriangle(Triangle triangle, Vector3 normal, bool front)
 		{
 			Vector3DCollection vertexNormals = front ? VertexNormalsFront : VertexNormalsBack;
@@ -169,23 +203,35 @@ namespace PhotomatchWPF.ViewModel
 
 		public void KeyDown(object sender, KeyEventArgs e) { }
 
+		/// <summary>
+		/// Get mouse position as Vector2 from MouseEventArgs.
+		/// </summary>
 		private Vector2 GetMousePosition(MouseEventArgs e)
 		{
 			return e.GetPosition(Viewport).AsVector2(); ;
 		}
 
+		/// <summary>
+		/// Start rotation of the model.
+		/// </summary>
 		public void MouseDown(object sender, MouseButtonEventArgs e)
 		{
 			if (e.ChangedButton == System.Windows.Input.MouseButton.Left)
 				DraggingOffset = GetMousePosition(e);
 		}
 
+		/// <summary>
+		/// End rotation of the model.
+		/// </summary>
 		public void MouseUp(object sender, MouseButtonEventArgs e)
 		{
 			if (e.ChangedButton == System.Windows.Input.MouseButton.Left)
 				DraggingOffset = Vector2.InvalidInstance;
 		}
 
+		/// <summary>
+		/// Handle rotation of the model. Clamp rotation up/down to +-90 degrees.
+		/// </summary>
 		public void MouseMove(object sender, MouseEventArgs e)
 		{
 			if (DraggingOffset.Valid)
@@ -201,11 +247,17 @@ namespace PhotomatchWPF.ViewModel
 
 		public void MouseLeave(object sender, MouseEventArgs e) { }
 
+		/// <summary>
+		/// Move camera towards/away from the model.
+		/// </summary>
 		public void MouseWheel(object sender, MouseWheelEventArgs e)
 		{
 			CameraPosition = new Point3D(0, 0, Math.Pow(CameraPosition.Z + CameraZOffset, 1 - e.Delta / 120.0 / 10) - CameraZOffset);
 		}
 
+		/// <summary>
+		/// Update displayed model to model passed by parameter.
+		/// </summary>
 		public void UpdateModel(Model model)
 		{
 			Model.ModelChangedEvent -= ModelChanged;

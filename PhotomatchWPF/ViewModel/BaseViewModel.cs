@@ -5,9 +5,14 @@ using System.Text;
 
 namespace PhotomatchWPF.ViewModel
 {
+	/// <summary>
+	/// Class representing a basic window with properties and interface for AvalonDock.
+	/// </summary>
 	public class BaseViewModel : INotifyPropertyChanged
 	{
-		private bool CanClose_;
+		/// <summary>
+		/// Can the window be closed.
+		/// </summary>
 		public bool CanClose
 		{
 			get => CanClose_;
@@ -20,8 +25,11 @@ namespace PhotomatchWPF.ViewModel
 				}
 			}
 		}
+		private bool CanClose_;
 
-		private string Title_;
+		/// <summary>
+		/// Title of the window.
+		/// </summary>
 		public string Title
 		{
 			get => Title_;
@@ -34,8 +42,11 @@ namespace PhotomatchWPF.ViewModel
 				}
 			}
 		}
+		private string Title_;
 
-		private bool _IsClosed;
+		/// <summary>
+		/// Is the window closed.
+		/// </summary>
 		public bool IsClosed
 		{
 			get => _IsClosed;
@@ -48,9 +59,17 @@ namespace PhotomatchWPF.ViewModel
 				}
 			}
 		}
+		private bool _IsClosed;
 
+		/// <summary>
+		/// Event that should be invoked on any change of a property that should be reflected in the AvalonDock View layer.
+		/// </summary>
 		public event PropertyChangedEventHandler PropertyChanged;
 
+		/// <summary>
+		/// Method for easier invocation of PropertyChanged event.
+		/// </summary>
+		/// <param name="propertyName">Name of the changed property.</param>
 		protected virtual void OnPropertyChanged(string propertyName)
 		{
 			PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));

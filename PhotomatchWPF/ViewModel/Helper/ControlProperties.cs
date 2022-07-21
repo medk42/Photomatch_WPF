@@ -6,8 +6,15 @@ using System.Windows.Input;
 
 namespace PhotomatchWPF.ViewModel.Helper
 {
+
+	/// <summary>
+	/// Helper properties to pass more data through databinding with AvalonDock.
+	/// </summary>
 	public static class ControlProperties
 	{
+		/// <summary>
+		/// Property to get mouse events.
+		/// </summary>
 		private static readonly DependencyProperty MouseHandlerProperty = DependencyProperty.RegisterAttached(
 			"MouseHandler",
 			typeof(IMouseHandler),
@@ -15,6 +22,9 @@ namespace PhotomatchWPF.ViewModel.Helper
 			new PropertyMetadata(MouseHandlerPropertyChangedCallBack)
 		);
 
+		/// <summary>
+		/// Property to get SizeChanged notification.
+		/// </summary>
 		private static readonly DependencyProperty SizeChangedProperty = DependencyProperty.RegisterAttached(
 			"SizeChanged",
 			typeof(RelayCommand),
@@ -22,6 +32,9 @@ namespace PhotomatchWPF.ViewModel.Helper
 			new PropertyMetadata(SizeChangedPropertyChangedCallBack)
 		);
 
+		/// <summary>
+		/// Property to get Loaded notification.
+		/// </summary>
 		private static readonly DependencyProperty LoadedProperty = DependencyProperty.RegisterAttached(
 			"Loaded",
 			typeof(RelayCommand),
