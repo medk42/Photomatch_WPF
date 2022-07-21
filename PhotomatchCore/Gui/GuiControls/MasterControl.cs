@@ -12,8 +12,15 @@ using PhotomatchCore.Logic.Perspective;
 
 namespace PhotomatchCore.Gui.GuiControls
 {
+
+	/// <summary>
+	/// Class representing the main window of the application on the ViewModel layer.
+	/// </summary>
 	public class MasterControl : IMasterControlActions
 	{
+		/// <summary>
+		/// Enum containing the 3 project states.
+		/// </summary>
 		private enum ProjectState { None, NewProject, NamedProject }
 
 		private static readonly ulong ProjectFileChecksum = 0x54_07_02_47_23_43_94_42;
@@ -34,7 +41,9 @@ namespace PhotomatchCore.Gui.GuiControls
 		private List<byte[]> Future = new List<byte[]>();
 		private bool HoldingControl = false;
 
-		private bool Dirty_;
+		/// <summary>
+		/// true if the project has unsaved changes, updates the star at the end of project name on set
+		/// </summary>
 		private bool Dirty
 		{
 			get => Dirty_;
@@ -47,10 +56,13 @@ namespace PhotomatchCore.Gui.GuiControls
 				}
 			}
 		}
+		private bool Dirty_;
 
 		private bool HistoryDirtyEnabled { get; set; } = true;
 
-		private bool HistoryDirty_;
+		/// <summary>
+		/// true if the project changed since last undo check, false otherwise
+		/// </summary>
 		private bool HistoryDirty
 		{
 			get => HistoryDirty_;
@@ -66,8 +78,11 @@ namespace PhotomatchCore.Gui.GuiControls
 					Future.Clear();
 			}
 		}
+		private bool HistoryDirty_;
 
-		private string ProjectName_;
+		/// <summary>
+		/// project name, displayed on set
+		/// </summary>
 		private string ProjectName
 		{
 			get => ProjectName_;
@@ -80,7 +95,12 @@ namespace PhotomatchCore.Gui.GuiControls
 				}
 			}
 		}
+		private string ProjectName_;
 
+		/// <summary>
+		/// Create the main window on the ViewModel layer.
+		/// </summary>
+		/// <param name="gui">Reference to the main window on the View layer.</param>
 		public MasterControl(IMasterView gui)
 		{
 			this.MasterView = gui;
@@ -104,6 +124,9 @@ namespace PhotomatchCore.Gui.GuiControls
 			AddHistory();
 		}
 
+		/// <summary>
+		/// Give the user an option to save the project, if it has unsaved changes.
+		/// </summary>
 		private void CheckDirty()
 		{
 			if (Dirty)
@@ -121,6 +144,9 @@ namespace PhotomatchCore.Gui.GuiControls
 			AddHistory();
 		}
 
+		/// <summary>
+		/// Get a file path from the user, load the image, and create new window for the image. Notify user on success/failure.
+		/// </summary>
 		public void LoadImage_Pressed()
 		{
 			string filePath = MasterView.GetImageFilePath();
@@ -178,12 +204,18 @@ namespace PhotomatchCore.Gui.GuiControls
 			}
 		}
 
+		/// <summary>
+		/// Add potentially newly opened windows to the last undo step.
+		/// </summary>
 		private void UpdateHistoryWithNewWindow()
 		{
 			History.RemoveAt(History.Count - 1);
 			AddHistory();
 		}
 
+		/// <summary>
+		/// Save the project if there is anything to be saved. Get a file path from user for unnamed projects.
+		/// </summary>
 		public void SaveProject_Pressed()
 		{
 			switch (State)
@@ -204,6 +236,9 @@ namespace PhotomatchCore.Gui.GuiControls
 			}
 		}
 
+		/// <summary>
+		/// Save the project if there is anything to be saved. Always get a file path from user.
+		/// </summary>
 		public void SaveProjectAs_Pressed()
 		{
 			switch (State)
@@ -231,6 +266,10 @@ namespace PhotomatchCore.Gui.GuiControls
 			}
 		}
 
+		/// <summary>
+		/// Attempt to save the project to a specified file path. Notify user on success/failure.
+		/// </summary>
+		/// <returns>true on success</returns>
 		private bool SaveProject(string fileName)
 		{
 			try
@@ -271,6 +310,9 @@ namespace PhotomatchCore.Gui.GuiControls
 			return true;
 		}
 
+		/// <summary>
+		/// Get a file path from the user and load saved project. Notify user on success/failure.
+		/// </summary>
 		public void LoadProject_Pressed()
 		{
 			CheckDirty();
@@ -344,6 +386,9 @@ namespace PhotomatchCore.Gui.GuiControls
 			}
 		}
 
+		/// <summary>
+		/// Export the project if there is anything to be exported. Get a file path from user.
+		/// </summary>
 		public void ExportModel_Pressed()
 		{
 			if (State == ProjectState.None)
@@ -361,11 +406,17 @@ namespace PhotomatchCore.Gui.GuiControls
 			Exporter.Export(Model, filePath, Logger, perspectives);
 		}
 
+		/// <summary>
+		/// Prompt user to save if there are unsaved changes.
+		/// </summary>
 		public void Exit_Pressed()
 		{
 			CheckDirty();
 		}
 
+		/// <summary>
+		/// Partly deserialize project from byte array by updating existing objects.
+		/// </summary>
 		private void DeserializeUndoRedo(byte[] data)
 		{
 			HistoryDirtyEnabled = false;
@@ -424,6 +475,12 @@ namespace PhotomatchCore.Gui.GuiControls
 			}
 		}
 
+		/// <summary>
+		/// Checks if the project has any changes from the last saved state.
+		/// If it does, it adds them onto undo list.
+		/// To be called after a whole operation is finished (for example on
+		/// mouse up after dragging a point)
+		/// </summary>
 		public void ImageEndOperation()
 		{
 			if (HistoryDirty)
@@ -432,6 +489,9 @@ namespace PhotomatchCore.Gui.GuiControls
 			}
 		}
 
+		/// <summary>
+		/// Listen for Ctrl+S, Ctrl+Z and Ctrl+Y shortcuts.
+		/// </summary>
 		public void KeyDown(KeyboardKey key)
 		{
 			switch (key)
@@ -454,6 +514,9 @@ namespace PhotomatchCore.Gui.GuiControls
 			}
 		}
 
+		/// <summary>
+		/// Listen for Ctrl+S, Ctrl+Z and Ctrl+Y shortcuts.
+		/// </summary>
 		public void KeyUp(KeyboardKey key)
 		{
 			switch (key)
@@ -464,6 +527,10 @@ namespace PhotomatchCore.Gui.GuiControls
 			}
 		}
 
+		/// <summary>
+		/// Partly serialize project state (without images) and add to undo list,
+		/// if the serialized data is different from last entry.
+		/// </summary>
 		private void AddHistory()
 		{
 			byte[] data;
@@ -506,6 +573,9 @@ namespace PhotomatchCore.Gui.GuiControls
 			HistoryDirty = false;
 		}
 
+		/// <summary>
+		/// Display selected design tool, update image windows.
+		/// </summary>
 		public void DesignTool_Changed(DesignTool newDesignTool)
 		{
 			if (this.DesignTool != newDesignTool)
@@ -519,6 +589,9 @@ namespace PhotomatchCore.Gui.GuiControls
 			}
 		}
 
+		/// <summary>
+		/// Display selected model creation tool, update image windows.
+		/// </summary>
 		public void ModelCreationTool_Changed(ModelCreationTool newModelCreationTool)
 		{
 			if (this.ModelCreationTool != newModelCreationTool)
@@ -530,6 +603,9 @@ namespace PhotomatchCore.Gui.GuiControls
 			}
 		}
 
+		/// <summary>
+		/// Display selected camera model calibration tool, update image windows.
+		/// </summary>
 		public void CameraModelCalibrationTool_Changed(CameraModelCalibrationTool newCameraModelCalibrationTool)
 		{
 			if (this.CameraModelCalibrationTool != newCameraModelCalibrationTool)
@@ -541,6 +617,9 @@ namespace PhotomatchCore.Gui.GuiControls
 			}
 		}
 
+		/// <summary>
+		/// Reset the project/application to a default state.
+		/// </summary>
 		public void Reset()
 		{
 			foreach (ImageWindow window in Windows)
@@ -570,6 +649,9 @@ namespace PhotomatchCore.Gui.GuiControls
 			Future.Clear();
 		}
 
+		/// <summary>
+		/// To be called when a window is closed.
+		/// </summary>
 		public void WindowRemoved(ImageWindow imageWindow)
 		{
 			Windows.Remove(imageWindow);
@@ -580,6 +662,9 @@ namespace PhotomatchCore.Gui.GuiControls
 			AddHistory();
 		}
 
+		/// <summary>
+		/// Display the project name in View (with * at the end if the project has unsaved changes).
+		/// </summary>
 		private void DisplayProjectName()
 		{
 			MasterView.DisplayProjectName(Dirty ? $"{ProjectName}*" : ProjectName);
