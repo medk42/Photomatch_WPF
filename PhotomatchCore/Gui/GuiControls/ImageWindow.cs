@@ -10,6 +10,9 @@ using PhotomatchCore.Gui.GuiControls.ToolHandlers;
 
 namespace PhotomatchCore.Gui.GuiControls
 {
+	/// <summary>
+	/// Class representing the image window on the ViewModel layer.
+	/// </summary>
 	public class ImageWindow : IImageWindowActions
 	{
 		public PerspectiveData Perspective;
