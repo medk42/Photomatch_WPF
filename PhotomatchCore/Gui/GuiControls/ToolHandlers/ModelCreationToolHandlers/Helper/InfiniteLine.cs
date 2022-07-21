@@ -38,12 +38,18 @@ namespace PhotomatchCore.Gui.GuiControls.ToolHandlers.ModelCreationToolHandlers.
 			}
 		}
 
+		/// <summary>
+		/// Set the color of the line.
+		/// </summary>
 		public ApplicationColor Color
 		{
 			get => GuiLine.Color;
 			set => GuiLine.Color = value;
 		}
 
+		/// <summary>
+		/// Line is visible if true.
+		/// </summary>
 		public bool Visible
 		{
 			get => GuiLine.Visible;
@@ -64,6 +70,9 @@ namespace PhotomatchCore.Gui.GuiControls.ToolHandlers.ModelCreationToolHandlers.
 			End = end;
 		}
 
+		/// <summary>
+		/// Dispose of GuiLine.
+		/// </summary>
 		public void Dispose() => GuiLine.Dispose();
 
 		/// <summary>

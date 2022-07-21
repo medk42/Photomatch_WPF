@@ -8,6 +8,10 @@ using PhotomatchCore.Logic.Model;
 
 namespace PhotomatchCore.Gui.GuiControls.ToolHandlers.ModelCreationToolHandlers
 {
+
+	/// <summary>
+	/// Class for handling vertex/edge/face deletion.
+	/// </summary>
 	public class ModelCreationDeleteHandler : BaseModelCreationToolHandler
 	{
 		public override ModelCreationTool ToolType => ModelCreationTool.Delete;
@@ -17,6 +21,7 @@ namespace PhotomatchCore.Gui.GuiControls.ToolHandlers.ModelCreationToolHandlers
 		private ILine HoverEdge = null;
 		private IPolygon HoverFace = null;
 
+		/// <param name="modelVisualization">Handler displays the model.</param>
 		public ModelCreationDeleteHandler(ModelVisualization modelVisualization)
 		{
 			ModelVisualization = modelVisualization;
@@ -25,6 +30,10 @@ namespace PhotomatchCore.Gui.GuiControls.ToolHandlers.ModelCreationToolHandlers
 			SetActive(Active);
 		}
 
+
+		/// <summary>
+		/// Reset the color of selected edge.
+		/// </summary>
 		private void ResetHoverEdge()
 		{
 			if (HoverEdge != null)
@@ -34,6 +43,9 @@ namespace PhotomatchCore.Gui.GuiControls.ToolHandlers.ModelCreationToolHandlers
 			}
 		}
 
+		/// <summary>
+		/// Reset the color of selected face.
+		/// </summary>
 		private void ResetHoverFace()
 		{
 			if (HoverFace != null)
@@ -43,6 +55,10 @@ namespace PhotomatchCore.Gui.GuiControls.ToolHandlers.ModelCreationToolHandlers
 			}
 		}
 
+		/// <summary>
+		/// Visualize vertex/edge/face under mouse. Remember selected edge/face so we
+		/// can change the color back later.
+		/// </summary>
 		public override void MouseMove(Vector2 mouseCoord)
 		{
 			if (Active)
@@ -84,6 +100,9 @@ namespace PhotomatchCore.Gui.GuiControls.ToolHandlers.ModelCreationToolHandlers
 			}
 		}
 
+		/// <summary>
+		/// Delete the vertex/edge/face under mouse on left click.
+		/// </summary>
 		public override void MouseDown(Vector2 mouseCoord, MouseButton button)
 		{
 			if (Active)

@@ -8,6 +8,10 @@ using PhotomatchCore.Logic.Perspective;
 
 namespace PhotomatchCore.Gui.GuiControls.ToolHandlers.ModelCreationToolHandlers
 {
+
+	/// <summary>
+	/// Class for handling the inversion of faces.
+	/// </summary>
 	class ModelCreationFaceNormalsHandler : BaseModelCreationToolHandler
 	{
 		private readonly static double FacePointEllipseRadius = 3;
@@ -25,6 +29,10 @@ namespace PhotomatchCore.Gui.GuiControls.ToolHandlers.ModelCreationToolHandlers
 		private Face SelectedFace;
 		private ILine SelectedLine;
 
+		/// <param name="modelVisualization">Handler displays the model.</param>
+		/// <param name="model">Handler is generating normal lines for all faces.</param>
+		/// <param name="window">Handler is displaying normal lines for all faces.</param>
+		/// <param name="perspective">Handler is generating normal lines for all faces using WorldToScreen.</param>
 		public ModelCreationFaceNormalsHandler(ModelVisualization modelVisualization, Model model, IImageView window, PerspectiveData perspective)
 		{
 			ModelVisualization = modelVisualization;
@@ -35,6 +43,11 @@ namespace PhotomatchCore.Gui.GuiControls.ToolHandlers.ModelCreationToolHandlers
 			Model.ModelChangedEvent += ModelChanged;
 		}
 
+		/// <summary>
+		/// If mouse is on a face, display red/green colored polygon above the face. 
+		/// Color indicates the direction of the face, green means on the outside of
+		/// the model. Highlight the corresponding normal line.
+		/// </summary>
 		public override void MouseMove(Vector2 mouseCoord)
 		{
 			if (Active)
@@ -80,6 +93,9 @@ namespace PhotomatchCore.Gui.GuiControls.ToolHandlers.ModelCreationToolHandlers
 			}
 		}
 
+		/// <summary>
+		/// Reset the color of the highlighted normal line.
+		/// </summary>
 		private void ResetSelectedLine()
 		{
 			if (SelectedLine != null)
@@ -89,6 +105,10 @@ namespace PhotomatchCore.Gui.GuiControls.ToolHandlers.ModelCreationToolHandlers
 			}
 		}
 
+		/// <summary>
+		/// If mouse is on face on left click, reverse the face, change the color of its polygon
+		/// based on the new orientation and update the corresponding normal line.
+		/// </summary>
 		public override void MouseDown(Vector2 mouseCoord, MouseButton button)
 		{
 			if (Active)
@@ -118,6 +138,9 @@ namespace PhotomatchCore.Gui.GuiControls.ToolHandlers.ModelCreationToolHandlers
 			}
 		}
 
+		/// <summary>
+		/// Generate normal lines for all faces.
+		/// </summary>
 		private void GenerateNormals()
 		{
 			foreach (Face face in Model.Faces)
@@ -129,6 +152,9 @@ namespace PhotomatchCore.Gui.GuiControls.ToolHandlers.ModelCreationToolHandlers
 			}
 		}
 
+		/// <summary>
+		/// Dispose of all normal lines.
+		/// </summary>
 		private void DisposeNormals()
 		{
 			foreach (var lineTuple in NormalLines)
@@ -157,6 +183,9 @@ namespace PhotomatchCore.Gui.GuiControls.ToolHandlers.ModelCreationToolHandlers
 			}
 		}
 
+		/// <summary>
+		/// Update the direction of all normal lines on model change.
+		/// </summary>
 		private void ModelChanged()
 		{
 			if (NormalLines == null)

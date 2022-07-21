@@ -7,9 +7,15 @@ using PhotomatchCore.Logic.Model;
 
 namespace PhotomatchCore.Gui.GuiControls.ToolHandlers.ModelCreationToolHandlers
 {
+
+	/// <summary>
+	/// Abstract class defining the methods of model creation tool handlers.
+	/// </summary>
 	public abstract class BaseModelCreationToolHandler
 	{
-		private bool Active_;
+		/// <summary>
+		/// Get/set true if the handler is currently being used and is displayed, false otherwise.
+		/// </summary>
 		public bool Active
 		{
 			get => Active_;
@@ -22,9 +28,16 @@ namespace PhotomatchCore.Gui.GuiControls.ToolHandlers.ModelCreationToolHandlers
 				}
 			}
 		}
+		private bool Active_;
 
+		/// <summary>
+		/// IMPORTANT: specifies which tool is the handler implementing.
+		/// </summary>
 		public abstract ModelCreationTool ToolType { get; }
 
+		/// <summary>
+		/// Dispose of all resources held by the handler.
+		/// </summary>
 		public virtual void Dispose() { }
 
 		public virtual void KeyDown(KeyboardKey key) { }
@@ -39,6 +52,9 @@ namespace PhotomatchCore.Gui.GuiControls.ToolHandlers.ModelCreationToolHandlers
 
 		internal virtual void SetActive(bool active) { }
 
+		/// <summary>
+		/// Update model to model passed by parameter.
+		/// </summary>
 		public virtual void UpdateModel(Model model) { }
 	}
 }

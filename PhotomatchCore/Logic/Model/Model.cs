@@ -142,7 +142,7 @@ namespace PhotomatchCore.Logic.Model
 		/// <summary>
 		/// Add face with specified vertices.
 		/// </summary>
-		/// <returns>Added face.</returns>
+		/// <returns>Added face or null if the face could not be created.</returns>
 		public Face AddFace(List<Vertex> vertices)
 		{
 			Face newFace;

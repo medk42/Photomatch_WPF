@@ -8,6 +8,9 @@ using PhotomatchCore.Logic.Model;
 
 namespace PhotomatchCore.Gui.GuiControls.ToolHandlers.ModelCreationToolHandlers
 {
+	/// <summary>
+	/// Class for handling complex face creation.
+	/// </summary>
 	public class ModelCreationComplexFaceHandler : BaseModelCreationToolHandler
 	{
 		public override ModelCreationTool ToolType => ModelCreationTool.ComplexFace;
@@ -20,6 +23,10 @@ namespace PhotomatchCore.Gui.GuiControls.ToolHandlers.ModelCreationToolHandlers
 		private List<ILine> Lines = new List<ILine>();
 		private List<Vertex> Vertices = new List<Vertex>();
 
+		/// <param name="modelVisualization">Handler displays the model.</param>
+		/// <param name="model">Handler is creating faces.</param>
+		/// <param name="window">Handler is displaying the face to be created.</param>
+		/// <param name="logger">Handler sends warnings to user.</param>
 		public ModelCreationComplexFaceHandler(ModelVisualization modelVisualization, Model model, IImageView window, ILogger logger)
 		{
 			ModelVisualization = modelVisualization;
@@ -31,6 +38,9 @@ namespace PhotomatchCore.Gui.GuiControls.ToolHandlers.ModelCreationToolHandlers
 			SetActive(Active);
 		}
 
+		/// <summary>
+		/// Return true if the face being created has at least 3 vertices, send warning to user and return false if not.
+		/// </summary>
 		private bool CheckCount()
 		{
 			if (Vertices.Count < 3)
@@ -42,6 +52,10 @@ namespace PhotomatchCore.Gui.GuiControls.ToolHandlers.ModelCreationToolHandlers
 			return true;
 		}
 
+		/// <summary>
+		/// Return true if the edges of the face being created would cross after adding vertex at specified position into the face, false otherwise.
+		/// Edges are only allowed to cross if they share one or both endpoints.
+		/// </summary>
 		private bool IsLineCross(Vector2 position)
 		{
 			if (Vertices.Count <= 2)
@@ -60,6 +74,9 @@ namespace PhotomatchCore.Gui.GuiControls.ToolHandlers.ModelCreationToolHandlers
 			return false;
 		}
 
+		/// <summary>
+		/// Same as IsLineCross. Send warning to the user if the edges cross.
+		/// </summary>
 		private bool CheckLineCross(Vector2 position)
 		{
 			bool lineCross = IsLineCross(position);
@@ -69,6 +86,9 @@ namespace PhotomatchCore.Gui.GuiControls.ToolHandlers.ModelCreationToolHandlers
 			return !lineCross;
 		}
 
+		/// <summary>
+		/// Return true if specified vertex lies on the same plane as the face being created, false otherwise.
+		/// </summary>
 		private bool IsNormalValid(Vertex vertex)
 		{
 			if (Vertices.Count >= 3)
@@ -85,6 +105,9 @@ namespace PhotomatchCore.Gui.GuiControls.ToolHandlers.ModelCreationToolHandlers
 			return true;
 		}
 
+		/// <summary>
+		/// Same as IsNormalValid. Send warning to the user, if the vertex does not lie on the same plane.
+		/// </summary>
 		private bool CheckNormal(Vertex vertex)
 		{
 			bool valid = IsNormalValid(vertex);
@@ -94,6 +117,10 @@ namespace PhotomatchCore.Gui.GuiControls.ToolHandlers.ModelCreationToolHandlers
 			return valid;
 		}
 
+		/// <summary>
+		/// Create face on left double click (after checking validity), remove last vertex from the face being created on right click,
+		/// add vertex under mouse to the face being created on left click (after checking validity).
+		/// </summary>
 		public override void MouseDown(Vector2 mouseCoord, MouseButton button)
 		{
 			if (Active)
@@ -156,6 +183,9 @@ namespace PhotomatchCore.Gui.GuiControls.ToolHandlers.ModelCreationToolHandlers
 			}
 		}
 
+		/// <summary>
+		/// Update visualization of face being created and ModelHoverEllipse.
+		/// </summary>
 		public override void MouseMove(Vector2 mouseCoord)
 		{
 			if (Active)
@@ -179,6 +209,9 @@ namespace PhotomatchCore.Gui.GuiControls.ToolHandlers.ModelCreationToolHandlers
 			}
 		}
 
+		/// <summary>
+		/// Cancel face creation by pressing ESC.
+		/// </summary>
 		public override void KeyDown(KeyboardKey key)
 		{
 			if (Active)
@@ -192,6 +225,9 @@ namespace PhotomatchCore.Gui.GuiControls.ToolHandlers.ModelCreationToolHandlers
 			}
 		}
 
+		/// <summary>
+		/// Destroy the face being created.
+		/// </summary>
 		private void Clear()
 		{
 			Vertices.Clear();

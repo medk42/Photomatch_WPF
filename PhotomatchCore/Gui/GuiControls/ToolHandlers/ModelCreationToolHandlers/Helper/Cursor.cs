@@ -6,12 +6,18 @@ using System.Text;
 
 namespace PhotomatchCore.Gui.GuiControls.ToolHandlers.ModelCreationToolHandlers.Helper
 {
+
+	/// <summary>
+	/// Class displaying a 3d cursor at specified point.
+	/// </summary>
 	public class Cursor
 	{
 		private ILine CursorXLine, CursorYLine, CursorZLine;
 		private PerspectiveData Perspective;
 
-		private bool Visible_ = false;
+		/// <summary>
+		/// Cursor is visible if set to true.
+		/// </summary>
 		public bool Visible
 		{
 			get => Visible_;
@@ -27,8 +33,11 @@ namespace PhotomatchCore.Gui.GuiControls.ToolHandlers.ModelCreationToolHandlers.
 				}
 			}
 		}
+		private bool Visible_ = false;
 
-		private Vector3 Position_;
+		/// <summary>
+		/// 3d point at which the cursor will be displayed.
+		/// </summary>
 		public Vector3 Position
 		{
 			get => Position_;
@@ -50,7 +59,13 @@ namespace PhotomatchCore.Gui.GuiControls.ToolHandlers.ModelCreationToolHandlers.
 				CursorZLine.End = endZ;
 			}
 		}
+		private Vector3 Position_;
 
+		/// <summary>
+		/// Create the 3d cursor from 3 InfiniteLine objects.
+		/// </summary>
+		/// <param name="window">Class is displaying the cursor.</param>
+		/// <param name="perspective">Class needs to convert from world to screen to display the cursor.</param>
 		public Cursor(IImageView window, PerspectiveData perspective)
 		{
 			CursorXLine = new InfiniteLine(window, new Vector2(), new Vector2(), ApplicationColor.XAxisDotted);
@@ -65,6 +80,9 @@ namespace PhotomatchCore.Gui.GuiControls.ToolHandlers.ModelCreationToolHandlers.
 			this.Perspective = perspective;
 		}
 
+		/// <summary>
+		/// Dispose of InfiniteLine objects.
+		/// </summary>
 		public void Dispose()
 		{
 			CursorXLine.Dispose();

@@ -8,6 +8,10 @@ using PhotomatchCore.Logic.Model;
 
 namespace PhotomatchCore.Gui.GuiControls.ToolHandlers.ModelCreationToolHandlers
 {
+
+	/// <summary>
+	/// Class for handling triangle face creation.
+	/// </summary>
 	public class ModelCreationTriangleFaceHandler : BaseModelCreationToolHandler
 	{
 		public override ModelCreationTool ToolType => ModelCreationTool.TriangleFace;
@@ -16,6 +20,9 @@ namespace PhotomatchCore.Gui.GuiControls.ToolHandlers.ModelCreationToolHandlers
 		private Model Model;
 		private IImageView Window;
 
+		/// <summary>
+		/// State representing how many vertices of a face are selected.
+		/// </summary>
 		private enum TriangleFaceState { None, FirstPoint, SecondPoint };
 		private Vertex first, second;
 		private TriangleFaceState State = TriangleFaceState.None;
@@ -24,6 +31,9 @@ namespace PhotomatchCore.Gui.GuiControls.ToolHandlers.ModelCreationToolHandlers
 		private ILine Line2;
 		private ILine Line3;
 
+		/// <param name="modelVisualization">Handler displays the model.</param>
+		/// <param name="model">Handler is creating faces.</param>
+		/// <param name="window">Handler is displaying the face to be created.</param>
 		public ModelCreationTriangleFaceHandler(ModelVisualization modelVisualization, Model model, IImageView window)
 		{
 			ModelVisualization = modelVisualization;
@@ -42,6 +52,10 @@ namespace PhotomatchCore.Gui.GuiControls.ToolHandlers.ModelCreationToolHandlers
 			SetActive(Active);
 		}
 
+		/// <summary>
+		/// If mouse is above a vertex on left click, add the vertex to the face being created (if it differs
+		/// from already selected vertices) and update visualization.
+		/// </summary>
 		public override void MouseDown(Vector2 mouseCoord, MouseButton button)
 		{
 			if (Active)
@@ -98,6 +112,9 @@ namespace PhotomatchCore.Gui.GuiControls.ToolHandlers.ModelCreationToolHandlers
 			}
 		}
 
+		/// <summary>
+		/// Update visualization.
+		/// </summary>
 		public override void MouseMove(Vector2 mouseCoord)
 		{
 			if (Active)
@@ -119,6 +136,9 @@ namespace PhotomatchCore.Gui.GuiControls.ToolHandlers.ModelCreationToolHandlers
 			}
 		}
 
+		/// <summary>
+		/// Cancel face creation by pressing ESC.
+		/// </summary>
 		public override void KeyDown(KeyboardKey key)
 		{
 			if (Active)
@@ -132,6 +152,9 @@ namespace PhotomatchCore.Gui.GuiControls.ToolHandlers.ModelCreationToolHandlers
 			}
 		}
 
+		/// <summary>
+		/// Cancel face creation.
+		/// </summary>
 		private void CancelFaceCreate()
 		{
 			State = TriangleFaceState.None;
