@@ -6,8 +6,14 @@ using PhotomatchCore.Utilities;
 
 namespace PhotomatchWPF.Helper
 {
+	/// <summary>
+	/// Class which implements logging with a pop-up window.
+	/// </summary>
 	public class WarningErrorGUILogger : ILogger
 	{
+		/// <summary>
+		/// Log Error and SevereWarning messages with a pop-up window.
+		/// </summary>
 		public void Log(string title, string message, LogType type)
 		{
 			switch (type)
@@ -30,11 +36,15 @@ namespace PhotomatchWPF.Helper
 		}
 	}
 
+	/// <summary>
+	/// Class which implements logging with a TextBlock.
+	/// </summary>
 	public class StatusStripLogger : ILogger
 	{
 		private readonly TextBlock StatusLabel = null;
 		private System.Windows.Threading.DispatcherTimer timer = new System.Windows.Threading.DispatcherTimer();
 
+		/// <param name="strip">TextBlock to show messages in.</param>
 		public StatusStripLogger(TextBlock strip)
 		{
 			StatusLabel = strip;
@@ -43,6 +53,10 @@ namespace PhotomatchWPF.Helper
 			timer.Tick += Timer_Tick;
 		}
 
+		/// <summary>
+		/// Log SevereWarning, Warning and Progress messages with red, bold font and Error and Info with black font.
+		/// Hide message after 5s (unless type is Progress).
+		/// </summary>
 		public void Log(string title, string message, LogType type)
 		{
 			StatusLabel.Foreground = Brushes.Black;

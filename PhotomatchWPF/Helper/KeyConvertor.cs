@@ -6,8 +6,14 @@ using System.Windows.Input;
 
 namespace PhotomatchWPF.Helper
 {
+	/// <summary>
+	/// Class for converting keys from WPF to the format used by PhotomatchCore.
+	/// </summary>
 	public static class KeyConvertor
 	{
+		/// <summary>
+		/// Convert System.Windows.Input.Key to PhotomatchCore.Gui.KeyboardKey.
+		/// </summary>
 		public static KeyboardKey? AsKeyboardKey(this Key key)
 		{
 			switch (key)

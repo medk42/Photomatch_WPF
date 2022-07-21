@@ -18,7 +18,8 @@ using PhotomatchWPF.ViewModel.Helper;
 namespace PhotomatchWPF
 {
 	/// <summary>
-	/// Interaction logic for MainWindow.xaml
+	/// Interaction logic for MainWindow.xaml.
+	/// Represents the main window of the application on the View layer.
 	/// </summary>
 	public partial class MainWindow : Window, IMasterView
 	{
@@ -49,6 +50,10 @@ namespace PhotomatchWPF
 			}
 		}
 
+		/// <summary>
+		/// Set up window, logging, AvalonDock.
+		/// Initialize the main window on the ViewModel layer (MasterControl).
+		/// </summary>
 		public MainWindow()
 		{
 			InitializeComponent();
@@ -73,6 +78,10 @@ namespace PhotomatchWPF
 			ZInvertedCheckbox.Unchecked += AnyInvertedCheckbox_Changed;
 		}
 
+		/// <summary>
+		/// If we are executing inside a helper thread, run Action on main thread.
+		/// Otherwise just run action.
+		/// </summary>
 		private void RunBackgroundChecked(Action action)
 		{
 			if (CurrentBackgroundWorker != null)
@@ -81,6 +90,9 @@ namespace PhotomatchWPF
 				action();
 		}
 
+		/// <summary>
+		/// Log a message on main thread.
+		/// </summary>
 		public void Log(string title, string message, LogType type)
 		{
 			RunBackgroundChecked(() => {
@@ -88,6 +100,9 @@ namespace PhotomatchWPF
 			});
 		}
 
+		/// <summary>
+		/// Enable/disable GUI of the window based on active.
+		/// </summary>
 		private void SetActive(bool active)
 		{
 			MainToolbar.IsEnabled = active;
@@ -95,6 +110,10 @@ namespace PhotomatchWPF
 			MainDockMgr.IsEnabled = active;
 		}
 
+		/// <summary>
+		/// Open a file dialog to select a file with specified filter.
+		/// </summary>
+		/// <returns>Path to the selected file or null if no file was selected.</returns>
 		private string GetFilePath(string filter)
 		{
 			OpenFileDialog openFileDialog = new OpenFileDialog
@@ -110,6 +129,10 @@ namespace PhotomatchWPF
 			return null;
 		}
 
+		/// <summary>
+		/// Open a file dialog to select path to save a file to with specified filter.
+		/// </summary>
+		/// <returns>New path or null if no path was selected.</returns>
 		private string SaveFilePath(string filter)
 		{
 			SaveFileDialog saveFileDialog = new SaveFileDialog
@@ -130,6 +153,9 @@ namespace PhotomatchWPF
 		public string GetLoadProjectFilePath() => GetFilePath(PhotomatcherProjectFileFilter);
 		public string GetModelExportFilePath() => SaveFilePath(ModelExportFileFilter);
 
+		/// <summary>
+		/// Create ImageViewModel window with a specified title which implements IImageView and return it (after adding it to AvalonDock).
+		/// </summary>
 		public IImageView CreateImageWindow(ImageWindow imageWindow, string title)
 		{
 			var window = new ImageViewModel(imageWindow, Logger, this) { Title = title };
@@ -140,6 +166,11 @@ namespace PhotomatchWPF
 			return window;
 		}
 
+		/// <summary>
+		/// Create ModelViewModel window which displays selected model and return it as IModelView (after adding it to AvalonDock).
+		/// </summary>
+		/// <param name="model"></param>
+		/// <returns></returns>
 		public IModelView CreateModelWindow(Model model)
 		{
 			ModelViewModel modelView = new ModelViewModel(model) { Title = "Model visualization", CanClose = false };
@@ -148,6 +179,9 @@ namespace PhotomatchWPF
 			return modelView;
 		}
 
+		/// <summary>
+		/// Change window title to "[APP_NAME] - [projectName]", run on main thread.
+		/// </summary>
 		public void DisplayProjectName(string projectName)
 		{
 			RunBackgroundChecked(() => {
@@ -174,6 +208,9 @@ namespace PhotomatchWPF
 		private void CalibrateOriginRadioButton_Checked(object sender, RoutedEventArgs e) => ActionListener?.CameraModelCalibrationTool_Changed(CameraModelCalibrationTool.CalibrateOrigin);
 		private void CalibrateScaleRadioButton_Checked(object sender, RoutedEventArgs e) => ActionListener?.CameraModelCalibrationTool_Changed(CameraModelCalibrationTool.CalibrateScale);
 
+		/// <summary>
+		/// Run action on a helper thread (which is set up so that it can run code on main thread by reporting it as progress).
+		/// </summary>
 		private void RunAtBackground(Action action)
 		{
 			CurrentBackgroundWorker = new BackgroundWorker() { WorkerReportsProgress = true };
@@ -193,6 +230,9 @@ namespace PhotomatchWPF
 			CurrentBackgroundWorker.RunWorkerAsync();
 		}
 
+		/// <summary>
+		/// Display calibration/inverted axis for the active window. Enable/disable toolbars based on visible windows.
+		/// </summary>
 		private void MainDockMgr_ActiveContentChanged(object sender, EventArgs e)
 		{
 			if (MainDockMgr.ActiveContent != null)
@@ -436,6 +476,9 @@ namespace PhotomatchWPF
 			}
 		}
 
+		/// <summary>
+		/// Pass KeyDown to ViewModel layer and to the active window.
+		/// </summary>
 		private void MyMainWindow_KeyDown(object sender, System.Windows.Input.KeyEventArgs e)
 		{
 			if (!PressedKeys.Contains(e.Key))
@@ -456,6 +499,9 @@ namespace PhotomatchWPF
 			}
 		}
 
+		/// <summary>
+		/// Pass KeyUp to ViewModel layer and to the active window.
+		/// </summary>
 		private void MyMainWindow_KeyUp(object sender, System.Windows.Input.KeyEventArgs e)
 		{
 			PressedKeys.Remove(e.Key);
@@ -473,6 +519,9 @@ namespace PhotomatchWPF
 			}
 		}
 
+		/// <summary>
+		/// Wait for helper thread to finish. Notify ViewModel of the close window request.
+		/// </summary>
 		private void MyMainWindow_Closing(object sender, CancelEventArgs e)
 		{
 			if (CurrentBackgroundWorker != null)
