@@ -31,6 +31,14 @@ namespace PhotomatchCore.Gui.GuiControls
 
 		private bool Initialized = false;
 
+		/// <summary>
+		/// Create the image window on the ViewModel layer.
+		/// </summary>
+		/// <param name="perspective">Camera calibration data for this window.</param>
+		/// <param name="gui">Reference to the main window on the View layer.</param>
+		/// <param name="control">Reference to the main window on the ViewModel layer.</param>
+		/// <param name="logger">Reference to a logger for sending messages to user.</param>
+		/// <param name="model">Reference to the shared model.</param>
 		public ImageWindow(PerspectiveData perspective, IMasterView gui, MasterControl control, ILogger logger, Model model, DesignTool currentDesignTool, ModelCreationTool currentModelCreationTool, CameraModelCalibrationTool currentCameraModelCalibrationTool)
 		{
 			this.Gui = gui;
@@ -54,6 +62,9 @@ namespace PhotomatchCore.Gui.GuiControls
 			this.Initialized = true;
 		}
 
+		/// <summary>
+		/// Pass notification to handlers.
+		/// </summary>
 		public void MouseMove(Vector2 mouseCoord)
 		{
 			CameraCalibrationHandler.MouseMove(mouseCoord);
@@ -61,6 +72,9 @@ namespace PhotomatchCore.Gui.GuiControls
 			CameraModelCalibrationHandler.MouseMove(mouseCoord);
 		}
 
+		/// <summary>
+		/// Pass notification to handlers.
+		/// </summary>
 		public void MouseDown(Vector2 mouseCoord, MouseButton button)
 		{
 			CameraCalibrationHandler.MouseDown(mouseCoord, button);
@@ -68,6 +82,9 @@ namespace PhotomatchCore.Gui.GuiControls
 			CameraModelCalibrationHandler.MouseDown(mouseCoord, button);
 		}
 
+		/// <summary>
+		/// Pass notification to handlers. Notify MasterControl that a whole operation has ended.
+		/// </summary>
 		public void MouseUp(Vector2 mouseCoord, MouseButton button)
 		{
 			CameraCalibrationHandler.MouseUp(mouseCoord, button);
@@ -77,16 +94,25 @@ namespace PhotomatchCore.Gui.GuiControls
 			Control.ImageEndOperation();
 		}
 
+		/// <summary>
+		/// Pass notification to handlers.
+		/// </summary>
 		public void KeyDown(KeyboardKey key)
 		{
 			ModelCreationHandler.KeyDown(key);
 		}
 
+		/// <summary>
+		/// Pass notification to handlers.
+		/// </summary>
 		public void KeyUp(KeyboardKey key)
 		{
 			ModelCreationHandler.KeyUp(key);
 		}
 
+		/// <summary>
+		/// Dispose of all resources held by the window.
+		/// </summary>
 		public void Dispose()
 		{
 			Perspective = null;
@@ -97,6 +123,9 @@ namespace PhotomatchCore.Gui.GuiControls
 			Window.DisposeAll();
 		}
 
+		/// <summary>
+		/// Pass notification to CameraCalibrationHandler. Notify MasterControl that a whole operation has ended.
+		/// </summary>
 		public void CalibrationAxes_Changed(CalibrationAxes calibrationAxes)
 		{
 			if (Initialized)
@@ -106,6 +135,9 @@ namespace PhotomatchCore.Gui.GuiControls
 			}
 		}
 
+		/// <summary>
+		/// Pass notification to CameraCalibrationHandler. Notify MasterControl that a whole operation has ended.
+		/// </summary>
 		public void InvertedAxes_Changed(InvertedAxes invertedAxes)
 		{
 			if (Initialized)
@@ -115,6 +147,9 @@ namespace PhotomatchCore.Gui.GuiControls
 			}
 		}
 
+		/// <summary>
+		/// Choose active handler based on design tool.
+		/// </summary>
 		public void DesignTool_Changed(DesignTool newDesignTool)
 		{
 			CurrentDesignTool = newDesignTool;
@@ -139,16 +174,25 @@ namespace PhotomatchCore.Gui.GuiControls
 			}
 		}
 
+		/// <summary>
+		/// Pass notification to ModelCreationHandler.
+		/// </summary>
 		public void ModelCreationTool_Changed(ModelCreationTool newModelCreationTool)
 		{
 			ModelCreationHandler.CreationTool_Changed(newModelCreationTool);
 		}
 
+		/// <summary>
+		/// Pass notification to CameraModelCalibrationHandler.
+		/// </summary>
 		public void CameraModelCalibrationTool_Changed(CameraModelCalibrationTool newCameraModelCalibrationTool)
 		{
 			CameraModelCalibrationHandler.CalibrationTool_Changed(newCameraModelCalibrationTool);
 		}
 
+		/// <summary>
+		/// Warn user about closing the window and proceed to close if user agrees.
+		/// </summary>
 		public void Close_Clicked()
 		{
 			string message = "Do you really want to close this image? All corresponding calibration data and undo history will be lost!";
@@ -159,6 +203,9 @@ namespace PhotomatchCore.Gui.GuiControls
 			}
 		}
 
+		/// <summary>
+		/// Pass notification to handlers.
+		/// </summary>
 		public void UpdateDisplayedGeometry()
 		{
 			ModelVisualization.UpdateDisplayedGeometry();
@@ -169,9 +216,11 @@ namespace PhotomatchCore.Gui.GuiControls
 			DesignTool_Changed(CurrentDesignTool);
 		}
 
+		/// <summary>
+		/// Update displayed model to model passed by parameter.
+		/// </summary>
 		public void UpdateModel(Model model)
 		{
-
 			ModelVisualization.UpdateModel(model);
 			CameraModelCalibrationHandler.UpdateModel(model);
 			ModelCreationHandler.UpdateModel(model);
