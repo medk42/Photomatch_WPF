@@ -9,9 +9,14 @@ using PhotomatchCore.Gui.GuiControls.ToolHandlers.ModelCreationToolHandlers;
 
 namespace PhotomatchCore.Gui.GuiControls.ToolHandlers
 {
+	/// <summary>
+	/// Class for handling model creation.
+	/// </summary>
 	public class ModelCreationHandler
 	{
-		private bool Active_;
+		/// <summary>
+		/// Get/set true if the handler is currently being used and is displayed, false otherwise.
+		/// </summary>
 		public bool Active
 		{
 			get => Active_;
@@ -24,6 +29,7 @@ namespace PhotomatchCore.Gui.GuiControls.ToolHandlers
 				}
 			}
 		}
+		private bool Active_;
 
 		private PerspectiveData Perspective;
 		private Model Model;
@@ -32,6 +38,16 @@ namespace PhotomatchCore.Gui.GuiControls.ToolHandlers
 		private ModelCreationTool ModelCreationTool;
 		private BaseModelCreationToolHandler[] ModelCreationToolHandlers;
 
+		/// <summary>
+		/// Handler uses 5 handlers, one for each tool.
+		/// </summary>
+		/// <param name="model">Handler is changing the model.</param>
+		/// <param name="window">Handler needs to display additional geometry.</param>
+		/// <param name="perspective">Handler converts between world and screen space.</param>
+		/// <param name="modelVisualization">Handler displays the model.</param>
+		/// <param name="logger">Handler sends messages to user.</param>
+		/// <param name="pointGrabRadius">Screen distance in pixels, from which a vertex/edge can be selected.</param>
+		/// <param name="pointDrawRadius">The radius of drawn vertices in pixels on screen.</param>
 		public ModelCreationHandler(Model model, IImageView window, PerspectiveData perspective, ModelVisualization modelVisualization, ILogger logger, double pointDrawRadius, double pointGrabRadius)
 		{
 			Model = model;
@@ -50,6 +66,9 @@ namespace PhotomatchCore.Gui.GuiControls.ToolHandlers
 			SetActive(Active);
 		}
 
+		/// <summary>
+		/// Pass notification to handlers.
+		/// </summary>
 		public void MouseMove(Vector2 mouseCoord)
 		{
 			for (int i = 0; i < ModelCreationToolHandlers.Length; i++)
@@ -58,6 +77,9 @@ namespace PhotomatchCore.Gui.GuiControls.ToolHandlers
 			}
 		}
 
+		/// <summary>
+		/// Pass notification to handlers.
+		/// </summary>
 		public void MouseDown(Vector2 mouseCoord, MouseButton button)
 		{
 			for (int i = 0; i < ModelCreationToolHandlers.Length; i++)
@@ -66,6 +88,9 @@ namespace PhotomatchCore.Gui.GuiControls.ToolHandlers
 			}
 		}
 
+		/// <summary>
+		/// Pass notification to handlers.
+		/// </summary>
 		public void MouseUp(Vector2 mouseCoord, MouseButton button)
 		{
 			for (int i = 0; i < ModelCreationToolHandlers.Length; i++)
@@ -74,6 +99,9 @@ namespace PhotomatchCore.Gui.GuiControls.ToolHandlers
 			}
 		}
 
+		/// <summary>
+		/// Pass notification to handlers.
+		/// </summary>
 		public void KeyDown(KeyboardKey key)
 		{
 			for (int i = 0; i < ModelCreationToolHandlers.Length; i++)
@@ -82,6 +110,9 @@ namespace PhotomatchCore.Gui.GuiControls.ToolHandlers
 			}
 		}
 
+		/// <summary>
+		/// Pass notification to handlers.
+		/// </summary>
 		public void KeyUp(KeyboardKey key)
 		{
 			for (int i = 0; i < ModelCreationToolHandlers.Length; i++)
@@ -103,7 +134,10 @@ namespace PhotomatchCore.Gui.GuiControls.ToolHandlers
 			}
 			handler.Active = active;
 		}
-
+		
+		/// <summary>
+		/// Dispose of ModelVisualization, all handlers and perspective.
+		/// </summary>
 		public void Dispose()
 		{
 			ModelVisualization.Dispose();
@@ -114,6 +148,9 @@ namespace PhotomatchCore.Gui.GuiControls.ToolHandlers
 			Perspective = null;
 		}
 
+		/// <summary>
+		/// Select handler based on newModelCreationTool.
+		/// </summary>
 		public void CreationTool_Changed(ModelCreationTool newModelCreationTool)
 		{
 			if (ModelCreationTool != newModelCreationTool)
@@ -134,6 +171,9 @@ namespace PhotomatchCore.Gui.GuiControls.ToolHandlers
 			}
 		}
 
+		/// <summary>
+		/// Update model to model passed by parameter in all handlers.
+		/// </summary>
 		public void UpdateModel(Model model)
 		{
 			foreach (BaseModelCreationToolHandler handler in ModelCreationToolHandlers)

@@ -8,12 +8,22 @@ using PhotomatchCore.Utilities;
 
 namespace PhotomatchCore.Gui.GuiControls.ToolHandlers
 {
+
+	/// <summary>
+	/// Class for handling camera calibration.
+	/// </summary>
 	class CameraCalibrationHandler
 	{
 		public delegate void CoordSystemUpdateEventHandler();
+
+		/// <summary>
+		/// Event called when the perspective should be redrawn.
+		/// </summary>
 		public CoordSystemUpdateEventHandler CoordSystemUpdateEvent;
 
-		private bool Active_;
+		/// <summary>
+		/// Get/set true if the handler is currently being used and is displayed, false otherwise.
+		/// </summary>
 		public bool Active
 		{
 			get => Active_;
@@ -26,6 +36,7 @@ namespace PhotomatchCore.Gui.GuiControls.ToolHandlers
 				}
 			}
 		}
+		private bool Active_;
 
 		private ILine LineA1, LineA2, LineB1, LineB2;
 		private ILine LineX, LineY, LineZ;
@@ -38,6 +49,10 @@ namespace PhotomatchCore.Gui.GuiControls.ToolHandlers
 		private double PointGrabRadius;
 		private double PointDrawRadius;
 
+		/// <param name="perspective">Camera to calibrate.</param>
+		/// <param name="window">Window in which to calibrate.</param>
+		/// <param name="pointGrabRadius">Screen distance in pixels, from which a vertex/edge can be selected.</param>
+		/// <param name="pointDrawRadius">The radius of drawn vertices in pixels on screen.</param>
 		public CameraCalibrationHandler(PerspectiveData perspective, IImageView window, double pointGrabRadius, double pointDrawRadius)
 		{
 			Perspective = perspective;
@@ -73,24 +88,37 @@ namespace PhotomatchCore.Gui.GuiControls.ToolHandlers
 			SetActive(Active);
 		}
 
+		/// <summary>
+		/// Pass notification to DraggablePoints.
+		/// </summary>
 		public void MouseMove(Vector2 mouseCoord)
 		{
 			if (Active)
 				DraggablePoints.MouseMove(mouseCoord);
 		}
 
+		/// <summary>
+		/// Pass notification to DraggablePoints.
+		/// </summary>
 		public void MouseDown(Vector2 mouseCoord, MouseButton button)
 		{
 			if (Active)
 				DraggablePoints.MouseDown(mouseCoord, button);
 		}
 
+		/// <summary>
+		/// Pass notification to DraggablePoints.
+		/// </summary>
 		public void MouseUp(Vector2 mouseCoord, MouseButton button)
 		{
 			if (Active)
 				DraggablePoints.MouseUp(mouseCoord, button);
 		}
 
+		/// <summary>
+		/// Update displayed geometry after change in PerspectiveData. Display the origin as a point with 
+		/// lines visualizing axes (or with two perpendicular lines if the calibration is invalid).
+		/// </summary>
 		public void UpdateDisplayedGeometry()
 		{
 			LineA1.Start = Perspective.LineA1.Start;
@@ -145,6 +173,10 @@ namespace PhotomatchCore.Gui.GuiControls.ToolHandlers
 
 			CoordSystemUpdateEvent?.Invoke();
 		}
+
+		/// <summary>
+		/// Change the colors of the 4 calibration lines based on selected CalibrationAxes.
+		/// </summary>
 		private void UpdateCalibrationAxesColors()
 		{
 			Tuple<ApplicationColor, ApplicationColor> colors = GetColorsFromCalibrationAxes(Perspective.CalibrationAxes);
@@ -157,6 +189,7 @@ namespace PhotomatchCore.Gui.GuiControls.ToolHandlers
 			}
 		}
 
+		/// <returns>Colors for selected CalibrationAxes element</returns>
 		private Tuple<ApplicationColor, ApplicationColor> GetColorsFromCalibrationAxes(CalibrationAxes axes)
 		{
 			ApplicationColor colorA, colorB;
@@ -207,12 +240,23 @@ namespace PhotomatchCore.Gui.GuiControls.ToolHandlers
 			Origin.Visible = active;
 		}
 
+		/// <summary>
+		/// Dispose of all resources held by the handler.
+		/// </summary>
 		public void Dispose()
 		{
 			Perspective = null;
 		}
 
+		/// <summary>
+		/// Change CalibrationAxes in PerspectiveData.
+		/// </summary>
+		/// <param name="calibrationAxes"></param>
 		public void CalibrationAxes_Changed(CalibrationAxes calibrationAxes) => Perspective.CalibrationAxes = calibrationAxes;
+
+		/// <summary>
+		/// Change InvertedAxes in PerspectiveData.
+		/// </summary>
 		public void InvertedAxes_Changed(InvertedAxes invertedAxes) => Perspective.InvertedAxes = invertedAxes;
 	}
 }

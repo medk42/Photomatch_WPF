@@ -8,9 +8,15 @@ using PhotomatchCore.Logic.Perspective;
 
 namespace PhotomatchCore.Gui.GuiControls.ToolHandlers
 {
+
+	/// <summary>
+	/// Class for handling camera model calibration.
+	/// </summary>
 	class CameraModelCalibrationHandler
 	{
-		private bool Active_;
+		/// <summary>
+		/// Get/set true if the handler is currently being used and is displayed, false otherwise.
+		/// </summary>
 		public bool Active
 		{
 			get => Active_;
@@ -23,7 +29,11 @@ namespace PhotomatchCore.Gui.GuiControls.ToolHandlers
 				}
 			}
 		}
+		private bool Active_;
 
+		/// <summary>
+		/// Enum containing the 4 states of the handler (for 2 tools, each with 2 states - calibrate origin/scale and select a point/drag it).
+		/// </summary>
 		private enum ToolState { CalibrateOriginSelectPoint, CalibrateOriginDraggingPoint, CalibrateScaleSelectPoint, CalibrateScaleDraggingPoint }
 
 		private Model Model;
@@ -40,6 +50,15 @@ namespace PhotomatchCore.Gui.GuiControls.ToolHandlers
 		private Vertex FixedVertex;
 		private IEllipse SelectedEllipse;
 
+		/// <summary>
+		/// Parameters modelVisualization, perspective and window need to be from the same ImageWindow.
+		/// </summary>
+		/// <param name="modelVisualization">Handler displays the model.</param>
+		/// <param name="model">Scale tool needs to get a reference to the first vertex (origin).</param>
+		/// <param name="perspective">Perspective to change.</param>
+		/// <param name="window">To display a point above the reference vertex.</param>
+		/// <param name="pointGrabRadius">Screen distance in pixels, from which a vertex/edge can be selected.</param>
+		/// <param name="pointDrawRadius">The radius of drawn vertices in pixels on screen.</param>
 		public CameraModelCalibrationHandler(ModelVisualization modelVisualization, Model model, PerspectiveData perspective, IImageView window, double pointGrabRadius, double pointDrawRadius)
 		{
 			ModelVisualization = modelVisualization;
@@ -58,12 +77,19 @@ namespace PhotomatchCore.Gui.GuiControls.ToolHandlers
 			SetActive(Active);
 		}
 
+		/// <summary>
+		/// Move the origin from PerspectiveData so that SelectedVertex is above mouseCoord (if possible).
+		/// </summary>
 		private void UpdateOrigin(Vector2 mouseCoord)
 		{
 			Perspective.Origin = Perspective.MatchScreenWorldPoint(mouseCoord, SelectedVertex.Position);
 			ModelVisualization.UpdateDisplayedGeometry();
 		}
 
+		/// <summary>
+		/// Move the origin and change the scale from PerspectiveData so that SelectedVertex is closest 
+		/// to mouseCoord and FixedVertex stays at the same position (if possible).
+		/// </summary>
 		private void UpdateScale(Vector2 mouseCoord)
 		{
 			Vector3 originScale = Perspective.MatchScreenWorldPoints(Perspective.WorldToScreen(FixedVertex.Position), FixedVertex.Position, mouseCoord, SelectedVertex.Position);
@@ -77,6 +103,10 @@ namespace PhotomatchCore.Gui.GuiControls.ToolHandlers
 			ModelVisualization.UpdateDisplayedGeometry();
 		}
 
+		/// <summary>
+		/// Display a point above vertex under mouse when selecting a point, update origin/scale when dragging a point.
+		/// </summary>
+		/// <param name="mouseCoord"></param>
 		public void MouseMove(Vector2 mouseCoord)
 		{
 			if (Active)
@@ -99,6 +129,10 @@ namespace PhotomatchCore.Gui.GuiControls.ToolHandlers
 			}
 		}
 
+		/// <summary>
+		/// When selecting a point, for calibrate origin select point, for calibrate scale
+		/// select point or reference point based on which mouse button was pressed.
+		/// </summary>
 		public void MouseDown(Vector2 mouseCoord, MouseButton button)
 		{
 			if (Active)
@@ -145,6 +179,9 @@ namespace PhotomatchCore.Gui.GuiControls.ToolHandlers
 			}
 		}
 
+		/// <summary>
+		/// If we are dragging a point, stop.
+		/// </summary>
 		public void MouseUp(Vector2 mouseCoord, MouseButton button)
 		{
 			if (Active)
@@ -177,6 +214,9 @@ namespace PhotomatchCore.Gui.GuiControls.ToolHandlers
 				SelectedEllipse.Visible = false;
 		}
 
+		/// <summary>
+		/// Select tool, calibrate origin or scale. 
+		/// </summary>
 		public void CalibrationTool_Changed(CameraModelCalibrationTool newCameraModelCalibrationTool)
 		{
 			switch (newCameraModelCalibrationTool)
@@ -198,6 +238,9 @@ namespace PhotomatchCore.Gui.GuiControls.ToolHandlers
 			}
 		}
 
+		/// <summary>
+		/// Update model to model passed by parameter.
+		/// </summary>
 		public void UpdateModel(Model model)
 		{
 			Model = model;
@@ -205,6 +248,9 @@ namespace PhotomatchCore.Gui.GuiControls.ToolHandlers
 			SelectedEllipse.Position = Perspective.WorldToScreen(FixedVertex.Position);
 		}
 
+		/// <summary>
+		/// Update positions of all geometry on screen.
+		/// </summary>
 		public void UpdateDisplayedGeometry()
 		{
 			if (FixedVertex != null)

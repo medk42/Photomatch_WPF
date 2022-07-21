@@ -233,6 +233,9 @@ namespace PhotomatchCore.Gui.GuiControls.Helper
 				DisplayClippedFace(faceTuple.Item1, faceTuple.Item2);
 		}
 
+		/// <summary>
+		/// Remove displayed edge, unregister events.
+		/// </summary>
 		private void EdgeRemoved(Edge edge)
 		{
 			edge.EdgeRemovedEvent -= EdgeRemoved;
@@ -245,6 +248,9 @@ namespace PhotomatchCore.Gui.GuiControls.Helper
 			ModelLines.Remove(tuple);
 		}
 
+		/// <summary>
+		/// Remove displayed face, unregister events.
+		/// </summary>
 		private void FaceRemoved(Face face)
 		{
 			face.FaceRemovedEvent -= FaceRemoved;

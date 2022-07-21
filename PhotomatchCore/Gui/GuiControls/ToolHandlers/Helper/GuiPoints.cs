@@ -99,6 +99,10 @@ namespace PhotomatchCore.Gui.GuiControls.ToolHandlers.Helper
 			return value;
 		}
 
+		/// <summary>
+		/// If holding a point, move it to a new position (keeping the same offset from mouse). 
+		/// Don't let the point go outside the window.
+		/// </summary>
 		public void MouseMove(Vector2 mouseCoord)
 		{
 			if (CurrentPoint != null)
@@ -117,6 +121,9 @@ namespace PhotomatchCore.Gui.GuiControls.ToolHandlers.Helper
 			}
 		}
 
+		/// <summary>
+		/// Select a point that is closest to mouse and at most MaxMouseDistance away (in pixels).
+		/// </summary>
 		public void MouseDown(Vector2 mouseCoord, MouseButton button)
 		{
 			if (button == MouseButton.Left)
